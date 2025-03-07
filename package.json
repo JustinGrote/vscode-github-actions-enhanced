@@ -66,6 +66,7 @@
       "properties": {
         "github-actions.workflows.pinned.workflows": {
           "description": "Workflows to show in the status bar, identified by their paths",
+          "deprecationMessage": "Pinned workflows are now configured and persisted automatically on a per-workspace basis without using settings. This avoids unnecessary workspace settings file changes and allows per-user flexibility.",
           "type": "array",
           "scope": "window"
         },
