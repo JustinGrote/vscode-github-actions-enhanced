@@ -34,6 +34,9 @@ const pinnedWorkflows: PinnedWorkflow[] = [];
 let refreshTimer: NodeJS.Timeout | undefined;
 let runStore: RunStore;
 
+// Add a map to store ETags for workflow requests
+const workflowEtagMap = new Map<number, string>();
+
 export async function initPinnedWorkflows(store: RunStore) {
   // Register handler for configuration changes
   onPinnedWorkflowsChange(() => void _init());
@@ -168,24 +171,60 @@ async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
   const {gitHubRepoContext} = pinnedWorkflow;
 
   try {
-    const runs = await gitHubRepoContext.client.actions.listWorkflowRuns({
+    const requestOptions = {
       owner: gitHubRepoContext.owner,
       repo: gitHubRepoContext.name,
-      workflow_id: pinnedWorkflow.workflowId, // Workflow can also be a file name
-      per_page: 1
-    });
-    const {workflow_runs} = runs.data;
+      workflow_id: pinnedWorkflow.workflowId,
+      per_page: 1,
+      headers: {}
+    };
 
-    // Add all runs to store
-    for (const run of workflow_runs) {
-      runStore.addRun(gitHubRepoContext, run);
+    // Conditional Headers: https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api?apiVersion=2022-11-28#use-conditional-requests-if-appropriate
+
+    // Add If-None-Match header if we have an ETag for this workflow
+    const etag = workflowEtagMap.get(pinnedWorkflow.workflowId);
+    if (etag) {
+      requestOptions.headers = {
+        "if-none-match": etag
+      };
     }
 
-    const mostRecentRun = workflow_runs?.[0];
+    const runs = await gitHubRepoContext.client.actions.listWorkflowRuns(requestOptions);
 
-    updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id));
-  } catch (e) {
-    logError(e as Error, "Error updating pinned workflow");
+    // Store the new ETag if provided
+    const responseEtag = runs.headers.etag;
+    if (responseEtag) {
+      workflowEtagMap.set(pinnedWorkflow.workflowId, responseEtag);
+    }
+
+    // If we get data, process it (a 304 response won't have data)
+    if (runs.data && runs.data.workflow_runs) {
+      const {workflow_runs} = runs.data;
+
+      // Add all runs to store
+      for (const run of workflow_runs) {
+        runStore.addRun(gitHubRepoContext, run);
+      }
+
+      const mostRecentRun = workflow_runs?.[0];
+      updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id));
+    }
+    // If it was a 304, the data hasn't changed so we don't need to update anything
+  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const httpError = err as any;
+
+    if (!httpError.status) {
+      logError(err as Error, "Unknown Error checking for pinned workflow updates");
+      return;
+    }
+
+    // Resource not modified, which is normal. Our rate-limit should not decrease with this response
+    if (httpError.status === 304) {
+      return;
+    }
+
+    logError(err as Error, "Error checking for pinned workflow updates");
   }
 }
 
