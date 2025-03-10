@@ -15,6 +15,8 @@ import {RunStore} from "../store/store";
 import {WorkflowRun} from "../store/workflowRun";
 import {getCodIconForWorkflowRun} from "../treeViews/icons";
 import {WorkflowRunCommandArgs} from "../treeViews/shared/workflowRunNode";
+import {ensureError} from "../error";
+import {RequestError} from "@octokit/request-error";
 
 interface PinnedWorkflow {
   /** Displayed name */
@@ -33,9 +35,6 @@ interface PinnedWorkflow {
 const pinnedWorkflows: PinnedWorkflow[] = [];
 let refreshTimer: NodeJS.Timeout | undefined;
 let runStore: RunStore;
-
-// Add a map to store ETags for workflow requests
-const workflowEtagMap = new Map<number, string>();
 
 export async function initPinnedWorkflows(store: RunStore) {
   // Register handler for configuration changes
@@ -108,16 +107,11 @@ async function updatePinnedWorkflows() {
     }
 
     // Get all workflows to resolve names. We could do this locally, but for now, let's make the API call.
-    const workflows = await gitHubRepoContext.client.paginate(
-      // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
-      gitHubRepoContext.client.actions.listRepoWorkflows,
-      {
-        owner: gitHubRepoContext.owner,
-        repo: gitHubRepoContext.name,
-        per_page: 100
-      },
-      response => response.data
-    );
+    const workflows = await gitHubRepoContext.client.paginate(gitHubRepoContext.client.actions.listRepoWorkflows, {
+      owner: gitHubRepoContext.owner,
+      repo: gitHubRepoContext.name,
+      per_page: 100
+    });
 
     const workflowByPath: {[id: string]: Workflow} = {};
     // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
@@ -169,62 +163,32 @@ function createPinnedWorkflow(gitHubRepoContext: GitHubRepoContext, workflow: Wo
 
 async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
   const {gitHubRepoContext} = pinnedWorkflow;
+  const {client} = gitHubRepoContext;
 
   try {
-    const requestOptions = {
+    const run = await client.paginate(client.actions.listWorkflowRuns, {
       owner: gitHubRepoContext.owner,
       repo: gitHubRepoContext.name,
       workflow_id: pinnedWorkflow.workflowId,
       per_page: 1,
-      headers: {}
-    };
+      page: 1
+    });
 
-    // Conditional Headers: https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api?apiVersion=2022-11-28#use-conditional-requests-if-appropriate
+    const mostRecentRun = run[0];
 
-    // Add If-None-Match header if we have an ETag for this workflow
-    const etag = workflowEtagMap.get(pinnedWorkflow.workflowId);
-    if (etag) {
-      requestOptions.headers = {
-        "if-none-match": etag
-      };
-    }
+    runStore.addRun(gitHubRepoContext, mostRecentRun);
 
-    const runs = await gitHubRepoContext.client.actions.listWorkflowRuns(requestOptions);
+    updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id));
+  } catch (e) {
+    const error = ensureError(e);
 
-    // Store the new ETag if provided
-    const responseEtag = runs.headers.etag;
-    if (responseEtag) {
-      workflowEtagMap.set(pinnedWorkflow.workflowId, responseEtag);
-    }
-
-    // If we get data, process it (a 304 response won't have data)
-    if (runs.data && runs.data.workflow_runs) {
-      const {workflow_runs} = runs.data;
-
-      // Add all runs to store
-      for (const run of workflow_runs) {
-        runStore.addRun(gitHubRepoContext, run);
-      }
-
-      const mostRecentRun = workflow_runs?.[0];
-      updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id));
-    }
-    // If it was a 304, the data hasn't changed so we don't need to update anything
-  } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const httpError = err as any;
-
-    if (!httpError.status) {
-      logError(err as Error, "Unknown Error checking for pinned workflow updates");
+    // Filter out non-RequestError. This will enable type inference.
+    if (!(error instanceof RequestError)) {
+      logError(error, "Unknown Error checking for pinned workflow updates");
       return;
     }
 
-    // Resource not modified, which is normal. Our rate-limit should not decrease with this response
-    if (httpError.status === 304) {
-      return;
-    }
-
-    logError(err as Error, "Error checking for pinned workflow updates");
+    logError(error, "Error checking for pinned workflow updates");
   }
 }
 

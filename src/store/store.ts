@@ -64,7 +64,27 @@ export class RunStore extends EventEmitter<RunStoreEvent> {
     this.updaters.set(runId, updater);
   }
 
+  pollRunUntilComplete(runId: number, repoContext: GitHubRepoContext) {
+    const existingUpdater: Updater | undefined = this.updaters.get(runId);
+    if (existingUpdater && existingUpdater.handle) {
+      clearInterval(existingUpdater.handle);
+    }
+
+    const updater: Updater = {
+      intervalMs: 1000,
+      repoContext,
+      runId,
+      remainingAttempts: 20,
+      handle: undefined
+    };
+
+    updater.handle = setInterval(() => void this.fetchRun(updater), updater.intervalMs);
+
+    this.updaters.set(runId, updater);
+  }
+
   private async fetchRun(updater: Updater) {
+    const client = updater.repoContext.client;
     logDebug("Updating run: ", updater.runId);
 
     updater.remainingAttempts--;
@@ -76,11 +96,20 @@ export class RunStore extends EventEmitter<RunStoreEvent> {
       this.updaters.delete(updater.runId);
     }
 
-    const result = await updater.repoContext.client.actions.getWorkflowRun({
-      owner: updater.repoContext.owner,
-      repo: updater.repoContext.name,
-      run_id: updater.runId
-    });
+    const result = await client.conditionalRequest(
+      client.actions.getWorkflowRun,
+      {
+        owner: updater.repoContext.owner,
+        repo: updater.repoContext.name,
+        run_id: updater.runId
+      },
+      `getWorkflowRun-${updater.runId}`
+    );
+
+    if (result === undefined) {
+      // No changes, do nothing
+      return;
+    }
 
     const run = result.data;
     this.addRun(updater.repoContext, run);
