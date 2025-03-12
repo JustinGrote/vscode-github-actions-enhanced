@@ -10,5 +10,11 @@
       "source.organizeImports.ts": "explicit",
       "source.addMissingImports.ts": "explicit"
     }
-  }
+  },
+  "debug.javascript.autoAttachSmartPattern": [
+    "!esbuild.mjs", //Dont debug our build script automatically, it's annoying
+    "${workspaceFolder}/**",
+    "!**/node_modules/**",
+    "**/$KNOWN_TOOLS$/**"
+  ]
 }
