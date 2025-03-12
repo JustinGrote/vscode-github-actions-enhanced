@@ -18,7 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: "npm"
+          cache: npm
+          cache-dependency-path: package-lock.json
           registry-url: "https://npm.pkg.github.com"
       - run: npm ci
         env:
