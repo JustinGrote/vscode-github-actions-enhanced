@@ -1,14 +1,14 @@
 {
-  "name": "@github/vscode-github-actions",
-  "displayName": "GitHub Actions",
-  "publisher": "github",
+  "name": "github-actions-enhanced",
+  "displayName": "GitHub Actions Enhanced",
+  "publisher": "justin-grote",
   "icon": "resources/logo.png",
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/github/vscode-github-actions"
+    "url": "https://github.com/justingrote/vscode-github-actions-enhanced"
   },
-  "description": "GitHub Actions workflows and runs for github.com hosted repositories in VS Code",
-  "version": "0.27.1",
+  "description": "GitHub Actions with enhancements that are pending merge to the official extension.",
+  "version": "0.0.0-source",
   "engines": {
     "vscode": "^1.98.0",
     "node": ">20.18.2"
@@ -21,6 +21,21 @@
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "github",
+    "actions",
+    "improved",
+    "better",
+    "enhanced",
+    "workflow",
+    "runs",
+    "jobs",
+    "steps",
+    "secrets",
+    "variables",
+    "settings",
+    "github-actions"
   ],
   "activationEvents": [
     "onView:workflows",

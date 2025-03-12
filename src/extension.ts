@@ -34,8 +34,12 @@ import {initResources} from "./treeViews/icons";
 import {initTreeViews} from "./treeViews/treeViews";
 import {deactivateLanguageServer, initLanguageServer} from "./workflow/languageServer";
 import {registerSignIn} from "./commands/signIn";
+import {assertOfficalExtensionNotPresent as officialExtensionIsActive} from "./extensionConflictHandler";
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Github Actions Enhanced conflict avoidance
+  if (await officialExtensionIsActive()) return;
+
   initLogger();
   log("Activating GitHub Actions extension...");
   const hasSession = !!(await getSession());
