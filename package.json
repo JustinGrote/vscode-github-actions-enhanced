@@ -511,7 +511,7 @@
   },
   "scripts": {
     "esbuild": "node esbuild.mjs",
-    "build": "npm run esbuild -- --production && npm run esbuild -- --production --web",
+    "build": "npm run clean && npm run esbuild -- --production && npm run esbuild -- --production --web",
     "watch": "npm run esbuild -- --watch",
     "watch-web": "npm run esbuild -- --watch --web",
     "clean": "rimraf ./dist ./out",
