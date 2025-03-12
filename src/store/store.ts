@@ -1,4 +1,3 @@
-import {setInterval} from "timers";
 import {EventEmitter} from "vscode";
 import {GitHubRepoContext} from "../git/repository";
 import {logDebug} from "../log";

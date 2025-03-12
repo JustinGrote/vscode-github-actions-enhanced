@@ -1,10 +1,12 @@
 import * as vscode from "vscode";
 
-import {extname} from "path";
+import {Utils} from "vscode-uri";
 import {LogScheme} from "../logs/constants";
 import {updateDecorations} from "../logs/formatProvider";
 import {getLogInfo} from "../logs/logInfo";
 import {getContextStringForWorkflow} from "../workflow/workflow";
+
+const extname = Utils.extname;
 
 export async function initWorkflowDocumentTracking(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor));
@@ -22,7 +24,7 @@ async function onDidChangeActiveTextEditor(editor?: vscode.TextEditor) {
   if (
     editor.document.uri?.fsPath &&
     editor.document.uri.scheme === "file" &&
-    extname(editor.document.fileName).match(/\.ya?ml/) &&
+    extname(editor.document.uri).match(/\.ya?ml/) &&
     editor.document.fileName.indexOf(".github/workflows") !== -1
   ) {
     await vscode.commands.executeCommand(

@@ -10,6 +10,11 @@
     "strict": true,
     "moduleResolution": "node",
     "outDir": "out",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/typings"
+    ],
+    "types": ["node", "jest", "git"]
   }
 }
