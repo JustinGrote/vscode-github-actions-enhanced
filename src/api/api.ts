@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {Octokit} from "@octokit/rest";
 import {version} from "../../package.json";
 import {getGitHubApiUri} from "../configuration/configuration";
@@ -17,7 +16,7 @@ export function getClient(token: string) {
     userAgent: userAgent,
     baseUrl: getGitHubApiUri(),
     throttle: {
-      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+      onRateLimit: (retryAfter, options, octokit) => {
         octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}.`);
 
         if (options.request.retryCount === 0) {

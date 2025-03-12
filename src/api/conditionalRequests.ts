@@ -1,8 +1,8 @@
-import { logError } from "../log";
-import { assertRequestError } from "../error";
+import {logError} from "../log";
+import {assertRequestError} from "../error";
 
 export const conditionalRequest = () => ({
-  conditionalRequest: returnIfChanged,
+  conditionalRequest: returnIfChanged
   // conditionalIterate: iterateIfChanged.bind(octokit)
 });
 
@@ -29,8 +29,13 @@ const timestampMap = new Map<string, string>();
  * This function only tracks ETags internally to determine if content has changed,
  * but does not cache the actual response data between calls.
  */
-async function returnIfChanged<TResponse, TParams>(request: (params: TParams) => Promise<TResponse>, requestParams?: TParams, cacheId?: string, timestamp: boolean = false): Promise<TResponse | undefined> {
-	try {
+async function returnIfChanged<TResponse, TParams>(
+  request: (params: TParams) => Promise<TResponse>,
+  requestParams?: TParams,
+  cacheId?: string,
+  timestamp: boolean = false
+): Promise<TResponse | undefined> {
+  try {
     const options = {...requestParams} as TParams extends {headers: Record<string, string>}
       ? TParams
       : TParams & {headers: Record<string, string>};
@@ -47,7 +52,7 @@ async function returnIfChanged<TResponse, TParams>(request: (params: TParams) =>
       options.headers[cacheHeader] = cacheMatch;
     }
 
-		// TODO: Figure out how to make this type safe
+    // TODO: Figure out how to make this type safe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = (await request(options)) as any;
 
@@ -63,16 +68,16 @@ async function returnIfChanged<TResponse, TParams>(request: (params: TParams) =>
 
     return response;
   } catch (e) {
-		const err = assertRequestError(e);
+    const err = assertRequestError(e);
 
-		// Resource not modified (304), return undefined.
-		if (err.status === 304) {
-			return undefined;
-		}
+    // Resource not modified (304), return undefined.
+    if (err.status === 304) {
+      return undefined;
+    }
 
-		logError(err);
-		throw new Error("Error making conditional request: ", {cause: err});
-	}
+    logError(err);
+    throw new Error("Error making conditional request: ", {cause: err});
+  }
 }
 
 // /**
@@ -97,8 +102,6 @@ async function returnIfChanged<TResponse, TParams>(request: (params: TParams) =>
 // 		}
 // 		iteratorParams.headers["if-none-match"] = etag;
 // 	}
-
-
 
 // 	// Create the iterator
 // 	const iterator = composePaginateRest.iterator(this, request, iteratorParams);

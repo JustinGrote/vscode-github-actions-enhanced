@@ -1,4 +1,4 @@
-import { RequestError } from "@octokit/request-error";
+import {RequestError} from "@octokit/request-error";
 
 /**
  * Ensures that the unknown value is an Error object.
@@ -26,13 +26,12 @@ export function ensureError(value: unknown): Error {
   try {
     stringified = JSON.stringify(value);
   } catch {
-		stringified = "[Unknown value that cannot be stringified]"
-	}
+    stringified = "[Unknown value that cannot be stringified]";
+  }
 
   const error = new Error(`Non-Error Value: ${stringified}`, {cause: value});
   return error;
 }
-
 
 /**
  * Asserts that the given value is an Oktokit RequestError.
@@ -48,7 +47,7 @@ export function assertRequestError(value: unknown, message?: string): RequestErr
     if (message) {
       error.message = `${message}: ${error.message}`;
     }
-    throw error
-  };
+    throw error;
+  }
   return value;
 }
