@@ -9,7 +9,7 @@ import {
 import {getGitHubContextForWorkspaceUri, GitHubRepoContext} from "../git/repository";
 
 import {sep} from "path";
-import {log, logError} from "../log";
+import {log, logDebug, logError} from "../log";
 import {Workflow} from "../model";
 import {RunStore} from "../store/store";
 import {WorkflowRun} from "../store/workflowRun";
@@ -166,15 +166,31 @@ async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
   const {client} = gitHubRepoContext;
 
   try {
-    const run = await client.paginate(client.actions.listWorkflowRuns, {
-      owner: gitHubRepoContext.owner,
-      repo: gitHubRepoContext.name,
-      workflow_id: pinnedWorkflow.workflowId,
-      per_page: 1,
-      page: 1
-    });
+    const run = await client.conditionalRequest(
+      client.actions.listWorkflowRuns,
+      {
+        owner: gitHubRepoContext.owner,
+        repo: gitHubRepoContext.name,
+        workflow_id: pinnedWorkflow.workflowId,
+        per_page: 1,
+        page: 1
+      },
+      "getMostRecentWorkflowRun" + pinnedWorkflow.workflowId
+    );
 
-    const mostRecentRun = run[0];
+    if (run === undefined) {
+      logDebug(
+        "No new workflow runs found for",
+        gitHubRepoContext.owner,
+        gitHubRepoContext.name,
+        pinnedWorkflow.workflowName
+      );
+      return;
+    }
+
+    const mostRecentRun = run.data.workflow_runs[0];
+
+    runStore.getRun(mostRecentRun.id);
 
     runStore.addRun(gitHubRepoContext, mostRecentRun);
 
