@@ -37,7 +37,7 @@ async function main() {
      // Added .d.ts to resolve extensions
       treeShaking: true,
       plugins: [
-        esbuildProblemMatcherPlugin(false)
+        esbuildProblemMatcherPlugin()
       ]
   });
 
@@ -66,22 +66,25 @@ async function main() {
         })
       ] : []),
       testBundlePlugin,
-      esbuildProblemMatcherPlugin(false)
+      esbuildProblemMatcherPlugin(true)
     ],
     treeShaking: true,
   })
-  console.log(`BUILD: GitHub Actions Language Server Worker (${platform})`)
+
+  // Run section
+  console.log(`📦 [${platform}]: Language Server Worker`)
   await langServerCtx.rebuild();
-  console.log(`COMPLETE: GitHub Actions Language Server Worker (${platform})`)
+  console.log(`✅ [${platform}]: Language Server Worker`)
   if (watch) {
+    console.log(`👀 [${platform}]: VSCode Extension`)
     await ctx.watch();
   } else {
-    console.log(`BUILD: GitHub Actions VSCode Extension (${platform})`)
+    console.log(`📦 [${platform}]: VSCode Extension`)
     await ctx.rebuild();
+    console.log(`✅ [${platform}]: VSCode Extension`)
     await ctx.dispose();
-    console.log(`COMPLETE: GitHub Actions VSCode Extension (${platform})`)
+    process.exit(0);
   }
-  process.exit(0)
 }
 
 /**
@@ -118,12 +121,12 @@ const testBundlePlugin = {
  * @type {import('esbuild').Plugin}
  * @link https://github.com/connor4312/esbuild-problem-matchers/
  */
-function esbuildProblemMatcherPlugin(noBuildEnd = false) {
+function esbuildProblemMatcherPlugin(noWatchMessage = false) {
   return {
     name: 'esbuild-problem-matcher',
     setup(build) {
       build.onStart(() => {
-        if (watch) {
+        if (watch && !noWatchMessage) {
           console.log('[watch] build started');
         }
       });
@@ -133,10 +136,8 @@ function esbuildProblemMatcherPlugin(noBuildEnd = false) {
           if (location == null) return;
           console.error(`    ${location.file}:${location.line}:${location.column}:`);
         });
-        if (!noBuildEnd) {
-          if (watch) {
+        if (watch &&!noWatchMessage) {
             console.log('[watch] build finished');
-          }
         }
       });
     }
