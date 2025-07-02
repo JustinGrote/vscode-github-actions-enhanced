@@ -4,6 +4,7 @@ import {getGitHubApiUri} from "../configuration/configuration";
 import {throttling} from "@octokit/plugin-throttling";
 import {retry} from "@octokit/plugin-retry";
 import {conditionalRequest} from "./conditionalRequests";
+import {createOctokitLogger} from "../log";
 
 export const userAgent = `VS Code GitHub Actions (${version})`;
 
@@ -13,6 +14,7 @@ export type GhaOctokit = InstanceType<typeof GhaOctokit>;
 export function getClient(token: string) {
   return new GhaOctokit({
     auth: token,
+    log: createOctokitLogger(),
     userAgent: userAgent,
     baseUrl: getGitHubApiUri(),
     throttle: {

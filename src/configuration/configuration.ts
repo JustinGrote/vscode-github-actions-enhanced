@@ -97,7 +97,7 @@ export function isPinnedWorkflowsRefreshEnabled(): boolean {
 }
 
 export function pinnedWorkflowsRefreshInterval(): number {
-  return getConfiguration().get<number>(getSettingsKey("workflows.pinned.refresh.interval"), 60);
+  return getConfiguration().get<number>(getSettingsKey("workflows.pinned.refresh.interval"), 1);
 }
 
 export function getRemoteName(): string {

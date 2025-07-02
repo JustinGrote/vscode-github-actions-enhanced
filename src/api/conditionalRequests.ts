@@ -1,4 +1,4 @@
-import {logError} from "../log";
+import {logDebug, logError, logTrace} from "../log";
 import {assertRequestError} from "../error";
 
 export const conditionalRequest = () => ({
@@ -41,15 +41,20 @@ async function returnIfChanged<TResponse, TParams>(
       : TParams & {headers: Record<string, string>};
 
     const cacheKey = cacheId ?? JSON.stringify(options);
+    logDebug("Performing conditional request for cache key:", cacheKey);
+
     // Add If-None-Match header if we have an ETag for this key
     const cacheMatch = timestamp ? timestampMap.get(cacheKey) : etagMap.get(cacheKey);
     const cacheHeader = timestamp ? "if-modified-since" : "if-none-match";
     if (cacheMatch) {
+      logTrace("Cache Key FOUND:", cacheKey);
       // Initialize headers if they don't exist
       if (!options.headers) {
         options.headers = {};
       }
       options.headers[cacheHeader] = cacheMatch;
+    } else {
+      logTrace("Cache Key MISS:", cacheKey);
     }
 
     // TODO: Figure out how to make this type safe
@@ -59,6 +64,7 @@ async function returnIfChanged<TResponse, TParams>(
     // Store the new ETag if provided
     const responseEtag = timestamp ? response.headers.last_modified : response.headers.etag;
     if (responseEtag) {
+      logTrace("Cache Key STORE:", cacheKey, responseEtag);
       if (timestamp) {
         timestampMap.set(cacheKey, responseEtag);
       } else {
@@ -72,6 +78,7 @@ async function returnIfChanged<TResponse, TParams>(
 
     // Resource not modified (304), return undefined.
     if (err.status === 304) {
+      logTrace("Content Not Modified:", cacheId);
       return undefined;
     }
 

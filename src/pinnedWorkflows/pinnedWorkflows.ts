@@ -9,7 +9,7 @@ import {
 import {getGitHubContextForWorkspaceUri, GitHubRepoContext} from "../git/repository";
 
 import {sep} from "path";
-import {log, logError} from "../log";
+import {log, logDebug, logError} from "../log";
 import {Workflow} from "../model";
 import {RunStore} from "../store/store";
 import {WorkflowRun} from "../store/workflowRun";
@@ -114,7 +114,6 @@ async function updatePinnedWorkflows() {
     });
 
     const workflowByPath: {[id: string]: Workflow} = {};
-    // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
     workflows.forEach(w => (workflowByPath[w.path] = w));
 
     for (const pinnedWorkflow of workflowsByWorkspace.get(workspaceName) || []) {
@@ -126,12 +125,6 @@ async function updatePinnedWorkflows() {
       const pW = createPinnedWorkflow(gitHubRepoContext, workflowByPath[pinnedWorkflow]);
       await refreshPinnedWorkflow(pW);
     }
-  }
-}
-
-async function refreshPinnedWorkflows() {
-  for (const pinnedWorkflow of pinnedWorkflows) {
-    await refreshPinnedWorkflow(pinnedWorkflow);
   }
 }
 
@@ -150,8 +143,8 @@ function createPinnedWorkflow(gitHubRepoContext: GitHubRepoContext, workflow: Wo
 
   const pinnedWorkflow = {
     gitHubRepoContext,
-    workflowId: workflow.id,
-    workflowName: workflow.name,
+    workflowId: (workflow as any).id,
+    workflowName: (workflow as any).name,
     lastRunId: undefined,
     statusBarItem
   };
@@ -161,20 +154,37 @@ function createPinnedWorkflow(gitHubRepoContext: GitHubRepoContext, workflow: Wo
   return pinnedWorkflow;
 }
 
+async function refreshPinnedWorkflows() {
+  for (const pinnedWorkflow of pinnedWorkflows) {
+    await refreshPinnedWorkflow(pinnedWorkflow);
+  }
+}
+
 async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
   const {gitHubRepoContext} = pinnedWorkflow;
   const {client} = gitHubRepoContext;
-
+  logDebug("Checking for updates to pinned workflow", pinnedWorkflow.workflowName, "in", gitHubRepoContext.name);
   try {
-    const run = await client.paginate(client.actions.listWorkflowRuns, {
-      owner: gitHubRepoContext.owner,
-      repo: gitHubRepoContext.name,
-      workflow_id: pinnedWorkflow.workflowId,
-      per_page: 1,
-      page: 1
-    });
+    const workflowRunCacheId = `MostRecentRun-${gitHubRepoContext.owner}/${gitHubRepoContext.name}/${pinnedWorkflow.workflowId}`;
+    const workflowRunResult = await client.conditionalRequest(
+      client.actions.listWorkflowRuns,
+      {
+        owner: gitHubRepoContext.owner,
+        repo: gitHubRepoContext.name,
+        workflow_id: pinnedWorkflow.workflowId,
+        per_page: 1,
+        page: 1
+      },
+      workflowRunCacheId
+    );
 
-    const mostRecentRun = run[0];
+    if (workflowRunResult === undefined) {
+      logDebug("No new runs detected for pinned workflow", pinnedWorkflow.workflowName);
+      return;
+    }
+
+    const mostRecentRun = workflowRunResult.data.workflow_runs[0];
+    logDebug("Updating pinned workflow", pinnedWorkflow.workflowName, "with most recent run id", mostRecentRun?.id);
 
     runStore.addRun(gitHubRepoContext, mostRecentRun);
 
