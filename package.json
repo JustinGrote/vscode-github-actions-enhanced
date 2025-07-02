@@ -557,7 +557,7 @@
     "@octokit/plugin-retry": "^8.0.1",
     "@octokit/plugin-throttling": "^11.0.1",
     "@octokit/request-error": "^7.0.0",
-    "@octokit/rest": "^19.0.13",
+    "@octokit/rest": "^22.0.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "dayjs": "^1.11.13",
