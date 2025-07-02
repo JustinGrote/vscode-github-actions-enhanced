@@ -7,7 +7,6 @@ import {getGitHubApiUri, getRemoteName, useEnterprise} from "../configuration/co
 import {Protocol} from "../external/protocol";
 import {logDebug, logError} from "../log";
 import {type RepositoryPermission, getRepositoryPermission} from "./repository-permissions";
-import {getGitHubApiUri} from "../configuration/configuration";
 import type {API, GitExtension, RepositoryState} from "../typings/git";
 // @ts-expect-error esbuild needs the enum from this declaration to interact with git plugin
 import {RefType} from "../typings/git.d.ts";
