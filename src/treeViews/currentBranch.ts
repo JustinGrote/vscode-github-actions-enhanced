@@ -5,7 +5,7 @@ import {getCurrentBranch, getGitHubContext, GitHubRepoContext} from "../git/repo
 import {CurrentBranchRepoNode} from "./current-branch/currentBranchRepoNode";
 
 import {NoRunForBranchNode} from "./current-branch/noRunForBranchNode";
-import {log, logDebug, logTrace} from "../log";
+import {logDebug, logTrace, logWarn} from "../log";
 import {RunStore} from "../store/store";
 import {AttemptNode} from "./shared/attemptNode";
 import {GitHubAPIUnreachableNode} from "./shared/gitHubApiUnreachableNode";
@@ -67,7 +67,7 @@ export class CurrentBranchTreeProvider
         const repoContext = gitHubContext.repos[0];
         const currentBranch = getCurrentBranch(repoContext.repositoryState);
         if (!currentBranch) {
-          log(`Could not find current branch for ${repoContext.name}`);
+          logWarn(`Could not find current branch for ${repoContext.name}`);
           return [];
         }
 
@@ -79,7 +79,7 @@ export class CurrentBranchTreeProvider
           .map((repoContext): CurrentBranchRepoNode | undefined => {
             const currentBranch = getCurrentBranch(repoContext.repositoryState);
             if (!currentBranch) {
-              log(`Could not find current branch for ${repoContext.name}`);
+              logWarn(`Could not find current branch for ${repoContext.name}`);
               return undefined;
             }
 
@@ -103,7 +103,7 @@ export class CurrentBranchTreeProvider
   }
 
   private async getRuns(gitHubRepoContext: GitHubRepoContext, currentBranchName: string): Promise<WorkflowRunNode[]> {
-    logDebug("Getting workflow runs for branch");
+    logDebug(`Getting current branch (${currentBranchName}) runs in repo ${gitHubRepoContext.name}`);
 
     const result = await gitHubRepoContext.client.actions.listWorkflowRunsForRepo({
       owner: gitHubRepoContext.owner,

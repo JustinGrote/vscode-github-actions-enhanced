@@ -75,13 +75,12 @@ export class WorkflowRun extends WorkflowRunBase {
   }
 
   override async fetchJobs(): Promise<WorkflowJob[]> {
-    logDebug("Getting workflow jobs");
+    logDebug(`Fetching jobs for workflow run ${this._run.display_title} #${this._run.run_number} (${this._run.id})`);
 
     let jobs: model.WorkflowJob[] = [];
 
     try {
       jobs = await this._gitHubRepoContext.client.paginate(
-        // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
         this._gitHubRepoContext.client.actions.listJobsForWorkflowRun,
         {
           owner: this._gitHubRepoContext.owner,
@@ -153,7 +152,6 @@ export class WorkflowRunAttempt extends WorkflowRunBase {
 
     try {
       jobs = await this._gitHubRepoContext.client.paginate(
-        // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
         this._gitHubRepoContext.client.actions.listJobsForWorkflowRunAttempt,
         {
           owner: this._gitHubRepoContext.owner,
