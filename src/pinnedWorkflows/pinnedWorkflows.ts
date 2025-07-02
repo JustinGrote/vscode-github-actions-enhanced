@@ -15,6 +15,8 @@ import {RunStore} from "../store/store";
 import {WorkflowRun} from "../store/workflowRun";
 import {getCodIconForWorkflowRun} from "../treeViews/icons";
 import {WorkflowRunCommandArgs} from "../treeViews/shared/workflowRunNode";
+import {ensureError} from "../error";
+import {RequestError} from "@octokit/request-error";
 
 interface PinnedWorkflow {
   /** Displayed name */
@@ -105,16 +107,11 @@ async function updatePinnedWorkflows() {
     }
 
     // Get all workflows to resolve names. We could do this locally, but for now, let's make the API call.
-    const workflows = await gitHubRepoContext.client.paginate(
-      // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
-      gitHubRepoContext.client.actions.listRepoWorkflows,
-      {
-        owner: gitHubRepoContext.owner,
-        repo: gitHubRepoContext.name,
-        per_page: 100
-      },
-      response => response.data
-    );
+    const workflows = await gitHubRepoContext.client.paginate(gitHubRepoContext.client.actions.listRepoWorkflows, {
+      owner: gitHubRepoContext.owner,
+      repo: gitHubRepoContext.name,
+      per_page: 100
+    });
 
     const workflowByPath: {[id: string]: Workflow} = {};
     // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
@@ -166,26 +163,32 @@ function createPinnedWorkflow(gitHubRepoContext: GitHubRepoContext, workflow: Wo
 
 async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
   const {gitHubRepoContext} = pinnedWorkflow;
+  const {client} = gitHubRepoContext;
 
   try {
-    const runs = await gitHubRepoContext.client.actions.listWorkflowRuns({
+    const run = await client.paginate(client.actions.listWorkflowRuns, {
       owner: gitHubRepoContext.owner,
       repo: gitHubRepoContext.name,
-      workflow_id: pinnedWorkflow.workflowId, // Workflow can also be a file name
-      per_page: 1
+      workflow_id: pinnedWorkflow.workflowId,
+      per_page: 1,
+      page: 1
     });
-    const {workflow_runs} = runs.data;
 
-    // Add all runs to store
-    for (const run of workflow_runs) {
-      runStore.addRun(gitHubRepoContext, run);
-    }
+    const mostRecentRun = run[0];
 
-    const mostRecentRun = workflow_runs?.[0];
+    runStore.addRun(gitHubRepoContext, mostRecentRun);
 
     updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id));
   } catch (e) {
-    logError(e as Error, "Error updating pinned workflow");
+    const error = ensureError(e);
+
+    // Filter out non-RequestError. This will enable type inference.
+    if (!(error instanceof RequestError)) {
+      logError(error, "Unknown Error checking for pinned workflow updates");
+      return;
+    }
+
+    logError(error, "Error checking for pinned workflow updates");
   }
 }
 

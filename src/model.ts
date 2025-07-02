@@ -1,5 +1,5 @@
-import {components} from "@octokit/openapi-types";
-import {RestEndpointMethods} from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
+import type {components} from "@octokit/openapi-types";
+import type {RestEndpointMethods} from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
 
 // Type helpers
 type Await<T> = T extends {

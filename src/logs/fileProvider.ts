@@ -1,4 +1,4 @@
-import {OctokitResponse} from "@octokit/types";
+import type {OctokitResponse} from "@octokit/types";
 import * as vscode from "vscode";
 import {getGitHubContextForRepo} from "../git/repository";
 import {cacheLogInfo} from "./logInfo";
