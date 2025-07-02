@@ -6,31 +6,42 @@
     {
       "type": "npm",
       "script": "build",
-      "group": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "isBackground": true,
-      "problemMatcher": ["$esbuild"],
+      "problemMatcher": [
+        "$esbuild"
+      ],
       "icon": {
         "id": "package",
         "color": "terminal.ansiGreen"
-      }
+      },
+      "label": "npm: build",
+      "detail": "pnpm clean && pnpm esbuild -- --production && pnpm esbuild -- --production --web"
     },
     {
       "type": "npm",
       "script": "watch",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": ["$esbuild-watch"],
+      "problemMatcher": [
+        "$esbuild-watch"
+      ],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"
-      },
+      }
     },
     {
       "type": "npm",
       "script": "watch-web",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": ["$esbuild-watch"],
+      "problemMatcher": [
+        "$esbuild-watch"
+      ],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"
