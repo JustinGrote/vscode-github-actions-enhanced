@@ -56,14 +56,17 @@ export async function initPinnedWorkflows(store: RunStore) {
 }
 
 async function _init(): Promise<void> {
+  logDebug("Initializing pinned workflows watcher");
   await updatePinnedWorkflows();
 
   if (refreshTimer) {
+    logDebug("Existing pinned workflows refresh timer found, clearing it");
     clearInterval(refreshTimer);
     refreshTimer = undefined;
   }
 
   if (isPinnedWorkflowsRefreshEnabled()) {
+    logDebug("Pinned workflows refresh enabled, checking every", pinnedWorkflowsRefreshInterval(), "seconds");
     refreshTimer = setInterval(() => void refreshPinnedWorkflows(), pinnedWorkflowsRefreshInterval() * 1000);
   }
 }
@@ -116,15 +119,17 @@ async function updatePinnedWorkflows() {
     const workflowByPath: {[id: string]: Workflow} = {};
     workflows.forEach(w => (workflowByPath[w.path] = w));
 
-    for (const pinnedWorkflow of workflowsByWorkspace.get(workspaceName) || []) {
-      if (!workflowByPath[pinnedWorkflow]) {
-        log(`Unable to find pinned workflow ${pinnedWorkflow} in ${workspaceName}, ignoring`);
-        continue;
-      }
+    await Promise.all(
+      (workflowsByWorkspace.get(workspaceName) || []).map(async pinnedWorkflow => {
+        if (!workflowByPath[pinnedWorkflow]) {
+          log(`Unable to find pinned workflow ${pinnedWorkflow} in ${workspaceName}, ignoring`);
+          return;
+        }
 
-      const pW = createPinnedWorkflow(gitHubRepoContext, workflowByPath[pinnedWorkflow]);
-      await refreshPinnedWorkflow(pW);
-    }
+        const pW = createPinnedWorkflow(gitHubRepoContext, workflowByPath[pinnedWorkflow]);
+        return refreshPinnedWorkflow(pW);
+      })
+    );
   }
 }
 

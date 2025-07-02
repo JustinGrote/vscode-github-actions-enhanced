@@ -16,6 +16,13 @@ type Updater = {
   handle: NodeJS.Timeout | undefined;
 };
 
+/**
+ * Serves as the central cache store for Workflow run status in Github Actions.
+ *
+ * This is basically a local mirror of what is fetched from the GitHub API.
+ *
+ * Views should subscribe to this store's event to get updates
+ */
 export class RunStore extends EventEmitter<RunStoreEvent> {
   private runs = new Map<number, WorkflowRun>();
   private updaters = new Map<number, Updater>();

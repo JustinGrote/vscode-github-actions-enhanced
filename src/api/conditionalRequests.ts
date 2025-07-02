@@ -41,7 +41,7 @@ async function returnIfChanged<TResponse, TParams>(
       : TParams & {headers: Record<string, string>};
 
     const cacheKey = cacheId ?? JSON.stringify(options);
-    logDebug("Performing conditional request for cache key:", cacheKey);
+    logTrace("Performing conditional request for cache key:", cacheKey);
 
     // Add If-None-Match header if we have an ETag for this key
     const cacheMatch = timestamp ? timestampMap.get(cacheKey) : etagMap.get(cacheKey);

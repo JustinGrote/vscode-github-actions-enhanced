@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import {canReachGitHubAPI} from "../api/canReachGitHubAPI";
 import {getGitHubContext} from "../git/repository";
-import {log, logDebug, logError} from "../log";
+import {log, logDebug, logError, logTrace} from "../log";
 import {RunStore} from "../store/store";
 import {AttemptNode} from "./shared/attemptNode";
 import {AuthenticationNode} from "./shared/authenticationNode";
@@ -42,6 +42,7 @@ export class WorkflowsTreeProvider
   }
 
   protected _updateNode(node: WorkflowRunNode): void {
+    logTrace(`Workflow Tree Node updated: ${node.description} ${node.label}`);
     this._onDidChangeTreeData.fire(node);
   }
 

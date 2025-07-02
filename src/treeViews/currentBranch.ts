@@ -5,7 +5,7 @@ import {getCurrentBranch, getGitHubContext, GitHubRepoContext} from "../git/repo
 import {CurrentBranchRepoNode} from "./current-branch/currentBranchRepoNode";
 
 import {NoRunForBranchNode} from "./current-branch/noRunForBranchNode";
-import {log, logDebug} from "../log";
+import {log, logDebug, logTrace} from "../log";
 import {RunStore} from "../store/store";
 import {AttemptNode} from "./shared/attemptNode";
 import {GitHubAPIUnreachableNode} from "./shared/gitHubApiUnreachableNode";
@@ -39,6 +39,7 @@ export class CurrentBranchTreeProvider
   }
 
   protected _updateNode(node: WorkflowRunNode): void {
+    logTrace(`Node updated: ${node.id} ${node.label}`);
     this._onDidChangeTreeData.fire(node);
   }
 
