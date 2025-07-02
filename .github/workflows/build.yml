@@ -27,17 +27,17 @@ jobs:
       - name: 🕒 Version
         shell: pwsh
         run: |
-          npm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
+          pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
       - name: 🚚 Restore Packages (CI)
-        run: npm ci
+        run: pnpm ci
       - name: 💄 Prettier Formatting Check
-        run: npm run format-check
+        run: pnpm format-check
       - name: 🧹 Lint
-        run: npm run lint
+        run: pnpm lint
       - name: 👷 Build
-        run: npm run build
+        run: pnpm build
       - name: 🧪 Test
-        run: npm run test
+        run: pnpm test
       - name: 📦 Package
         run: |
           npx @vscode/vsce package --no-update-package-json --no-git-tag-version --pre-release
