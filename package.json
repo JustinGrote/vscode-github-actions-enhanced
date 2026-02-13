@@ -10,8 +10,8 @@
   "description": "GitHub Actions with enhancements that are pending merge to the official extension.",
   "version": "0.0.0-source",
   "engines": {
-    "vscode": "^1.101.0",
-    "node": ">22.15.0"
+    "vscode": "^1.109.0",
+    "node": ">22.21.0"
   },
   "extensionKind": [
     "workspace"
@@ -531,9 +531,9 @@
     "@octokit/plugin-rest-endpoint-methods": "^16.0.0",
     "@types/jest": "^29.5.14",
     "@types/libsodium-wrappers": "^0.7.14",
-    "@types/node": "^20.19.4",
+    "@types/node": "^22.19.11",
     "@types/uuid": "^3.4.13",
-    "@types/vscode": "^1.101.0",
+    "@types/vscode": "^1.109.0",
     "@vscode/test-web": "^0.0.71",
     "@vscode/vsce": "^2.32.0",
     "cross-env": "^7.0.3",

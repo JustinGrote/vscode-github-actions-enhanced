@@ -20,7 +20,7 @@ jobs:
       - name: 🛠️ Setup Node and Restore NPM Cache
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: npm
           cache-dependency-path: package-lock.json
           registry-url: "https://npm.pkg.github.com"
@@ -40,7 +40,7 @@ jobs:
         run: pnpm test
       - name: 📦 Package
         run: |
-          npx @vscode/vsce package --no-update-package-json --no-git-tag-version --pre-release
+          pnpx @vscode/vsce package --no-update-package-json --no-git-tag-version --pre-release
       - name: ⬆️ Upload Artifact
         uses: actions/upload-artifact@v4
         with:
