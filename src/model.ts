@@ -1,47 +1,24 @@
-import type {components} from "@octokit/openapi-types";
-import type {RestEndpointMethods} from "@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types";
+import { Octokit } from "@octokit/rest";
 
-// Type helpers
-type Await<T> = T extends {
-  then(onfulfilled?: (value: infer U) => unknown): unknown;
-}
-  ? U
-  : T;
+type ActionResponse<T extends keyof Octokit["actions"]> = Awaited<ReturnType<Octokit["actions"][T]>>;
+type ActionData<T extends keyof Octokit["actions"]> = ActionResponse<T>["data"];
 
-type GetElementType<T> = T extends (infer U)[] ? U : never;
+type RepoResponse<T extends keyof Octokit["repos"]> = Awaited<ReturnType<Octokit["repos"][T]>>;
+type RepoData<T extends keyof Octokit["repos"]> = RepoResponse<T>["data"];
 
-type OctokitData<
-  Operation extends keyof RestEndpointMethods["actions"],
-  ResultProperty extends keyof Await<ReturnType<RestEndpointMethods["actions"][Operation]>>["data"]
-> = GetElementType<Await<ReturnType<RestEndpointMethods["actions"][Operation]>>["data"][ResultProperty]>;
-
-type OctokitRepoData<
-  Operation extends keyof RestEndpointMethods["repos"],
-  ResultProperty extends keyof Await<ReturnType<RestEndpointMethods["repos"][Operation]>>["data"]
-> = GetElementType<Await<ReturnType<RestEndpointMethods["repos"][Operation]>>["data"][ResultProperty]>;
 
 //
 // Domain contracts
 //
 
-export type Workflow = OctokitData<"listRepoWorkflows", "workflows">;
-export type WorkflowRun = components["schemas"]["workflow-run"];
-export type WorkflowRunAttempt = WorkflowRun;
-
-export type WorkflowJob = OctokitData<"listJobsForWorkflowRun", "jobs">;
-
-export type WorkflowStep = GetElementType<WorkflowJob["steps"]>;
-
-export type RepoSecret = OctokitData<"listRepoSecrets", "secrets">;
-
-export type RepoVariable = OctokitData<"listRepoVariables", "variables">;
-
-export type Environment = OctokitRepoData<"getAllEnvironments", "environments">;
-
-export type EnvironmentSecret = OctokitData<"listEnvironmentSecrets", "secrets">;
-
-export type EnvironmentVariable = OctokitData<"listEnvironmentVariables", "variables">;
-
+export type WorkflowRun = ActionData<"getWorkflowRun">;
+export type WorkflowRunAttempt = ActionData<"getWorkflowRunAttempt">;
+export type WorkflowJob = ActionData<"getJobForWorkflowRun">;
+export type WorkflowStep = NonNullable<WorkflowJob["steps"]>[number];
+export type RepoSecret = ActionData<"listRepoSecrets">;
+export type RepoVariable = ActionData<"listRepoVariables">["variables"];
+export type Environment = NonNullable<RepoData<"getAllEnvironments">["environments"]>[number];
+export type EnvironmentSecret = ActionData<"listEnvironmentSecrets">["secrets"];
+export type EnvironmentVariable = ActionData<"listEnvironmentVariables">["variables"];
 export type OrgSecret = {name: string};
-
 export type OrgVariable = {name: string; value: string};

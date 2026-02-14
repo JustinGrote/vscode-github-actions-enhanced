@@ -102,6 +102,7 @@ export class RunStore extends EventEmitter<RunStoreEvent> {
       this.updaters.delete(updater.runId);
     }
 
+
     const result = await client.conditionalRequest(
       client.actions.getWorkflowRun,
       {
