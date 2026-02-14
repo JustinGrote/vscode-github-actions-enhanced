@@ -11,6 +11,7 @@ type RepoData<T extends keyof Octokit["repos"]> = RepoResponse<T>["data"];
 // Domain contracts
 //
 
+export type Workflow = ActionData<"listRepoWorkflows">["workflows"][number];
 export type WorkflowRun = ActionData<"getWorkflowRun">;
 export type WorkflowRunAttempt = ActionData<"getWorkflowRunAttempt">;
 export type WorkflowJob = ActionData<"getJobForWorkflowRun">;
