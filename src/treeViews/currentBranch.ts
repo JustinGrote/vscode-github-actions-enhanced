@@ -15,6 +15,7 @@ import {WorkflowJobNode} from "./shared/workflowJobNode";
 import {WorkflowRunNode} from "./shared/workflowRunNode";
 import {WorkflowRunTreeDataProvider} from "./workflowRunTreeDataProvider";
 import {WorkflowStepNode} from "./workflows/workflowStepNode";
+import { match,P } from "ts-pattern";
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode
@@ -87,19 +88,32 @@ export class CurrentBranchTreeProvider
           })
           .filter(x => x !== undefined) as CurrentBranchRepoNode[];
       }
-    } else if (element instanceof CurrentBranchRepoNode) {
-      return this.getRuns(element.gitHubRepoContext, element.currentBranchName);
-    } else if (element instanceof WorkflowRunNode) {
-      return element.getJobs();
-    } else if (element instanceof PreviousAttemptsNode) {
-      return element.getAttempts();
-    } else if (element instanceof AttemptNode) {
-      return element.getJobs();
-    } else if (element instanceof WorkflowJobNode) {
-      return element.getSteps();
     }
 
-    return [];
+    const result = match(element)
+      .with(P.instanceOf(CurrentBranchRepoNode),
+        e => this.getRuns(e.gitHubRepoContext, e.currentBranchName)
+      )
+      .with(P.instanceOf(PreviousAttemptsNode),
+        e => e.getAttempts()
+      )
+      .with(P.instanceOf(AttemptNode),
+        e => e.getJobs()
+      )
+      .with(P.instanceOf(WorkflowJobNode),
+        e => e.getSteps()
+      )
+      .with(P.instanceOf(WorkflowRunNode),
+        e => e.getJobs()
+      )
+      .otherwise(
+        e => {
+          logWarn(`Unknown class seen during getChildren: ${e?.constructor?.name}. Has it been implemented yet?`);
+          return Promise.resolve([]);
+        }
+      );
+
+    return result;
   }
 
   private async getRuns(gitHubRepoContext: GitHubRepoContext, currentBranchName: string): Promise<WorkflowRunNode[]> {
