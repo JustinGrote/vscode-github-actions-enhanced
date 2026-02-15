@@ -1,39 +1,145 @@
-import {GitHubRepoContext} from "../git/repository";
-import {WorkflowRun} from "../model";
-import {RunStore} from "../store/store";
-import {WorkflowRunNode} from "./shared/workflowRunNode";
+import { Event, EventEmitter, Disposable } from "vscode";
+import { GitHubRepoContext } from "../git/repository";
+import { WorkflowRun } from "../model";
+import { setTimeout } from "node:timers/promises";
+import { log,
+logTrace } from "../log";
+
+/** A store of workflow runs on a per repo context **/
+const runStoreMap: Map<GitHubRepoContext, RunStore> = new Map();
+
+type RunId = WorkflowRun["id"];
+type RunsUpdated = RunId[];
+
+export const getOrCreateRunStore = (gitHubRepoContext: GitHubRepoContext): RunStore => {
+  let store = runStoreMap.get(gitHubRepoContext);
+  if (!store) {
+    store = new RunStore(gitHubRepoContext);
+    runStoreMap.set(gitHubRepoContext, store);
+  }
+  return store;
+};
+
+class RunStore implements Disposable {
+  private readonly runs: Map<RunId, WorkflowRun> = new Map();
+  private readonly _onDidUpdate = new EventEmitter<RunsUpdated>();
+  protected disposed = false;
+
+  // We use this to block any read actions until at least one sync cycle has completed
+  private firstSyncResolver: (() => void) | undefined;
+  private readonly firstSyncCompleted: Promise<void>;
+
+  /** Fires with the workflow run ids that were added/updated in the store. */
+  public readonly onDidUpdate: Event<RunsUpdated> = this._onDidUpdate.event;
+
+  constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
+    this.firstSyncCompleted = new Promise((resolve) => {
+      this.firstSyncResolver = resolve;
+    });
+  }
+
+  async list(): Promise<WorkflowRun[]> {
+    this.sync();
+    await this.firstSyncCompleted
+    return Array.from(this.runs.values());
+  }
+
+  async get(id: RunId): Promise<WorkflowRun | undefined> {
+    this.sync();
+    await this.firstSyncCompleted;
+    return this.runs.get(id);
+  }
+
+  /**
+   * Polls workflow runs for this repo and emits when new/updated runs are observed.
+   * Returns a disposable stopper.
+   */
+  private syncHandle: Disposable | undefined;
+
+  sync(branchName?: string, requestInterval = 5000): { dispose(): void } {
+    logTrace(`🔄️ Sync triggered!`)
+    // Keep as singleton
+    if (this.syncHandle) return this.syncHandle;
+    logTrace(`⭐ Sync is Net New!`)
+
+    const cacheHitRetryIntervalMs = 1000;
+
+    const poll = async () => {
+      while (true) {
+        const client = this.gitHubRepoContext.client;
+        logTrace(`📄 Polling workflow runs for ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
+
+        const startTime = Date.now();
+        const response = await client.conditionalRequest(
+          client.actions.listWorkflowRunsForRepo,
+          {
+            owner: this.gitHubRepoContext.owner,
+            repo: this.gitHubRepoContext.name,
+            branch: branchName,
+            per_page: 100
+          }
+        );
+
+        if (!response) {
+          logTrace(`Cache hit for workflow runs of ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
+          const elapsedMs = Date.now() - startTime;
+          const sleepMs = Math.max(0, cacheHitRetryIntervalMs - elapsedMs);
+          await setTimeout(sleepMs);
+        } else {
+          // Process the response
+          const runs = response.data;
+          const newOrUpdatedRuns: WorkflowRun[] = [];
+
+          for (const run of runs.workflow_runs) {
+            const existingRun = this.runs.get(run.id);
+            if (!existingRun || existingRun.updated_at !== run.updated_at) {
+              this.runs.set(run.id, run);
+              newOrUpdatedRuns.push(run);
+            }
+          }
+
+          if (newOrUpdatedRuns.length > 0) {
+              logTrace(`✨ Detected ${newOrUpdatedRuns.length} new/updated runs for ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
+
+            if (this.firstSyncResolver) {
+              logTrace(`Resolving first sync with ${newOrUpdatedRuns.length} runs for ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
+              this.firstSyncResolver();
+              this.firstSyncResolver = undefined;
+            } else {
+              // FIXME: VSCODE NOT UPDATING ON RUN UPDATE, PROBABLY BECAUSE THE SAME NODES ARE BEING REUSED. NEED TO FIRE EVENT WITH UPDATED NODES, NOT JUST IDS
+              // Only fire emitter on post-first sync changes
+              logTrace(`🔥 Emitting update for runs: ${newOrUpdatedRuns.map(r => r.id).join(", ")}`);
+              this._onDidUpdate.fire(newOrUpdatedRuns.map((run) => run.id));
+            }
+          }
+
+          // Wait longer before the next poll
+          await setTimeout(requestInterval);
+        }
+      }
+    };
+
+    // Start polling in the background
+    void poll();
+
+    this.syncHandle = {
+      dispose: () => {
+        this.disposed = true;
+        this.syncHandle = undefined;
+      },
+    };
+
+    return this.syncHandle;
+  }
+
+  dispose(): void {
+    this._onDidUpdate.dispose();
+    runStoreMap.delete(this.gitHubRepoContext);
+    this.disposed = true;
+  }
+}
 
 export abstract class WorkflowRunTreeDataProvider {
-  protected _runNodes = new Map<number, WorkflowRunNode>();
 
-  constructor(protected store: RunStore) {
-    this.store.event(({run}) => {
-      // Get tree node
-      const node = this._runNodes.get(run.run.id);
-      if (node) {
-        node.updateRun(run);
-        this._updateNode(node);
-      }
-    });
-  }
 
-  protected runNodes(
-    gitHubRepoContext: GitHubRepoContext,
-    runData: WorkflowRun[],
-    includeWorkflowName = false
-  ): WorkflowRunNode[] {
-    return runData.map(runData => {
-      const workflowRun = this.store.addRun(gitHubRepoContext, runData);
-      const node = new WorkflowRunNode(
-        this.store,
-        gitHubRepoContext,
-        workflowRun,
-        includeWorkflowName ? workflowRun.run.name || undefined : undefined
-      );
-      this._runNodes.set(runData.id, node);
-      return node;
-    });
-  }
-
-  protected abstract _updateNode(node: WorkflowRunNode): void;
 }

@@ -5,17 +5,20 @@ import {getCurrentBranch, getGitHubContext, GitHubRepoContext} from "../git/repo
 import {CurrentBranchRepoNode} from "./current-branch/currentBranchRepoNode";
 
 import {NoRunForBranchNode} from "./current-branch/noRunForBranchNode";
-import {logDebug, logTrace, logWarn} from "../log";
-import {RunStore} from "../store/store";
+import {log,
+logDebug, logTrace, logWarn} from "../log";
 import {AttemptNode} from "./shared/attemptNode";
 import {GitHubAPIUnreachableNode} from "./shared/gitHubApiUnreachableNode";
 import {NoWorkflowJobsNode} from "./shared/noWorkflowJobsNode";
 import {PreviousAttemptsNode} from "./shared/previousAttemptsNode";
 import {WorkflowJobNode} from "./shared/workflowJobNode";
 import {WorkflowRunNode} from "./shared/workflowRunNode";
-import {WorkflowRunTreeDataProvider} from "./workflowRunTreeDataProvider";
+import {getOrCreateRunStore,
+WorkflowRunTreeDataProvider} from "./workflowRunTreeDataProvider";
 import {WorkflowStepNode} from "./workflows/workflowStepNode";
 import { match,P } from "ts-pattern";
+import { WorkflowJob,
+WorkflowRun } from "../model";
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode
@@ -32,12 +35,8 @@ export class CurrentBranchTreeProvider
   extends WorkflowRunTreeDataProvider
   implements vscode.TreeDataProvider<CurrentBranchTreeNode>
 {
-  protected _onDidChangeTreeData = new vscode.EventEmitter<CurrentBranchTreeNode | null>();
+  protected _onDidChangeTreeData = new vscode.EventEmitter<CurrentBranchTreeNode | CurrentBranchTreeNode[] | null>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
-
-  constructor(store: RunStore) {
-    super(store);
-  }
 
   protected _updateNode(node: WorkflowRunNode): void {
     logTrace(`Node updated: ${node.id} ${node.label}`);
@@ -47,6 +46,7 @@ export class CurrentBranchTreeProvider
   async refresh(): Promise<void> {
     // Don't delete all the nodes if we can't reach GitHub API
     if (await canReachGitHubAPI()) {
+      // This will tell vscode to subsequently call getChildren(undefined) for the root node
       this._onDidChangeTreeData.fire(null);
     } else {
       await vscode.window.showWarningMessage("Unable to refresh, could not reach GitHub API");
@@ -54,10 +54,12 @@ export class CurrentBranchTreeProvider
   }
 
   getTreeItem(element: CurrentBranchTreeNode): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    logTrace(`🧑‍💻 vscode called getTreeItem for ${element.constructor.name}: ${element.id} ${element.label}`);
     return element;
   }
 
-  async getChildren(element?: CurrentBranchTreeNode | undefined): Promise<CurrentBranchTreeNode[]> {
+  async getChildren(element?: CurrentBranchTreeNode | undefined, clearCache?: boolean): Promise<CurrentBranchTreeNode[]> {
+    logTrace(`🧑‍💻 vscode called getChildren for ${element?.constructor.name}: ${element?.id} ${element?.label} `);
     if (!element) {
       const gitHubContext = await getGitHubContext();
       if (!gitHubContext) {
@@ -72,7 +74,7 @@ export class CurrentBranchTreeProvider
           return [];
         }
 
-        return (await this.getRuns(repoContext, currentBranch)) || [];
+        return (await this.getRunNodes(repoContext, currentBranch)) || [];
       }
 
       if (gitHubContext.repos.length > 1) {
@@ -83,7 +85,6 @@ export class CurrentBranchTreeProvider
               logWarn(`Could not find current branch for ${repoContext.name}`);
               return undefined;
             }
-
             return new CurrentBranchRepoNode(repoContext, currentBranch);
           })
           .filter(x => x !== undefined) as CurrentBranchRepoNode[];
@@ -92,7 +93,7 @@ export class CurrentBranchTreeProvider
 
     const result = match(element)
       .with(P.instanceOf(CurrentBranchRepoNode),
-        e => this.getRuns(e.gitHubRepoContext, e.currentBranchName)
+        e => this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
       )
       .with(P.instanceOf(PreviousAttemptsNode),
         e => e.getAttempts()
@@ -116,23 +117,39 @@ export class CurrentBranchTreeProvider
     return result;
   }
 
-  private async getRuns(gitHubRepoContext: GitHubRepoContext, currentBranchName: string): Promise<WorkflowRunNode[]> {
+  private listener: boolean = false;
+  private async getRunNodes(
+    gitHubRepoContext: GitHubRepoContext,
+    currentBranchName: string
+  ): Promise<WorkflowRunNode[] | NoRunForBranchNode[]> {
+
     logDebug(`Getting current branch (${currentBranchName}) runs in repo ${gitHubRepoContext.name}`);
 
-    const result = await gitHubRepoContext.client.actions.listWorkflowRunsForRepo({
-      owner: gitHubRepoContext.owner,
-      repo: gitHubRepoContext.name,
-      branch: currentBranchName,
-      per_page: 100
-    });
+    const runStore = getOrCreateRunStore(gitHubRepoContext);
 
-    const resp = result.data;
-    const runs = resp.workflow_runs;
-    // We are removing newlines from workflow names for presentation purposes
-    for (const run of runs) {
-      run.name = run.name?.replace(/(\r\n|\n|\r)/gm, " ");
+    const runs = await runStore.list();
+    if (!this.listener) {
+      logDebug(`Registered listener for run updates for repo ${gitHubRepoContext.name}`);
+      const listener = runStore.onDidUpdate(async runIds => {
+        logDebug(`Received run update event for runs: ${runIds.join(", ")}`);
+        const updatedRuns = await Promise.all(runIds
+          .map(async id => await runStore.get(id))
+        );
+        const filteredRunNodes = updatedRuns
+          .filter(run => run !== undefined)
+          .map(run => new WorkflowRunNode(gitHubRepoContext, run!))
+        logDebug(`Triggering update event for runs: ${filteredRunNodes.map(n => n.id).join(", ")}`);
+        this._onDidChangeTreeData.fire(filteredRunNodes);
+      })
+      this.listener = true;
     }
 
-    return this.runNodes(gitHubRepoContext, runs, true);
+
+    const currentBranchRuns = runs.filter(run => run.head_branch === currentBranchName);
+
+    if (currentBranchRuns.length === 0) {
+      return [new NoRunForBranchNode()];
+    }
+    return currentBranchRuns.map(run => new WorkflowRunNode(gitHubRepoContext, run));
   }
 }
