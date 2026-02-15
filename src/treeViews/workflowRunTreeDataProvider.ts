@@ -2,14 +2,12 @@ import { Event, EventEmitter, Disposable } from "vscode";
 import { GitHubRepoContext } from "../git/repository";
 import { WorkflowRun } from "../model";
 import { setTimeout } from "node:timers/promises";
-import { log,
-logTrace } from "../log";
+import { logTrace } from "../log";
 
 /** A store of workflow runs on a per repo context **/
 const runStoreMap: Map<GitHubRepoContext, RunStore> = new Map();
 
 type RunId = WorkflowRun["id"];
-type RunsUpdated = RunId[];
 
 export const getOrCreateRunStore = (gitHubRepoContext: GitHubRepoContext): RunStore => {
   let store = runStoreMap.get(gitHubRepoContext);
@@ -20,33 +18,35 @@ export const getOrCreateRunStore = (gitHubRepoContext: GitHubRepoContext): RunSt
   return store;
 };
 
+/** Background fetches runs and updates them appropriately */
 class RunStore implements Disposable {
   private readonly runs: Map<RunId, WorkflowRun> = new Map();
-  private readonly _onDidUpdate = new EventEmitter<RunsUpdated>();
   protected disposed = false;
 
+
   // We use this to block any read actions until at least one sync cycle has completed
-  private firstSyncResolver: (() => void) | undefined;
-  private readonly firstSyncCompleted: Promise<void>;
+  private completeFirstSync: (() => void) | undefined;
 
-  /** Fires with the workflow run ids that were added/updated in the store. */
-  public readonly onDidUpdate: Event<RunsUpdated> = this._onDidUpdate.event;
+  /** Await this event before making a list request */
+  public readonly firstSyncCompletedPromise: Promise<void> = new Promise((resolve) => {
+    this.completeFirstSync = resolve;
+  });
 
-  constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
-    this.firstSyncCompleted = new Promise((resolve) => {
-      this.firstSyncResolver = resolve;
-    });
-  }
+  /** Fires with the workflow run ids that were added/updated in the store. We only send the ids of the runs so that the consumer has to refetch, and if they receive undefined they know the run was deleted. */
+  private readonly _onDidUpdate = new EventEmitter<RunId[]>();
+  public readonly onDidUpdate: Event<RunId[]> = this._onDidUpdate.event;
+
+  constructor(public readonly gitHubRepoContext: GitHubRepoContext) {}
 
   async list(): Promise<WorkflowRun[]> {
     this.sync();
-    await this.firstSyncCompleted
+    await this.firstSyncCompletedPromise;
     return Array.from(this.runs.values());
   }
 
   async get(id: RunId): Promise<WorkflowRun | undefined> {
     this.sync();
-    await this.firstSyncCompleted;
+    await this.firstSyncCompletedPromise;
     return this.runs.get(id);
   }
 
@@ -98,20 +98,19 @@ class RunStore implements Disposable {
             }
           }
 
-          if (newOrUpdatedRuns.length > 0) {
-              logTrace(`✨ Detected ${newOrUpdatedRuns.length} new/updated runs for ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
-
-            if (this.firstSyncResolver) {
-              logTrace(`Resolving first sync with ${newOrUpdatedRuns.length} runs for ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
-              this.firstSyncResolver();
-              this.firstSyncResolver = undefined;
-            } else {
-              // FIXME: VSCODE NOT UPDATING ON RUN UPDATE, PROBABLY BECAUSE THE SAME NODES ARE BEING REUSED. NEED TO FIRE EVENT WITH UPDATED NODES, NOT JUST IDS
-              // Only fire emitter on post-first sync changes
-              logTrace(`🔥 Emitting update for runs: ${newOrUpdatedRuns.map(r => r.id).join(", ")}`);
-              this._onDidUpdate.fire(newOrUpdatedRuns.map((run) => run.id));
+          if (this.completeFirstSync) {
+            logTrace(`Resolving first sync with ${newOrUpdatedRuns.length} runs for ${this.gitHubRepoContext.owner}/${this.gitHubRepoContext.name} branch: ${branchName ?? "all branches"}`);
+            this.completeFirstSync();
+            this.completeFirstSync = undefined;
+          } else {
+            if (newOrUpdatedRuns.length > 0) {
+                // only fire emitter after first sync so that only changes emitted
+                const crudRunIds = newOrUpdatedRuns.map(r => r.id);
+                logTrace(`🚀 Emitting update for runs: ${crudRunIds}`);
+                this._onDidUpdate.fire(crudRunIds);
             }
           }
+
 
           // Wait longer before the next poll
           await setTimeout(requestInterval);

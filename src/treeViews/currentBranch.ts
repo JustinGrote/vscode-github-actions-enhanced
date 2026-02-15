@@ -144,7 +144,6 @@ export class CurrentBranchTreeProvider
       this.listener = true;
     }
 
-
     const currentBranchRuns = runs.filter(run => run.head_branch === currentBranchName);
 
     if (currentBranchRuns.length === 0) {

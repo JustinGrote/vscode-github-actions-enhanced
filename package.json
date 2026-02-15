@@ -559,6 +559,8 @@
     "@octokit/plugin-throttling": "^11.0.1",
     "@octokit/request-error": "^7.0.0",
     "@octokit/rest": "^22.0.1",
+    "@tanstack/db": "^0.5.26",
+    "@tanstack/query-db-collection": "^1.0.23",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "dayjs": "^1.11.13",

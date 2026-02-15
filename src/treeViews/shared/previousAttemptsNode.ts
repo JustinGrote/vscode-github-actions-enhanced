@@ -9,6 +9,7 @@ export class PreviousAttemptsNode extends vscode.TreeItem {
     private run: WorkflowRun
   ) {
     super("Previous attempts", vscode.TreeItemCollapsibleState.Collapsed);
+    this.iconPath = new vscode.ThemeIcon("history");
   }
 
   async getAttempts(): Promise<AttemptNode[]> {

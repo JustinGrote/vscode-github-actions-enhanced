@@ -15,18 +15,14 @@ import {WorkflowJobNode} from "./workflowJobNode";
 export type WorkflowRunCommandArgs = Pick<WorkflowRunNode, "gitHubRepoContext" | "run">;
 
 export class WorkflowRunNode extends vscode.TreeItem {
-
   private _jobs: Promise<WorkflowJob[]> | undefined;
   private _attempts: Promise<WorkflowRunAttempt[]> | undefined;
 
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
     public run: WorkflowRun,
-    public readonly workflowName?: string
   ) {
-    super(WorkflowRunNode._getLabel(run, workflowName), vscode.TreeItemCollapsibleState.Collapsed);
-
-    this.run = run;
+    super(WorkflowRunNode._getLabel(run), vscode.TreeItemCollapsibleState.Collapsed);
     this.updateRun(run);
   }
 
@@ -51,7 +47,8 @@ export class WorkflowRunNode extends vscode.TreeItem {
     }
 
     this.run = run;
-    this.label = WorkflowRunNode._getLabel(run, this.workflowName);
+    this.label = WorkflowRunNode._getLabel(run);
+    this.description = WorkflowRunNode._getDescription(run);
     this.contextValue = this.getContextValue(this.gitHubRepoContext.permissionLevel);
     this.iconPath = getIconForWorkflowNode(this.run);
     this.tooltip = this.getTooltip();
@@ -156,27 +153,90 @@ export class WorkflowRunNode extends vscode.TreeItem {
   }
 
   getTooltip(): vscode.MarkdownString {
-    let markdownString = "";
+    const parts: string[] = [];
 
-    if (this.hasPreviousAttempts && this.run.run_attempt) {
-      markdownString += `Attempt #${this.run.run_attempt} `;
+    // Title with name and number
+    if (this.run.name) {
+      parts.push(`## ${this.run.name}`);
     }
 
-    // Create a temporary WorkflowRun-like object for helper functions
+    // Attempt and Run Number
+    const runHeader = [
+      `#${this.run.run_number}`,
+      this.hasPreviousAttempts && this.run.run_attempt ? `${this.run.run_attempt} attempts` : null
+    ].filter(Boolean).join(" • ");
+
+    // Add hyperlink to workflow run
+    const runLink = this.run.html_url ? `[${runHeader}](${this.run.html_url})` : runHeader;
+    parts.push(runLink);
+
+    parts.push("---");
+
+    // Status and Duration
     const tempRun = {
       run: this.run,
       duration: () => this.duration(),
       hasPreviousAttempts: this.hasPreviousAttempts,
     } as any;
 
-    markdownString += getStatusString(tempRun, markdownString.length == 0);
-    markdownString += `\n\n`;
-    markdownString += getEventString(tempRun);
+    parts.push(`**Status:** ${getStatusString(tempRun, false)}`);
+
+    // Event Information
+    parts.push(`**Triggered:** ${getEventString(tempRun)}`);
+
+    // Branch Information with link
+    if (this.run.head_branch && this.run.repository) {
+      const branchIcon = this.run.head_branch === this.run.head_repository?.default_branch ? "📌" : "🌿";
+      const branchUrl = `${this.run.repository.html_url}/tree/${this.run.head_branch}`;
+      const branchLink = `[${branchIcon} \`${this.run.head_branch}\`](${branchUrl})`;
+      parts.push(`**Branch:** ${branchLink}`);
+    } else if (this.run.head_branch) {
+      const branchIcon = this.run.head_branch === this.run.head_repository?.default_branch ? "📌" : "🌿";
+      parts.push(`**Branch:** ${branchIcon} \`${this.run.head_branch}\``);
+    }
+
+    // Commit Information with link
+    if (this.run.head_sha && this.run.repository) {
+      const shortSha = this.run.head_sha.substring(0, 7);
+      const commitUrl = `${this.run.repository.html_url}/commit/${this.run.head_sha}`;
+      const commitLink = `[${shortSha}](${commitUrl})`;
+      parts.push(`**Commit:** \`${commitLink}\``);
+    } else if (this.run.head_sha) {
+      const shortSha = this.run.head_sha.substring(0, 7);
+      parts.push(`**Commit:** \`${shortSha}\``);
+    }
+
+    // Repository Information with link
+    if (this.run.repository?.html_url) {
+      const repoLink = `[${this.run.repository.full_name}](${this.run.repository.html_url})`;
+      parts.push(`**Repository:** ${repoLink}`);
+    }
+
+    // Conclusion details if available
+    if (this.run.conclusion && this.run.conclusion !== "success") {
+      parts.push(`**Conclusion:** ${this.run.conclusion.replace("_", " ")}`);
+    }
+
+    // Timestamps
+    if (this.run.run_started_at && this.run.updated_at) {
+      const startDate = new Date(this.run.run_started_at).toLocaleString();
+      parts.push(`**Started:** ${startDate}`);
+    }
+
+    parts.push("---");
+    parts.push("ID: `" + this.run.id + "`");
+
+    const markdownString = parts.join("\n\n");
 
     return new vscode.MarkdownString(markdownString);
   }
 
-  private static _getLabel(run: WorkflowRun, workflowName?: string): string {
-    return `${workflowName ? workflowName + " " : ""}#${run.run_number}`;
+  private static _getLabel(run: WorkflowRun): string {
+    return run.name || "Run " + run.id;
+  }
+  private static _getDescription(run: WorkflowRun): string {
+    const attempt = run.run_attempt || 1;
+    const description = `#${run.run_number}`;
+    return attempt > 1 ? `${description} (Attempt #${attempt})` : description;
   }
 }
