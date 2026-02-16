@@ -47,6 +47,7 @@ export class WorkflowRunNode extends vscode.TreeItem {
     }
 
     this.run = run;
+    this.id = run.node_id // this is the GraphQL node id which should be globally unique and OK to use here.
     this.label = WorkflowRunNode._getLabel(run);
     this.description = WorkflowRunNode._getDescription(run);
     this.contextValue = this.getContextValue(this.gitHubRepoContext.permissionLevel);
