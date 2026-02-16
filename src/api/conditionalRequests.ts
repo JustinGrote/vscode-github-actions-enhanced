@@ -41,20 +41,20 @@ async function returnIfChanged<TResponse, TParams>(
       : TParams & {headers: Record<string, string>};
 
     const cacheKey = cacheId ?? JSON.stringify(options);
-    logTrace("Performing conditional request for cache key:", cacheKey);
+    logTrace("🐙 Performing conditional request for cache key:", cacheKey);
 
     // Add If-None-Match header if we have an ETag for this key
     const cacheMatch = timestamp ? timestampMap.get(cacheKey) : etagMap.get(cacheKey);
     const cacheHeader = timestamp ? "if-modified-since" : "if-none-match";
     if (cacheMatch) {
-      logTrace("Cache Key FOUND:", cacheKey);
+      logTrace("🐙 Cache Key FOUND:", cacheKey);
       // Initialize headers if they don't exist
       if (!options.headers) {
         options.headers = {};
       }
       options.headers[cacheHeader] = cacheMatch;
     } else {
-      logTrace("Cache Key MISS:", cacheKey);
+      logTrace("🐙 Cache Key MISS:", cacheKey);
     }
 
     // TODO: Figure out how to make this type safe
@@ -78,7 +78,6 @@ async function returnIfChanged<TResponse, TParams>(
 
     // Resource not modified (304), return undefined.
     if (err.status === 304) {
-      logTrace("Content Not Modified:", cacheId);
       return undefined;
     }
 
