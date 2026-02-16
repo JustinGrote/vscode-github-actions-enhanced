@@ -61,12 +61,14 @@ export class CurrentBranchTreeProvider
   }
 
   getTreeItem(element: CurrentBranchTreeNode): vscode.TreeItem | Thenable<vscode.TreeItem> {
-    logTrace(`🧑‍💻 vscode called getTreeItem for ${element.constructor.name}: ${element.id} ${element.label}`);
+    logTrace(`🧑‍💻 vscode called getTreeItem for ${element.label} [${element.id}] `);
     return element;
   }
 
   async getChildren(element?: CurrentBranchTreeNode | undefined, clearCache?: boolean): Promise<CurrentBranchTreeNode[]> {
-    logTrace(`🧑‍💻 vscode called getChildren for ${element?.constructor.name}: ${element?.id} ${element?.label} `);
+    const elementDescription = element ? `${element.constructor.name}: ${element.id} ${element.label}` : "Root Tree Node"
+    logTrace(`🧑‍💻 vscode called getChildren for ${elementDescription}`);
+
     if (!element) {
       const gitHubContext = await getGitHubContext();
       if (!gitHubContext) {
@@ -153,6 +155,7 @@ export class CurrentBranchTreeProvider
           per_page: 100
         },
         (response) => response.data.workflow_runs,
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         "node_id"
       );
     }
@@ -160,11 +163,11 @@ export class CurrentBranchTreeProvider
     const runs = await this.workflowRunCollection.toArrayWhenReady();
 
     // Start timer to invalidate the query
-    if (!this.refresher) {
-      this.refresher = setInterval(() => {
-        defaultQueryClient.invalidateQueries({queryKey}, { cancelRefetch: false, throwOnError: true });
-      }, 1000);
-    }
+    // if (!this.refresher) {
+    //   this.refresher = setInterval(() => {
+    //     defaultQueryClient.invalidateQueries({queryKey}, { cancelRefetch: false, throwOnError: true });
+    //   }, 1000);
+    // }
 
     // Subscribe for future changes after initial query
     this.subscription = this.workflowRunCollection.subscribeChanges((changes) => {

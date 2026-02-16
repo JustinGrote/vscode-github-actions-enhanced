@@ -27,7 +27,7 @@ async function main() {
     sourcesContent: false,
     platform: platform,
     outdir: `dist${websuffix}`,
-    external: ['vscode', 'Worker'], // Removed 'RefType' from here
+    external: ['vscode', 'Worker', 'libsodium-wrappers'], // Mark libsodium-wrappers as external
     logLevel: 'warning',
     // Node.js global to browser globalThis
     define: {

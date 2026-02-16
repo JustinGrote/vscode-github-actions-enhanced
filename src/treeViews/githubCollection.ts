@@ -25,6 +25,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
 	apiCall: (params: TParams) => Promise<TResult>,
 	apiParams: TParams,
 	selector: (item: TResult) => TSelected[],
+	compareFn: (a: TSelected, b: TSelected) => number,
 	primaryKey: keyof TSelected,
 	queryClient = defaultQueryClient,
 ) {
@@ -34,6 +35,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
 		startSync: true,
 		staleTime: 1000,
 		syncMode: "eager",
+		compare: compareFn,
 		queryKey: queryKey,
 		queryFn: async ({client}) => {
 			logDebug(`♻️ Refreshing data for collection ${queryKey.join(",")}`);
@@ -51,7 +53,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
 			const result = selector(response);
 			return result
 		},
-		getKey: (i) => (i as any)[primaryKey],
+		getKey: (i) => String(i[primaryKey]),
 	}))
 }
 

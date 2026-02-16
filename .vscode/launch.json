@@ -8,10 +8,6 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--profile=debug-gha"],
       "smartStep": true,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/dist/*.(m|c|)js",
-        "!**/node_modules/**"
-      ],
       "preLaunchTask": "npm: watch",
     },
     {
