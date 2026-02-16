@@ -56,6 +56,17 @@ export class CurrentBranchTreeProvider
     this._onDidChangeTreeData.fire(node);
   }
 
+  private onDidChangeTreeDataTrace = this.onDidChangeTreeData((e) => {
+    if (e === REFRESH_TREE_ROOT) {
+      logTrace(`👉 VSCode informed to refresh full tree`);
+    } else if (Array.isArray(e)) {
+      logTrace(`👉 VSCode informed to refresh tree nodes: ${e.map(n => n.id).join(", ")}`);
+    }
+    else {
+      logTrace(`👉 VSCode informed to refresh tree node ${e.id} ${e.label}`);
+    }
+  });
+
   async refresh(): Promise<void> {
     // Don't delete all the nodes if we can't reach GitHub API
     if (await canReachGitHubAPI()) {
@@ -157,11 +168,12 @@ export class CurrentBranchTreeProvider
         {
           owner: gitHubRepoContext.owner,
           repo: gitHubRepoContext.name,
-          per_page: 100
+          branch: currentBranchName,
+          per_page: 30
         },
         (response) => response.data.workflow_runs,
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        "node_id"
+        "id"
       );
     }
 
@@ -170,13 +182,33 @@ export class CurrentBranchTreeProvider
     // Subscribe for future changes after initial query
     if (!this.changeFeed) {
       this.changeFeed = this.workflowRunCollection.subscribeChanges((changes) => {
+        // HACK: If a deletion occurs, VSCode needs us to supply its parent so it can do a getChildren on it. Since deletions are rare, we just tell it to refresh the entire tree for simplicity.
+        let rootRefreshNeeded = false;
+
         const nodesToRefresh = changes.map(change => {
-          logTrace(`🚨 WorkflowRuns change detected: ${change.type} ${change.value.node_id} ${change.value.name} #${change.value.run_number}`);
-          return this.toWorkflowRunNode(change.value, gitHubRepoContext);
-        });
-        this._onDidChangeTreeData.fire(nodesToRefresh)
+          logTrace(`🚨 WorkflowRuns change detected: ${change.type} ${change.value.id} ${change.value.name} #${change.value.run_number}`);
+          return match(change)
+            .with({type: "update"}, () => {
+              logDebug(`✏️ Run ${change.value.id} was updated`);
+              return this.toWorkflowRunNode(change.value, gitHubRepoContext);
+            })
+            .with({type: "insert"}, () => {
+              logDebug(`➕ Run ${change.value.id} was inserted`);
+              rootRefreshNeeded = true;
+              return this.toWorkflowRunNode(change.value, gitHubRepoContext);
+            })
+            .with({type: "delete"}, () => {
+              logDebug(`🗑️ Run ${change.value.id} was deleted`);
+              this.workflowRunNodes.delete(change.value.id.toString());
+              rootRefreshNeeded = true;
+            })
+            .exhaustive()
+        }).filter(node => node !== undefined);
+
+        this._onDidChangeTreeData.fire(rootRefreshNeeded ? REFRESH_TREE_ROOT : nodesToRefresh);
       })
-      logDebug(`Registered listener for run updates for repo ${gitHubRepoContext.name}`);
+
+      logDebug(`👁️ Watcher for WorkflowRuns created for repo ${gitHubRepoContext.name}`);
     }
 
     const currentBranchRuns = runs.filter(run => run.head_branch === currentBranchName);
@@ -192,16 +224,16 @@ export class CurrentBranchTreeProvider
     run: WorkflowRun,
     gitHubRepoContext: GitHubRepoContext
   ) {
-      const existingNode = this.workflowRunNodes.get(run.node_id);
+      const existingNode = this.workflowRunNodes.get(run.id.toString());
       if (existingNode) {
-        logTrace(`Run ${run.node_id} already exists in tree, reusing existing node and updating its data`);
+        logTrace(`🖊️ Run ${run.id} already exists in tree, reusing existing node and updating its data`);
         existingNode.updateRun(run);
         return existingNode;
       }
 
-      logDebug(`➕ Adding run ${run.node_id} ${run.name} #${run.run_number} to tree`);
+      logTrace(`➕ Adding run ${run.id} ${run.name} #${run.run_number} to tree`);
       const workflowRunNode = new WorkflowRunNode(gitHubRepoContext, run);
-      this.workflowRunNodes.set(run.node_id, workflowRunNode);
+      this.workflowRunNodes.set(run.id.toString(), workflowRunNode);
       return workflowRunNode;
   }
 }

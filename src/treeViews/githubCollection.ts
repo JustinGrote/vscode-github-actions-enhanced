@@ -13,7 +13,8 @@ logDebug } from "../log";
 export const defaultQueryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
-			refetchInterval: 1000
+			// Because we use conditional requests, this is OK to keep very low
+			refetchInterval: 100
 		}
 	}
 })
@@ -31,9 +32,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
 ) {
 	return createCollection(queryCollectionOptions({
 		queryClient: queryClient,
-		refetchInterval: 1000,
 		startSync: true,
-		staleTime: 1000,
 		syncMode: "eager",
 		compare: compareFn,
 		queryKey: queryKey,
@@ -42,14 +41,13 @@ export function createGithubCollection<TSelected extends object, TResult extends
 			const response = await githubClient.conditionalRequest(apiCall, apiParams)
 			// Indicates no changes to the API, so we should return the existing data to indicate no changes.
 			if (!response) {
-				logDebug(`🎯 Cache hit for collection ${queryKey.join(",")}`);
+				logDebug(`👎 No changes detected for collection ${queryKey.join(",")}`);
 				return client.getQueryData<TSelected[]>(queryKey) ?? [] as TSelected[];
 			}
 
 			// If the response is a single object, return it as an array
 			logDebug(`✨ Changes detected for collection ${queryKey.join(",")}`);
 
-			// FIXME: Generalize
 			const result = selector(response);
 			return result
 		},
