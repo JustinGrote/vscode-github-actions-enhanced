@@ -5,18 +5,17 @@ import {logDebug} from "../../log";
 import {getContextStringForWorkflow, getWorkflowUri} from "../../workflow/workflow";
 import {WorkflowNode} from "./workflowNode";
 import {Workflow} from "../../model";
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
 
-export class WorkflowsRepoNode extends vscode.TreeItem {
+export class WorkflowsRepoNode extends GithubActionTreeNode {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
     super(gitHubRepoContext.name, vscode.TreeItemCollapsibleState.Collapsed);
 
     this.contextValue = "wf-repo";
   }
 
-  async getWorkflows(): Promise<WorkflowNode[]> {
-    logDebug("Getting workflows");
-
-    return getWorkflowNodes(this.gitHubRepoContext);
+  async getChildren(): Promise<WorkflowNode[]> {
+    return await getWorkflowNodes(this.gitHubRepoContext);
   }
 }
 

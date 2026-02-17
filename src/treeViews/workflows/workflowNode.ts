@@ -4,8 +4,11 @@ import {getPinnedWorkflows} from "../../configuration/configuration";
 import {GitHubRepoContext} from "../../git/repository";
 import {Workflow} from "../../model";
 import {getWorkflowUri} from "../../workflow/workflow";
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
+import { WorkflowsTreeDataProvider } from "../workflowsTreeDataProvider";
+import { CurrentBranchTreeDataProvider } from "../currentBranchTreeDataProvider";
 
-export class WorkflowNode extends vscode.TreeItem {
+export class WorkflowNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
     public readonly wf: Workflow,
@@ -14,6 +17,12 @@ export class WorkflowNode extends vscode.TreeItem {
     super(wf.name, vscode.TreeItemCollapsibleState.Collapsed);
 
     this.updateContextValue();
+  }
+
+  private currentBranchTreeDataProvider = new CurrentBranchTreeDataProvider();
+
+  async getChildren() {
+    this.currentBranchTreeDataProvider.getChildren(this);
   }
 
   updateContextValue() {

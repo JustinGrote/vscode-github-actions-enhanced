@@ -103,15 +103,16 @@ export class CurrentBranchTreeDataProvider
 
   /** Cache of workflow run nodes by their ID. When the store notifies us of an update, we can use this cache to quickly find the corresponding nodes and notify vscode they have changed */
   private workflowRunNodes: Map<string, WorkflowRunNode> = new Map();
+
   private async getRunNodes(
     gitHubRepoContext: GitHubRepoContext,
-    currentBranchName: string
+    currentBranchName?: string
   ): Promise<WorkflowRunNode[] | NoRunForBranchNode[]> {
 
     logDebug(`Getting current branch (${currentBranchName}) runs in repo ${gitHubRepoContext.name}`);
 
     const client = gitHubRepoContext.client;
-    const queryKey = ['workflowRuns']
+    const queryKey = ['workflowRuns', currentBranchName ?? 'all']
     if (!this.workflowRunCollection) {
       logDebug(`Creating workflow run collection for repo ${gitHubRepoContext.name}`);
       client.actions.listRepoWorkflows
