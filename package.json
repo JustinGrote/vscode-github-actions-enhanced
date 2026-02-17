@@ -265,11 +265,6 @@
           "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
         },
         {
-          "id": "github-actions.workflows",
-          "name": "Workflows",
-          "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
-        },
-        {
           "id": "github-actions.settings",
           "name": "Settings",
           "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"

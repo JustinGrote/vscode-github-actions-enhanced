@@ -74,6 +74,7 @@ export class WorkflowRunNode extends vscode.TreeItem {
         "id"
       );
     }
+
     if (!this.jobsWatcher) {
       logDebug(`👁️ Watching jobs for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`);
       this.jobsWatcher = this.jobsCollection.subscribeChanges(changes => {

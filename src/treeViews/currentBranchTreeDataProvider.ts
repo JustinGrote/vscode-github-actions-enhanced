@@ -45,7 +45,7 @@ type CurrentBranchTreeNode =
 /** A "magic number" to signal to vscode to refresh the root of the tree */
 const REFRESH_TREE_ROOT = null;
 
-export class CurrentBranchTreeProvider
+export class CurrentBranchTreeDataProvider
   extends WorkflowRunTreeDataProvider
   implements vscode.TreeDataProvider<CurrentBranchTreeNode>
 {
@@ -119,6 +119,9 @@ export class CurrentBranchTreeProvider
           const singleRepoNode = repoNodes[0];
           return await this.getRunNodes(singleRepoNode.gitHubRepoContext, singleRepoNode.currentBranchName)
         }
+
+        // Multi-Repository view
+        return repoNodes;
       })
       .with(P.instanceOf(CurrentBranchRepoNode),
         async e => {
@@ -140,7 +143,7 @@ export class CurrentBranchTreeProvider
       .otherwise(
         e => {
           logWarn(`Unknown class seen during getChildren: ${e?.constructor?.name}. Has it been implemented yet?`);
-          return Promise.resolve([]);
+          return [];
         }
       );
 
@@ -247,7 +250,7 @@ export class CurrentBranchTreeProvider
       }
 
       logTrace(`➕ Adding run ${run.id} ${run.name} #${run.run_number} to tree`);
-      const workflowRunNode = new WorkflowRunNode(gitHubRepoContext, run);
+      const workflowRunNode = new WorkflowRunNode(gitHubRepoContext, run, () => this._updateNode(workflowRunNode));
       this.workflowRunNodes.set(run.id.toString(), workflowRunNode);
       return workflowRunNode;
   }
