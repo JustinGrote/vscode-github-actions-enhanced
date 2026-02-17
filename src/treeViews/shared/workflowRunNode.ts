@@ -4,7 +4,7 @@ import { GitHubRepoContext } from "../../git/repository";
 import { hasWritePermission, RepositoryPermission } from "../../git/repository-permissions";
 import { logDebug, logTrace } from "../../log";
 import { WorkflowJob, WorkflowRun, WorkflowRunAttempt } from "../../model";
-import { createGithubCollection, GithubCollection } from "../githubCollection";
+import { createGithubCollection, GithubCollection } from "../collections/githubCollection";
 import { getIconForWorkflowNode } from "../icons";
 import { NoWorkflowJobsNode } from "./noWorkflowJobsNode";
 import { getEventString, getStatusString } from "./runTooltipHelper";

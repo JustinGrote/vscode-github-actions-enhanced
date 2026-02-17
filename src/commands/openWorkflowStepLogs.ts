@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import {WorkflowStepNode} from "../treeViews/workflows/workflowStepNode";
+import {WorkflowStepNode} from "../treeViews/shared/workflowStepNode";
 import {WorkflowStep} from "../model";
 
 type WorkflowStepCommandArgs = Pick<WorkflowStepNode, "job" | "step" | "gitHubRepoContext">;

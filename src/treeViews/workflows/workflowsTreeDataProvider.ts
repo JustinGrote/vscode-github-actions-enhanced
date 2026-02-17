@@ -1,20 +1,20 @@
 import * as vscode from "vscode";
 
-import { canReachGitHubAPI } from "../api/canReachGitHubAPI";
-import { getGitHubContext } from "../git/repository";
-import { log, logDebug, logError, logTrace } from "../log";
-import { GithubActionTreeDataProvider } from "./githubActionTreeDataProvider";
-import { AuthenticationNode } from "./shared/authenticationNode";
-import { ErrorNode } from "./shared/errorNode";
-import { GitHubAPIUnreachableNode } from "./shared/gitHubApiUnreachableNode";
-import { NoGitHubRepositoryNode } from "./shared/noGitHubRepositoryNode";
-import { NoWorkflowJobsNode } from "./shared/noWorkflowJobsNode";
-import { WorkflowJobNode } from "./shared/workflowJobNode";
-import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "./shared/workflowRunNode";
-import { WorkflowNode } from "./workflows/workflowNode";
-import { getWorkflowNodes, WorkflowsRepoNode } from "./workflows/workflowsRepoNode";
-import { WorkflowStepNode } from "./workflows/workflowStepNode";
-import { REFRESH_TREE_ROOT } from "./currentBranchTreeDataProvider";
+import { canReachGitHubAPI } from "../../api/canReachGitHubAPI";
+import { getGitHubContext } from "../../git/repository";
+import { log, logDebug, logError, logTrace } from "../../log";
+import { GithubActionTreeDataProvider } from "../githubActionTreeDataProvider";
+import { AuthenticationNode } from "../shared/authenticationNode";
+import { ErrorNode } from "../shared/errorNode";
+import { GitHubAPIUnreachableNode } from "../shared/gitHubApiUnreachableNode";
+import { NoGitHubRepositoryNode } from "../shared/noGitHubRepositoryNode";
+import { NoWorkflowJobsNode } from "../shared/noWorkflowJobsNode";
+import { WorkflowJobNode } from "../shared/workflowJobNode";
+import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "../shared/workflowRunNode";
+import { WorkflowNode } from "./workflowNode";
+import { getWorkflowNodes, WorkflowsRepoNode } from "./workflowsRepoNode";
+import { WorkflowStepNode } from "../shared/workflowStepNode";
+import { REFRESH_TREE_ROOT } from "../currentBranch/currentBranchTreeDataProvider";
 
 type WorkflowsTreeNode =
   | AuthenticationNode

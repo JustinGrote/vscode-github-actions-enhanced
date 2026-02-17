@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 
-import { canReachGitHubAPI } from "../api/canReachGitHubAPI";
-import { getRunsPrefetchCount } from "../configuration/configuration";
-import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "../git/repository";
-import { CurrentBranchRepoNode } from "./current-branch/currentBranchRepoNode";
+import { canReachGitHubAPI } from "../../api/canReachGitHubAPI";
+import { getRunsPrefetchCount } from "../../configuration/configuration";
+import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "../../git/repository";
+import { CurrentBranchRepoNode } from "./currentBranchRepoNode";
 
 import {
     CollectionImpl
@@ -12,21 +12,21 @@ import { match, P } from "ts-pattern";
 import {
 log,
     logDebug, logError, logTrace, logWarn
-} from "../log";
+} from "../../log";
 import {
     WorkflowRun
-} from "../model";
-import { NoRunForBranchNode } from "./current-branch/noRunForBranchNode";
+} from "../../model";
+import { NoRunForBranchNode } from "./noRunForBranchNode";
 import {
     createGithubCollection,
     GithubCollection
-} from "./githubCollection";
-import { WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode } from "./shared/workflowRunNode";
-import { GitHubAPIUnreachableNode } from "./shared/gitHubApiUnreachableNode";
-import { NoWorkflowJobsNode } from "./shared/noWorkflowJobsNode";
-import { WorkflowJobNode } from "./shared/workflowJobNode";
-import { WorkflowStepNode } from "./workflows/workflowStepNode";
-import { GithubActionTreeDataProvider } from "./githubActionTreeDataProvider";
+} from "../collections/githubCollection";
+import { WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode } from "../shared/workflowRunNode";
+import { GitHubAPIUnreachableNode } from "../shared/gitHubApiUnreachableNode";
+import { NoWorkflowJobsNode } from "../shared/noWorkflowJobsNode";
+import { WorkflowJobNode } from "../shared/workflowJobNode";
+import { WorkflowStepNode } from "../shared/workflowStepNode";
+import { GithubActionTreeDataProvider } from "../githubActionTreeDataProvider";
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode

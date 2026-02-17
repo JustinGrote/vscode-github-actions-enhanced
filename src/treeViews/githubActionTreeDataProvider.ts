@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { REFRESH_TREE_ROOT } from "./currentBranchTreeDataProvider";
+import { REFRESH_TREE_ROOT } from "./currentBranch/currentBranchTreeDataProvider";
 import { logTrace } from "../log";
 
 /** All tree nodes should optionally implement getChildren. The provider will delegate the appropriate resolution to the node. If they do not, they are considered to be leafs and will not be expanded **/

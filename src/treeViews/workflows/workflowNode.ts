@@ -5,8 +5,8 @@ import {GitHubRepoContext} from "../../git/repository";
 import {Workflow} from "../../model";
 import {getWorkflowUri} from "../../workflow/workflow";
 import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
-import { WorkflowsTreeDataProvider } from "../workflowsTreeDataProvider";
-import { CurrentBranchTreeDataProvider } from "../currentBranchTreeDataProvider";
+import { WorkflowsTreeDataProvider } from "./workflowsTreeDataProvider";
+import { CurrentBranchTreeDataProvider } from "../currentBranch/currentBranchTreeDataProvider";
 
 export class WorkflowNode extends GithubActionTreeNode {
   constructor(

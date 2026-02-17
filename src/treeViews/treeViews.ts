@@ -5,9 +5,9 @@ import {executeCacheClearCommand} from "../workflow/languageServer";
 import {getGitHubContext} from "../git/repository";
 import {logDebug} from "../log";
 import {RunStore} from "../store/store";
-import { CurrentBranchTreeDataProvider } from "./currentBranchTreeDataProvider";
-import {SettingsTreeProvider} from "./settings";
-import {WorkflowsTreeProvider} from "./workflows";
+import { CurrentBranchTreeDataProvider } from "./currentBranch/currentBranchTreeDataProvider";
+import {SettingsTreeProvider} from "./settings/settings";
+import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider";
 
 export async function initTreeViews(context: vscode.ExtensionContext, store: RunStore): Promise<void> {
   // const workflowTreeProvider = new WorkflowsTreeProvider(store);

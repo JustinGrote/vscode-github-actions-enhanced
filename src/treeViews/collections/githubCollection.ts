@@ -1,13 +1,13 @@
 import { QueryClient } from "@tanstack/query-core";
 import { getGitHubContext,
-GitHubContext } from "../git/repository";
+GitHubContext } from "../../git/repository";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { createCollection } from "@tanstack/db";
 import { getClient,
-GhaOctokit } from "../api/api";
+GhaOctokit } from "../../api/api";
 import { create } from "domain";
 import { log,
-logDebug } from "../log";
+logDebug } from "../../log";
 
 // This should be a singleton that is shared across the entire extension for shared cache reasons.
 export const defaultQueryClient = new QueryClient({
