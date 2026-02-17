@@ -61,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Pinned workflows
   await initPinnedWorkflows(store);
   // Tree views
-  await initTreeViews(context, store);
+  await initTreeViews(context);
   // Commands
   registerOpenWorkflowRun(context);
   registerOpenWorkflowFile(context);

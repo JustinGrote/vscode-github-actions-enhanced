@@ -13,7 +13,7 @@ export const defaultQueryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
 			// Because we use conditional requests, this is OK to keep very low
-			refetchInterval: 100
+			refetchInterval: 500
 		}
 	}
 })

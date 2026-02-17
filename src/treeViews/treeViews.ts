@@ -9,9 +9,9 @@ import { CurrentBranchTreeDataProvider } from "./currentBranch/currentBranchTree
 import {SettingsTreeProvider} from "./settings/settings";
 import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider";
 
-export async function initTreeViews(context: vscode.ExtensionContext, store: RunStore): Promise<void> {
-  // const workflowTreeProvider = new WorkflowsTreeProvider(store);
-  // context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.workflows", workflowTreeProvider));
+export async function initTreeViews(context: vscode.ExtensionContext): Promise<void> {
+  const workflowTreeProvider = new WorkflowsTreeDataProvider();
+  context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.workflows", workflowTreeProvider));
 
   const settingsTreeProvider = new SettingsTreeProvider();
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.settings", settingsTreeProvider));
