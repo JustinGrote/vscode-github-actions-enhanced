@@ -10,6 +10,7 @@ import {
 } from "@tanstack/db";
 import { match, P } from "ts-pattern";
 import {
+log,
     logDebug, logError, logTrace, logWarn
 } from "../log";
 import {
@@ -144,16 +145,16 @@ export class CurrentBranchTreeDataProvider
           logTrace(`🚨 WorkflowRuns change detected: ${change.type} ${change.value.id} ${change.value.name} #${change.value.run_number}`);
           return match(change)
             .with({type: "update"}, () => {
-              logDebug(`✏️ Run ${change.value.id} was updated`);
+              log(`✏️ Run ${change.value.id} was updated`);
               return this.toWorkflowRunNode(change.value, gitHubRepoContext);
             })
             .with({type: "insert"}, () => {
-              logDebug(`➕ Run ${change.value.id} was inserted`);
+              log(`➕ Run ${change.value.id} was inserted`);
               rootRefreshNeeded = true;
               return this.toWorkflowRunNode(change.value, gitHubRepoContext);
             })
             .with({type: "delete"}, () => {
-              logDebug(`🗑️ Run ${change.value.id} was deleted`);
+              log(`🗑️ Run ${change.value.id} was deleted`);
               this.workflowRunNodes.delete(change.value.id.toString());
               rootRefreshNeeded = true;
             })
