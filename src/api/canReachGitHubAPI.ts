@@ -15,7 +15,8 @@ export async function canReachGitHubAPI() {
   return await cache.get("canReachGitHubAPI", undefined, async () => {
     try {
       const octokit = getClient(session.accessToken);
-      await octokit.request("GET /");
+      // TODO: Add a "slow mode" when the core rate limit goes below 1000
+      const rateLimit = await octokit.rest.rateLimit.get();
     } catch (e) {
       logError(e as Error, "Error getting GitHub context");
       return false;
