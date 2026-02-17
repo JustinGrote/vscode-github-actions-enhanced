@@ -19,7 +19,7 @@ import {
     createGithubCollection,
     GithubCollection
 } from "./githubCollection";
-import { AttemptNode } from "./shared/attemptNode";
+import { WorkflowRunAttemptNode } from "./shared/workflowRunAttemptNode";
 import { GitHubAPIUnreachableNode } from "./shared/gitHubApiUnreachableNode";
 import { NoWorkflowJobsNode } from "./shared/noWorkflowJobsNode";
 import { PreviousAttemptsNode } from "./shared/previousAttemptsNode";
@@ -29,26 +29,31 @@ import {
     WorkflowRunTreeDataProvider
 } from "./workflowRunTreeDataProvider";
 import { WorkflowStepNode } from "./workflows/workflowStepNode";
-import { getWorkflowNodes } from "./workflows/workflowsRepoNode";
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode
   | WorkflowRunNode
   | PreviousAttemptsNode
-  | AttemptNode
+  | WorkflowRunAttemptNode
   | WorkflowJobNode
   | NoWorkflowJobsNode
   | WorkflowStepNode
   | NoRunForBranchNode
   | GitHubAPIUnreachableNode;
 
+/** A "magic number" to signal to vscode to refresh the root of the tree */
 const REFRESH_TREE_ROOT = null;
 
 export class CurrentBranchTreeProvider
   extends WorkflowRunTreeDataProvider
   implements vscode.TreeDataProvider<CurrentBranchTreeNode>
 {
-  protected _onDidChangeTreeData = new vscode.EventEmitter<CurrentBranchTreeNode | CurrentBranchTreeNode[] | typeof REFRESH_TREE_ROOT>();
+  protected _onDidChangeTreeData = new vscode.EventEmitter<
+    CurrentBranchTreeNode
+    | CurrentBranchTreeNode[]
+    | typeof REFRESH_TREE_ROOT
+  >();
+
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   protected _updateNode(node: WorkflowRunNode): void {
@@ -121,17 +126,17 @@ export class CurrentBranchTreeProvider
       .with(P.instanceOf(CurrentBranchRepoNode),
         e => this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
       )
-      .with(P.instanceOf(PreviousAttemptsNode),
-        e => e.getAttempts()
+      .with(P.instanceOf(WorkflowRunNode),
+        e => e.getJobNodes()
       )
-      .with(P.instanceOf(AttemptNode),
-        e => e.getJobs()
+      .with(P.instanceOf(WorkflowRunAttemptNode),
+        e => e.getJobNodes()
       )
       .with(P.instanceOf(WorkflowJobNode),
         e => e.getSteps()
       )
-      .with(P.instanceOf(WorkflowRunNode),
-        e => e.getJobs()
+      .with(P.instanceOf(PreviousAttemptsNode),
+        e => e.getAttempts()
       )
       .otherwise(
         e => {

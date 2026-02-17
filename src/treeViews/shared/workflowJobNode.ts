@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import {GitHubRepoContext} from "../../git/repository";
-import {WorkflowJob} from "../../store/WorkflowJob";
 import {getIconForWorkflowNode} from "../icons";
 import {WorkflowStepNode} from "../workflows/workflowStepNode";
+import { WorkflowJob } from "../../model";
 
 export class WorkflowJobNode extends vscode.TreeItem {
   constructor(
@@ -10,23 +10,23 @@ export class WorkflowJobNode extends vscode.TreeItem {
     public readonly job: WorkflowJob
   ) {
     super(
-      job.job.name,
-      (job.job.steps && job.job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined
+      job.name,
+      (job.steps && job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined
     );
 
     this.contextValue = "job";
-    if (this.job.job.status === "completed") {
+    if (this.job.status === "completed") {
       this.contextValue += " completed";
     }
 
-    this.iconPath = getIconForWorkflowNode(this.job.job);
+    this.iconPath = getIconForWorkflowNode(this.job);
   }
 
   hasSteps(): boolean {
-    return !!(this.job.job.steps && this.job.job.steps.length > 0);
+    return !!(this.job.steps && this.job.steps.length > 0);
   }
 
   getSteps(): WorkflowStepNode[] {
-    return (this.job.job.steps || []).map(s => new WorkflowStepNode(this.gitHubRepoContext, this.job, s));
+    return (this.job.steps || []).map(s => new WorkflowStepNode(this.gitHubRepoContext, this.job, s));
   }
 }

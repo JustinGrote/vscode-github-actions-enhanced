@@ -4,7 +4,7 @@ import {canReachGitHubAPI} from "../api/canReachGitHubAPI";
 import {getGitHubContext} from "../git/repository";
 import {log, logDebug, logError, logTrace} from "../log";
 import {RunStore} from "../store/store";
-import {AttemptNode} from "./shared/attemptNode";
+import {WorkflowRunAttemptNode} from "./shared/workflowRunAttemptNode";
 import {AuthenticationNode} from "./shared/authenticationNode";
 import {ErrorNode} from "./shared/errorNode";
 import {GitHubAPIUnreachableNode} from "./shared/gitHubApiUnreachableNode";
@@ -24,7 +24,7 @@ type WorkflowsTreeNode =
   | WorkflowNode
   | WorkflowRunNode
   | PreviousAttemptsNode
-  | AttemptNode
+  | WorkflowRunAttemptNode
   | WorkflowJobNode
   | NoWorkflowJobsNode
   | WorkflowStepNode
@@ -97,7 +97,7 @@ export class WorkflowsTreeProvider
     } else if (element instanceof WorkflowNode) {
       return this.getRuns(element);
     } else if (element instanceof WorkflowRunNode) {
-      return element.getJobs();
+      return element.getJobNodes();
     } else if (element instanceof PreviousAttemptsNode) {
       return element.getAttempts();
     } else if (element instanceof AttemptNode) {
