@@ -10,7 +10,7 @@ import {userAgent} from "../api/api";
 import {getSession} from "../auth/auth";
 import {getGitHubContext} from "../git/repository";
 import {WorkflowSelector} from "./documentSelector";
-import {getGitHubApiUri, useEnterprise} from "../configuration/configuration";
+import {getGitHubApiUri, useEnterprise} from "../configuration/configReader";
 
 let client: BaseLanguageClient;
 

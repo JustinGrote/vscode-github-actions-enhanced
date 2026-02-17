@@ -4,7 +4,6 @@ import {hasWritePermission} from "../../git/repository-permissions";
 import {Environment} from "../../model";
 import {EnvironmentSecretsNode} from "./environmentSecretsNode";
 import {EnvironmentVariablesNode} from "./environmentVariablesNode";
-import {SettingsExplorerNode} from "./types";
 
 export class EnvironmentNode extends vscode.TreeItem {
   constructor(
@@ -19,7 +18,7 @@ export class EnvironmentNode extends vscode.TreeItem {
     this.contextValue = "environment";
   }
 
-  getNodes(): SettingsExplorerNode[] {
+  getNodes(): (EnvironmentSecretsNode | EnvironmentVariablesNode)[] {
     return [
       new EnvironmentSecretsNode(this.gitHubRepoContext, this.environment),
       new EnvironmentVariablesNode(this.gitHubRepoContext, this.environment)

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import {useEnterprise} from "../configuration/configuration";
+import {useEnterprise} from "../configuration/configReader";
 
 const AUTH_PROVIDER_ID = "github";
 const AUTH_PROVIDER_ID_ENTERPRISE = "github-enterprise";

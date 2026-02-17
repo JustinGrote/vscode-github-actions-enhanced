@@ -20,12 +20,10 @@ import {
     createGithubCollection,
     GithubCollection
 } from "./githubCollection";
-import { WorkflowRunAttemptNode } from "./shared/workflowRunAttemptNode";
+import { WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode } from "./shared/workflowRunNode";
 import { GitHubAPIUnreachableNode } from "./shared/gitHubApiUnreachableNode";
 import { NoWorkflowJobsNode } from "./shared/noWorkflowJobsNode";
-import { PreviousAttemptsNode } from "./shared/previousAttemptsNode";
 import { WorkflowJobNode } from "./shared/workflowJobNode";
-import { WorkflowRunNode } from "./shared/workflowRunNode";
 import {
     WorkflowRunTreeDataProvider
 } from "./workflowRunTreeDataProvider";
