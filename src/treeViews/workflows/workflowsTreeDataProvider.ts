@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { canReachGitHubAPI } from "../../api/canReachGitHubAPI";
 import { getGitHubContext } from "../../git/repository";
 import { log, logDebug, logError, logTrace } from "../../log";
+import { REFRESH_TREE_ROOT } from "../currentBranch/currentBranchTreeDataProvider";
 import { GithubActionTreeDataProvider } from "../githubActionTreeDataProvider";
 import { AuthenticationNode } from "../shared/authenticationNode";
 import { ErrorNode } from "../shared/errorNode";
@@ -11,10 +12,9 @@ import { NoGitHubRepositoryNode } from "../shared/noGitHubRepositoryNode";
 import { NoWorkflowJobsNode } from "../shared/noWorkflowJobsNode";
 import { WorkflowJobNode } from "../shared/workflowJobNode";
 import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "../shared/workflowRunNode";
+import { WorkflowStepNode } from "../shared/workflowStepNode";
 import { WorkflowNode } from "./workflowNode";
 import { getWorkflowNodes, WorkflowsRepoNode } from "./workflowsRepoNode";
-import { WorkflowStepNode } from "../shared/workflowStepNode";
-import { REFRESH_TREE_ROOT } from "../currentBranch/currentBranchTreeDataProvider";
 
 type WorkflowsTreeNode =
   | AuthenticationNode

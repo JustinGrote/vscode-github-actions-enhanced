@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
 
-import {GitHubRepoContext} from "../../git/repository";
-import {logDebug} from "../../log";
-import {getContextStringForWorkflow, getWorkflowUri} from "../../workflow/workflow";
-import {WorkflowNode} from "./workflowNode";
-import {Workflow} from "../../model";
+import { GitHubRepoContext } from "../../git/repository";
+import { Workflow } from "../../model";
+import { getContextStringForWorkflow, getWorkflowUri } from "../../workflow/workflow";
 import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
+import { WorkflowNode } from "./workflowNode";
 
 export class WorkflowsRepoNode extends GithubActionTreeNode {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {

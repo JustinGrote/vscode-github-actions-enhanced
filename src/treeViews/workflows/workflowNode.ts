@@ -1,12 +1,10 @@
 import * as vscode from "vscode";
 
-import {getPinnedWorkflows} from "../../configuration/configuration";
-import {GitHubRepoContext} from "../../git/repository";
-import {Workflow} from "../../model";
-import {getWorkflowUri} from "../../workflow/workflow";
+import { getPinnedWorkflows } from "../../configuration/configuration";
+import { GitHubRepoContext } from "../../git/repository";
+import { Workflow } from "../../model";
+import { getWorkflowUri } from "../../workflow/workflow";
 import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
-import { WorkflowsTreeDataProvider } from "./workflowsTreeDataProvider";
-import { CurrentBranchTreeDataProvider } from "../currentBranch/currentBranchTreeDataProvider";
 
 export class WorkflowNode extends GithubActionTreeNode {
   constructor(
@@ -19,11 +17,10 @@ export class WorkflowNode extends GithubActionTreeNode {
     this.updateContextValue();
   }
 
-  private currentBranchTreeDataProvider = new CurrentBranchTreeDataProvider();
-
-  async getChildren() {
-    this.currentBranchTreeDataProvider.getChildren(this);
-  }
+  // FIXME: Get workflow runs using the same path as currentBranch tree provider
+  // async getChildren() {
+  //   this.currentBranchTreeDataProvider.getChildren(this);
+  // }
 
   updateContextValue() {
     this.contextValue = "workflow";
