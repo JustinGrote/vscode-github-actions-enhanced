@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 import { canReachGitHubAPI } from "../api/canReachGitHubAPI";
+import { getRunsPrefetchCount } from "../configuration/configuration";
 import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "../git/repository";
 import { CurrentBranchRepoNode } from "./current-branch/currentBranchRepoNode";
 
@@ -9,7 +10,7 @@ import {
 } from "@tanstack/db";
 import { match, P } from "ts-pattern";
 import {
-    logDebug, logTrace, logWarn
+    logDebug, logError, logTrace, logWarn
 } from "../log";
 import {
     WorkflowRun
@@ -91,24 +92,18 @@ export class CurrentBranchTreeProvider
     const elementDescription = element ? `${element.constructor.name}: ${element.id} ${element.label}` : "🌲 Root"
     logTrace(`🧑‍💻 vscode called getChildren for ${elementDescription}`);
 
-    if (!element) {
-      const gitHubContext = await getGitHubContext();
-      if (!gitHubContext) {
-        return [new GitHubAPIUnreachableNode()];
-      }
+    const result = await match(element)
+      .with(P.nullish, async () => {
+        const gitHubContext = await getGitHubContext();
+        if (!gitHubContext) {
+          return [new GitHubAPIUnreachableNode()];
+        }
 
-      if (gitHubContext.repos.length === 1) {
-        const repoContext = gitHubContext.repos[0];
-        const currentBranch = getCurrentBranch(repoContext.repositoryState);
-        if (!currentBranch) {
-          logWarn(`Could not find current branch for ${repoContext.name}`);
+        if (gitHubContext.repos.length === 0) {
+          logWarn("No GitHub repositories found in context");
           return [];
         }
 
-        return (await this.getRunNodes(repoContext, currentBranch)) || [];
-      }
-
-      if (gitHubContext.repos.length > 1) {
         return gitHubContext.repos
           .map((repoContext): CurrentBranchRepoNode | undefined => {
             const currentBranch = getCurrentBranch(repoContext.repositoryState);
@@ -119,12 +114,24 @@ export class CurrentBranchTreeProvider
             return new CurrentBranchRepoNode(repoContext, currentBranch);
           })
           .filter(x => x !== undefined) as CurrentBranchRepoNode[];
-      }
-    }
-
-    const result = match(element)
+      })
       .with(P.instanceOf(CurrentBranchRepoNode),
-        e => this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
+        async e => {
+          const nodes = await this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
+          if (Array.isArray(nodes) && nodes.every(n => n instanceof WorkflowRunNode)) {
+            // HACK: ts still sees these as potential NoRunForBranchNode even after instanceOf check.
+            const workflowRunNodes = nodes as WorkflowRunNode[];
+            // Pre-fetch workflow run jobs to make the UX smoother, since it's likely the user will click on one of the top runs
+            const prefetchCount = getRunsPrefetchCount();
+            if (prefetchCount > 0) {
+              workflowRunNodes.slice(0, prefetchCount)
+                .map(node => node.getJobNodes()
+                .catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`))
+              );
+            }
+          }
+          return nodes;
+        }
       )
       .with(P.instanceOf(WorkflowRunNode),
         e => e.getJobNodes()

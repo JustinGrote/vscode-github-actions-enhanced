@@ -97,6 +97,13 @@
           "default": 1,
           "scope": "window"
         },
+        "github-actions.runs.prefetch.count": {
+          "type": "number",
+          "description": "As a performance optimization, we fetch the top X workflow runs to pre-fetch jobs for a faster experience. If you are having problems with rate limiting, you may want to limit this. Set this to 0 to disable prefetching.",
+          "default": 3,
+          "minimum": 0,
+          "scope": "window"
+        },
         "github-actions.remote-name": {
           "type": "string",
           "description": "The name of the repository's git remote that points to GitHub",

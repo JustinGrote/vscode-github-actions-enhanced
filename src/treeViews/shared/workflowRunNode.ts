@@ -70,7 +70,7 @@ export class WorkflowRunNode extends vscode.TreeItem {
           per_page: 100,
         }),
         (response) => response.data.jobs,
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
         "id"
       );
     }

@@ -100,6 +100,10 @@ export function pinnedWorkflowsRefreshInterval(): number {
   return getConfiguration().get<number>(getSettingsKey("workflows.pinned.refresh.interval"), 1);
 }
 
+export function getRunsPrefetchCount(): number {
+  return getConfiguration().get<number>(getSettingsKey("runs.prefetch.count"), 3);
+}
+
 export function getRemoteName(): string {
   return getConfiguration().get<string>(getSettingsKey("remote-name"), "origin");
 }
