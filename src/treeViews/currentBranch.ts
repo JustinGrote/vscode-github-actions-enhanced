@@ -99,12 +99,7 @@ export class CurrentBranchTreeProvider
           return [new GitHubAPIUnreachableNode()];
         }
 
-        if (gitHubContext.repos.length === 0) {
-          logWarn("No GitHub repositories found in context");
-          return [];
-        }
-
-        return gitHubContext.repos
+        const repoNodes = gitHubContext.repos
           .map((repoContext): CurrentBranchRepoNode | undefined => {
             const currentBranch = getCurrentBranch(repoContext.repositoryState);
             if (!currentBranch) {
@@ -114,23 +109,20 @@ export class CurrentBranchTreeProvider
             return new CurrentBranchRepoNode(repoContext, currentBranch);
           })
           .filter(x => x !== undefined) as CurrentBranchRepoNode[];
+
+        if (gitHubContext.repos.length === 0) {
+          logWarn("No GitHub repositories found in context");
+          return [];
+        }
+        if (gitHubContext.repos.length === 1) {
+          logDebug("Only one GitHub repository found in context, expanding it by default to save a click.");
+          const singleRepoNode = repoNodes[0];
+          return await this.getRunNodes(singleRepoNode.gitHubRepoContext, singleRepoNode.currentBranchName)
+        }
       })
       .with(P.instanceOf(CurrentBranchRepoNode),
         async e => {
-          const nodes = await this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
-          if (Array.isArray(nodes) && nodes.every(n => n instanceof WorkflowRunNode)) {
-            // HACK: ts still sees these as potential NoRunForBranchNode even after instanceOf check.
-            const workflowRunNodes = nodes as WorkflowRunNode[];
-            // Pre-fetch workflow run jobs to make the UX smoother, since it's likely the user will click on one of the top runs
-            const prefetchCount = getRunsPrefetchCount();
-            if (prefetchCount > 0) {
-              workflowRunNodes.slice(0, prefetchCount)
-                .map(node => node.getJobNodes()
-                .catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`))
-              );
-            }
-          }
-          return nodes;
+          return await this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
         }
       )
       .with(P.instanceOf(WorkflowRunNode),
@@ -229,7 +221,18 @@ export class CurrentBranchTreeProvider
       return [new NoRunForBranchNode()];
     }
 
-    return currentBranchRuns.map(run => this.toWorkflowRunNode(run, gitHubRepoContext));
+    const runNodes = currentBranchRuns.map(run => this.toWorkflowRunNode(run, gitHubRepoContext));
+
+    // Perform opportunistic prefetching
+    const prefetchCount = getRunsPrefetchCount();
+    if (prefetchCount > 0) {
+      runNodes.slice(0, prefetchCount)
+        .map(node => node.getJobNodes()
+        .catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`))
+      );
+    }
+
+    return runNodes
   }
 
   private toWorkflowRunNode(
