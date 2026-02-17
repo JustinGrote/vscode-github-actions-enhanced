@@ -9,10 +9,11 @@ import { getIconForWorkflowNode } from "../icons";
 import { NoWorkflowJobsNode } from "./noWorkflowJobsNode";
 import { getEventString, getStatusString } from "./runTooltipHelper";
 import { WorkflowJobNode } from "./workflowJobNode";
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
 
 export type WorkflowRunCommandArgs = Pick<WorkflowRunNode, "gitHubRepoContext" | "run">;
 
-export class WorkflowRunNode extends vscode.TreeItem {
+export class WorkflowRunNode extends GithubActionTreeNode {
   private runId: number;
 
   constructor(
@@ -103,10 +104,10 @@ export class WorkflowRunNode extends vscode.TreeItem {
     return contextValues.join(" ");
   }
 
-  async getJobNodes(): Promise<(WorkflowJobNode | NoWorkflowJobsNode | PreviousAttemptsNode)[]> {
+  async getChildren(): Promise<GithubActionTreeNode[]> {
     const jobs = await this.fetchJobs();
     // NOTE: because jobs are mostly readonly unlike runs, we can simplify the display process by just creating new nodes on each vscode request and telling it to update the job and refresh everything. This may be a poor assumption in the case of a ton of jobs and steps so we may need to do a more granular refresh on the UI in the future.
-    const jobNodes: (WorkflowJobNode | NoWorkflowJobsNode | PreviousAttemptsNode)[] = jobs.map(job => new WorkflowJobNode(this.gitHubRepoContext,job));
+    const jobNodes: GithubActionTreeNode[] = jobs.map(job => new WorkflowJobNode(this.gitHubRepoContext,job));
 
     if (this.hasPreviousAttempts) {
       jobNodes.push(new PreviousAttemptsNode(this.gitHubRepoContext, this.run));
@@ -223,7 +224,7 @@ export class WorkflowRunAttemptNode extends WorkflowRunNode {
 }
 
 /** NOTE: This must stay in the same module as WorkflowRunNode to avoid a circular dependency */
-export class PreviousAttemptsNode extends vscode.TreeItem {
+export class PreviousAttemptsNode extends GithubActionTreeNode {
   constructor(
     protected readonly gitHubRepoContext: GitHubRepoContext,
     public run: WorkflowRun
@@ -257,7 +258,7 @@ export class PreviousAttemptsNode extends vscode.TreeItem {
     return []
   }
 
-  async getAttempts(): Promise<WorkflowRunNode[]> {
+  async getChildren(): Promise<WorkflowRunNode[]> {
     const attempts = await this.fetchAttempts();
     return attempts
       .map(attempt => new WorkflowRunAttemptNode(this.gitHubRepoContext, attempt))

@@ -95,13 +95,13 @@ export class WorkflowsTreeProvider
     } else if (element instanceof WorkflowNode) {
       return this.getRuns(element);
     } else if (element instanceof WorkflowRunNode) {
-      return element.getJobNodes();
+      return element.getChildren();
     } else if (element instanceof PreviousAttemptsNode) {
-      return element.getAttempts();
+      return element.getChildren();
     } else if (element instanceof WorkflowRunAttemptNode) {
-      return element.getJobNodes();
+      return element.getChildren();
     } else if (element instanceof WorkflowJobNode) {
-      return element.getSteps();
+      return element.getChildren();
     }
 
     return [];

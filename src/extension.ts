@@ -41,7 +41,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (await officialExtensionIsActive()) return;
 
   initLogger();
-  log("Activating GitHub Actions extension...");
+  log("🚀 Activating GitHub Actions extension!");
   const hasSession = !!(await getSession());
   const canReachAPI = hasSession && (await canReachGitHubAPI());
   // Prefetch git repository origin url

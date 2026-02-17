@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 
 import {GitHubRepoContext} from "../../git/repository";
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
 
-export class CurrentBranchRepoNode extends vscode.TreeItem {
+export class CurrentBranchRepoNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
     public readonly currentBranchName: string

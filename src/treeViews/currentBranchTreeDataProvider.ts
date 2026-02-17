@@ -24,52 +24,32 @@ import { WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode } from ".
 import { GitHubAPIUnreachableNode } from "./shared/gitHubApiUnreachableNode";
 import { NoWorkflowJobsNode } from "./shared/noWorkflowJobsNode";
 import { WorkflowJobNode } from "./shared/workflowJobNode";
-import {
-    WorkflowRunTreeDataProvider
-} from "./workflowRunTreeDataProvider";
 import { WorkflowStepNode } from "./workflows/workflowStepNode";
+import { GithubActionTreeDataProvider } from "./githubActionTreeDataProvider";
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode
   | WorkflowRunNode
-  | PreviousAttemptsNode
   | WorkflowRunAttemptNode
+  | PreviousAttemptsNode
   | WorkflowJobNode
   | NoWorkflowJobsNode
   | WorkflowStepNode
   | NoRunForBranchNode
   | GitHubAPIUnreachableNode;
 
+
 /** A "magic number" to signal to vscode to refresh the root of the tree */
-const REFRESH_TREE_ROOT = null;
+export const REFRESH_TREE_ROOT = undefined;
+
 
 export class CurrentBranchTreeDataProvider
-  extends WorkflowRunTreeDataProvider
-  implements vscode.TreeDataProvider<CurrentBranchTreeNode>
+  extends GithubActionTreeDataProvider<CurrentBranchTreeNode>
 {
-  protected _onDidChangeTreeData = new vscode.EventEmitter<
-    CurrentBranchTreeNode
-    | CurrentBranchTreeNode[]
-    | typeof REFRESH_TREE_ROOT
-  >();
-
-  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
-
   protected _updateNode(node: WorkflowRunNode): void {
     logTrace(`Node updated: ${node.id} ${node.label}`);
     this._onDidChangeTreeData.fire(node);
   }
-
-  private onDidChangeTreeDataTrace = this.onDidChangeTreeData((e) => {
-    if (e === REFRESH_TREE_ROOT) {
-      logTrace(`👉 VSCode informed to refresh full tree`);
-    } else if (Array.isArray(e)) {
-      logTrace(`👉 VSCode informed to refresh tree nodes: ${e.map(n => n.id).join(", ")}`);
-    }
-    else {
-      logTrace(`👉 VSCode informed to refresh tree node ${e.id} ${e.label}`);
-    }
-  });
 
   async refresh(): Promise<void> {
     // Don't delete all the nodes if we can't reach GitHub API
@@ -81,71 +61,40 @@ export class CurrentBranchTreeDataProvider
     }
   }
 
-  getTreeItem(element: CurrentBranchTreeNode): vscode.TreeItem | Thenable<vscode.TreeItem> {
-    logTrace(`🧑‍💻 vscode called getTreeItem for ${element.label} [${element.id}] `);
-    return element;
-  }
+  async getChildren(element?: CurrentBranchTreeNode | undefined): Promise<CurrentBranchTreeNode[]> {
+    const children = await super.getChildren(element);
+    if (children) return children
 
-  async getChildren(element?: CurrentBranchTreeNode | undefined, clearCache?: boolean): Promise<CurrentBranchTreeNode[]> {
-    const elementDescription = element ? `${element.constructor.name}: ${element.id} ${element.label}` : "🌲 Root"
-    logTrace(`🧑‍💻 vscode called getChildren for ${elementDescription}`);
+    // At this point it is a Tree Root Lookup
+    const gitHubContext = await getGitHubContext();
+    if (!gitHubContext) {
+      return [new GitHubAPIUnreachableNode()];
+    }
 
-    const result = await match(element)
-      .with(P.nullish, async () => {
-        const gitHubContext = await getGitHubContext();
-        if (!gitHubContext) {
-          return [new GitHubAPIUnreachableNode()];
+    const repoNodes = gitHubContext.repos
+      .map((repoContext): CurrentBranchRepoNode | undefined => {
+        const currentBranch = getCurrentBranch(repoContext.repositoryState);
+        if (!currentBranch) {
+          logWarn(`Could not find current branch for ${repoContext.name}`);
+          return undefined;
         }
-
-        const repoNodes = gitHubContext.repos
-          .map((repoContext): CurrentBranchRepoNode | undefined => {
-            const currentBranch = getCurrentBranch(repoContext.repositoryState);
-            if (!currentBranch) {
-              logWarn(`Could not find current branch for ${repoContext.name}`);
-              return undefined;
-            }
-            return new CurrentBranchRepoNode(repoContext, currentBranch);
-          })
-          .filter(x => x !== undefined) as CurrentBranchRepoNode[];
-
-        if (gitHubContext.repos.length === 0) {
-          logWarn("No GitHub repositories found in context");
-          return [];
-        }
-        if (gitHubContext.repos.length === 1) {
-          logDebug("Only one GitHub repository found in context, expanding it by default to save a click.");
-          const singleRepoNode = repoNodes[0];
-          return await this.getRunNodes(singleRepoNode.gitHubRepoContext, singleRepoNode.currentBranchName)
-        }
-
-        // Multi-Repository view
-        return repoNodes;
+        return new CurrentBranchRepoNode(repoContext, currentBranch);
       })
-      .with(P.instanceOf(CurrentBranchRepoNode),
-        async e => {
-          return await this.getRunNodes(e.gitHubRepoContext, e.currentBranchName)
-        }
-      )
-      .with(P.instanceOf(WorkflowRunNode),
-        e => e.getJobNodes()
-      )
-      .with(P.instanceOf(WorkflowRunAttemptNode),
-        e => e.getJobNodes()
-      )
-      .with(P.instanceOf(WorkflowJobNode),
-        e => e.getSteps()
-      )
-      .with(P.instanceOf(PreviousAttemptsNode),
-        e => e.getAttempts()
-      )
-      .otherwise(
-        e => {
-          logWarn(`Unknown class seen during getChildren: ${e?.constructor?.name}. Has it been implemented yet?`);
-          return [];
-        }
-      );
+      .filter(x => x !== undefined) as CurrentBranchRepoNode[];
 
-    return result;
+    if (gitHubContext.repos.length === 0) {
+      logWarn("No GitHub repositories found in context");
+      return [];
+    }
+
+    if (gitHubContext.repos.length === 1) {
+      logDebug("Only one GitHub repository found in context, expanding it by default to save a click.");
+      const singleRepoNode = repoNodes[0];
+      return await this.getRunNodes(singleRepoNode.gitHubRepoContext, singleRepoNode.currentBranchName)
+    }
+
+    // Multi-Repository view
+    return repoNodes;
   }
 
 
@@ -228,7 +177,7 @@ export class CurrentBranchTreeDataProvider
     const prefetchCount = getRunsPrefetchCount();
     if (prefetchCount > 0) {
       runNodes.slice(0, prefetchCount)
-        .map(node => node.getJobNodes()
+        .map(node => node.getChildren()
         .catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`))
       );
     }
