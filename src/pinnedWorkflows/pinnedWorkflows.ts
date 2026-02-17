@@ -228,8 +228,7 @@ function updatePinnedWorkflow(pinnedWorkflow: PinnedWorkflow, run: WorkflowRun |
       command: "github-actions.workflow.run.open",
       arguments: [
         {
-          run: run,
-          store: runStore,
+          run: run.run,
           gitHubRepoContext: pinnedWorkflow.gitHubRepoContext
         } satisfies WorkflowRunCommandArgs
       ]

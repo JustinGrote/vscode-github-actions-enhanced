@@ -22,7 +22,6 @@ export class EnvironmentSecretsNode extends vscode.TreeItem {
     let secrets: SecretNode[] = [];
     try {
       secrets = await this.gitHubRepoContext.client.paginate(
-        // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
         this.gitHubRepoContext.client.actions.listEnvironmentSecrets,
         {
           owner: this.gitHubRepoContext.owner,
@@ -30,7 +29,6 @@ export class EnvironmentSecretsNode extends vscode.TreeItem {
           environment_name: this.environment.name,
           per_page: 100
         },
-        // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
         response => response.data.map(s => new SecretNode(this.gitHubRepoContext, s, this.environment))
       );
     } catch (e) {

@@ -36,7 +36,7 @@ export class WorkflowsTreeProvider
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor(store: RunStore) {
-    super(store);
+    super();
   }
 
   protected _updateNode(node: WorkflowRunNode): void {
@@ -98,8 +98,8 @@ export class WorkflowsTreeProvider
       return element.getJobNodes();
     } else if (element instanceof PreviousAttemptsNode) {
       return element.getAttempts();
-    } else if (element instanceof AttemptNode) {
-      return element.getJobs();
+    } else if (element instanceof WorkflowRunAttemptNode) {
+      return element.getJobNodes();
     } else if (element instanceof WorkflowJobNode) {
       return element.getSteps();
     }
@@ -116,6 +116,6 @@ export class WorkflowsTreeProvider
       workflow_id: wfNode.wf.id
     });
 
-    return this.runNodes(wfNode.gitHubRepoContext, result.data.workflow_runs);
+    return result.data.workflow_runs.map(run => new WorkflowRunNode(wfNode.gitHubRepoContext, run));
   }
 }

@@ -1,4 +1,4 @@
-import type {OctokitResponse} from "@octokit/types";
+import type {RequestError} from "@octokit/request-error";
 import * as vscode from "vscode";
 import {getGitHubContextForRepo} from "../git/repository";
 import {cacheLogInfo} from "./logInfo";
@@ -31,7 +31,7 @@ export class WorkflowStepLogProvider implements vscode.TextDocumentContentProvid
 
       return logInfo.updatedLogLines.join("\n");
     } catch (e) {
-      const respErr = e as OctokitResponse<unknown, number>;
+      const respErr = e as RequestError;
       if (respErr.status === 410) {
         cacheLogInfo(uri, {
           sections: [],

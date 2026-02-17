@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import {deactivateLanguageServer, initLanguageServer} from "../workflow/languageServer";
 import {resetGitHubContext} from "../git/repository";
+import {useEnterprise} from "./configReader";
 
 const settingsKey = "github-actions";
 const PINNED_WORKFLOWS_KEY = `${settingsKey}.pinnedWorkflows`;

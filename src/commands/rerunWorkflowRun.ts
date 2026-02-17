@@ -11,14 +11,11 @@ export function registerReRunWorkflowRun(context: vscode.ExtensionContext) {
         await gitHubRepoContext.client.actions.reRunWorkflow({
           owner: gitHubRepoContext.owner,
           repo: gitHubRepoContext.name,
-          run_id: run.run.id
+          run_id: run.id
         });
       } catch (e) {
         await vscode.window.showErrorMessage(`Could not rerun workflow: '${(e as Error).message}'`);
       }
-
-      // Start refreshing the run to reflect rerunning in UI
-      args.store.pollRun(run.run.id, gitHubRepoContext, 1000, 20);
     })
   );
 }

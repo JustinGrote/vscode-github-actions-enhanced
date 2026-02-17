@@ -24,7 +24,7 @@ export class RunStore extends EventEmitter<RunStoreEvent> {
     return Array.from(this.runs.values());
   }
 
-  private addRun(gitHubRepoContext: GitHubRepoContext, runData: model.WorkflowRun): void {
+  addRun(gitHubRepoContext: GitHubRepoContext, runData: model.WorkflowRun): void {
     let run = this.runs.get(runData.id);
     if (!run) {
       run = new WorkflowRun(gitHubRepoContext, runData);
