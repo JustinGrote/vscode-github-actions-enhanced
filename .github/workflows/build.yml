@@ -18,7 +18,7 @@ jobs:
       - name: 📤 Checkout
         uses: actions/checkout@v6
       - name: 🛠️ Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@9b5745cdf0a2e8c2620f0746130f809adb911c19 #For cache support, update to tag when it is released.
         with:
           cache: true
       - name: 🛠️ Setup Node and Restore NPM Cache
