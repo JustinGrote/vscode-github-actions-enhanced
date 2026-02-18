@@ -16,14 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📤 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: 🛠️ Setup Node and Restore NPM Cache
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
-          cache: npm
-          cache-dependency-path: package-lock.json
-          registry-url: "https://npm.pkg.github.com"
+          node-version: 22.21.x
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          package-manager-cache: true
       - name: 🕒 Version
         shell: pwsh
         run: |
@@ -42,7 +42,7 @@ jobs:
         run: |
           pnpx @vscode/vsce package --no-update-package-json --no-git-tag-version --pre-release
       - name: ⬆️ Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: github-actions-enhanced-vsix
           path: github-actions-enhanced-*.vsix
