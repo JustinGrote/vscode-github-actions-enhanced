@@ -30,8 +30,7 @@ jobs:
           package-manager-cache: true
       - name: 🕒 Version
         shell: pwsh
-        run: |
-          pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
+        run: pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
       - name: 🚚 Restore Packages (CI)
         run: pnpm install --frozen-lockfile
       - name: 💄 Prettier Formatting Check
@@ -43,8 +42,7 @@ jobs:
       - name: 🧪 Test
         run: pnpm test
       - name: 📦 Package
-        run: |
-          pnpm package
+        run: pnpm package
       - name: ⬆️ Upload Artifact
         uses: actions/upload-artifact@v6
         with:
