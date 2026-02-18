@@ -1,15 +1,15 @@
 import * as vscode from "vscode";
 
-import { GitHubRepoContext } from "../../git/repository";
-import { hasWritePermission, RepositoryPermission } from "../../git/repository-permissions";
-import { logDebug, logTrace } from "../../log";
-import { WorkflowJob, WorkflowRun, WorkflowRunAttempt } from "../../model";
-import { createGithubCollection, GithubCollection } from "../collections/githubCollection";
-import { getIconForWorkflowNode } from "../icons";
-import { NoWorkflowJobsNode } from "./noWorkflowJobsNode";
-import { getEventString, getStatusString } from "./runTooltipHelper";
-import { WorkflowJobNode } from "./workflowJobNode";
-import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
+import {GitHubRepoContext} from "../../git/repository";
+import {hasWritePermission, RepositoryPermission} from "../../git/repository-permissions";
+import {logDebug, logTrace} from "../../log";
+import {WorkflowJob, WorkflowRun, WorkflowRunAttempt} from "../../model";
+import {createGithubCollection, GithubCollection} from "../collections/githubCollection";
+import {getIconForWorkflowNode} from "../icons";
+import {NoWorkflowJobsNode} from "./noWorkflowJobsNode";
+import {getEventString, getStatusString} from "./runTooltipHelper";
+import {WorkflowJobNode} from "./workflowJobNode";
+import {GithubActionTreeNode} from "../githubActionTreeDataProvider";
 
 export type WorkflowRunCommandArgs = Pick<WorkflowRunNode, "gitHubRepoContext" | "run">;
 
@@ -19,7 +19,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
     public run: WorkflowRun,
-    private onJobUpdate?: () => void,
+    private onJobUpdate?: () => void
   ) {
     super(WorkflowRunNode._getLabel(run), vscode.TreeItemCollapsibleState.Collapsed);
     this.runId = run.id;
@@ -42,7 +42,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
   updateRun(run: WorkflowRun) {
     this.run = run;
     this.runId = run.id;
-    this.id = run.node_id.toString() // this is the GraphQL node id which should be globally unique and OK to use here, as vscode requires this ID to be unique across all objects in the tree
+    this.id = run.node_id.toString(); // this is the GraphQL node id which should be globally unique and OK to use here, as vscode requires this ID to be unique across all objects in the tree
     this.label = WorkflowRunNode._getLabel(run);
     this.description = WorkflowRunNode._getDescription(run);
     this.contextValue = this.getContextValue(this.gitHubRepoContext.permissionLevel);
@@ -50,8 +50,8 @@ export class WorkflowRunNode extends GithubActionTreeNode {
     this.tooltip = this.getTooltip();
   }
 
-  private jobsCollection: GithubCollection<WorkflowJob, { runId: number }> | undefined
-  private jobsWatcher: ReturnType<GithubCollection<WorkflowJob, { runId: number }>["subscribeChanges"]> | undefined
+  private jobsCollection: GithubCollection<WorkflowJob, {runId: number}> | undefined;
+  private jobsWatcher: ReturnType<GithubCollection<WorkflowJob, {runId: number}>["subscribeChanges"]> | undefined;
 
   private async fetchJobs(): Promise<WorkflowJob[]> {
     logDebug(`Fetching jobs for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`);
@@ -61,14 +61,14 @@ export class WorkflowRunNode extends GithubActionTreeNode {
         ["jobs", this.run.id.toString()],
         this.gitHubRepoContext.client,
         this.gitHubRepoContext.client.actions.listJobsForWorkflowRunAttempt,
-        ({
+        {
           owner: this.gitHubRepoContext.owner,
           repo: this.gitHubRepoContext.name,
           run_id: this.run.id,
           attempt_number: this.run.run_attempt || 1,
-          per_page: 100,
-        }),
-        (response) => response.data.jobs,
+          per_page: 100
+        },
+        response => response.data.jobs,
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
         "id"
       );
@@ -77,16 +77,20 @@ export class WorkflowRunNode extends GithubActionTreeNode {
     if (!this.jobsWatcher) {
       logDebug(`👁️ Watching jobs for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`);
       this.jobsWatcher = this.jobsCollection.subscribeChanges(changes => {
-        logDebug(`📋 Jobs change detected for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`);
+        logDebug(
+          `📋 Jobs change detected for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`
+        );
         // Fire the callback that jobs have changed, which our tree provider will signal to vscode to update.
-        if (this.onJobUpdate) this.onJobUpdate()
+        if (this.onJobUpdate) this.onJobUpdate();
 
         if (this.jobsCollection?.toArray.every(job => job.status === "completed")) {
-          logDebug(`🙈 All jobs are completed for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id}), stopping polling and unsubscribing the listener`);
+          logDebug(
+            `🙈 All jobs are completed for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id}), stopping polling and unsubscribing the listener`
+          );
           this.jobsWatcher?.unsubscribe();
           // this.jobsCollection.cleanup();
         }
-      })
+      });
     }
 
     return this.jobsCollection.toArrayWhenReady();
@@ -107,7 +111,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
   async getChildren(): Promise<GithubActionTreeNode[]> {
     const jobs = await this.fetchJobs();
     // NOTE: because jobs are mostly readonly unlike runs, we can simplify the display process by just creating new nodes on each vscode request and telling it to update the job and refresh everything. This may be a poor assumption in the case of a ton of jobs and steps so we may need to do a more granular refresh on the UI in the future.
-    const jobNodes: GithubActionTreeNode[] = jobs.map(job => new WorkflowJobNode(this.gitHubRepoContext,job));
+    const jobNodes: GithubActionTreeNode[] = jobs.map(job => new WorkflowJobNode(this.gitHubRepoContext, job));
 
     if (this.hasPreviousAttempts) {
       jobNodes.push(new PreviousAttemptsNode(this.gitHubRepoContext, this.run));
@@ -131,7 +135,9 @@ export class WorkflowRunNode extends GithubActionTreeNode {
     const runHeader = [
       `#${this.run.run_number}`,
       this.hasPreviousAttempts && this.run.run_attempt ? `${this.run.run_attempt} attempts` : null
-    ].filter(Boolean).join(" • ");
+    ]
+      .filter(Boolean)
+      .join(" • ");
 
     // Add hyperlink to workflow run
     const runLink = this.run.html_url ? `[${runHeader}](${this.run.html_url})` : runHeader;
@@ -143,7 +149,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
     const tempRun = {
       run: this.run,
       duration: () => this.duration(),
-      hasPreviousAttempts: this.hasPreviousAttempts,
+      hasPreviousAttempts: this.hasPreviousAttempts
     } as any;
 
     parts.push(`**Status:** ${getStatusString(tempRun, false)}`);
@@ -210,10 +216,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
 
 /** A workflow run attempt is just an instance of a WorkflowRun, so we can inherit most of the functionality */
 export class WorkflowRunAttemptNode extends WorkflowRunNode {
-  constructor(
-    gitHubRepoContext: GitHubRepoContext,
-    attempt: WorkflowRun
-  ) {
+  constructor(gitHubRepoContext: GitHubRepoContext, attempt: WorkflowRun) {
     super(gitHubRepoContext, attempt);
     this.id = `${this.run.node_id}-${this.run.run_attempt}`;
   }
@@ -234,28 +237,31 @@ export class PreviousAttemptsNode extends GithubActionTreeNode {
   }
 
   private async fetchAttempts(): Promise<WorkflowRunAttempt[]> {
-    logTrace(`Fetching previous attempts for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`);
+    logTrace(
+      `Fetching previous attempts for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`
+    );
 
     const attempts = this.run.run_attempt || 1;
     const attemptRequests = [];
     if (attempts > 1) {
       // Send the requests in parallel since there is no list API
       for (let i = 1; i < attempts; i++) {
-        attemptRequests
-          .push(this.gitHubRepoContext.client.actions.getWorkflowRunAttempt({
-            owner: this.gitHubRepoContext.owner,
-            repo: this.gitHubRepoContext.name,
-            run_id: this.run.id,
-            attempt_number: i
-          })
-          .then(response => response.data)
-        )
+        attemptRequests.push(
+          this.gitHubRepoContext.client.actions
+            .getWorkflowRunAttempt({
+              owner: this.gitHubRepoContext.owner,
+              repo: this.gitHubRepoContext.name,
+              run_id: this.run.id,
+              attempt_number: i
+            })
+            .then(response => response.data)
+        );
       }
 
-      return Promise.all(attemptRequests)
+      return Promise.all(attemptRequests);
     }
 
-    return []
+    return [];
   }
 
   async getChildren(): Promise<WorkflowRunNode[]> {
@@ -263,8 +269,8 @@ export class PreviousAttemptsNode extends GithubActionTreeNode {
     return attempts
       .map(attempt => new WorkflowRunAttemptNode(this.gitHubRepoContext, attempt))
       .map(attempt => {
-        attempt.id = `${this.run.id}-${attempt.run.run_attempt}`
-        return attempt
+        attempt.id = `${this.run.id}-${attempt.run.run_attempt}`;
+        return attempt;
       }) // Set the ID to a combination of the run ID and attempt number since the API doesn't return a unique ID for attempts
       .sort((a, b) => (b.run.run_attempt ?? 1) - (a.run.run_attempt ?? 1)); // Sort attempts in descending order so the most recent attempt is at the top
   }

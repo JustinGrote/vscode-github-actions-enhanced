@@ -11,9 +11,7 @@
         "isDefault": true
       },
       "isBackground": true,
-      "problemMatcher": [
-        "$esbuild"
-      ],
+      "problemMatcher": ["$esbuild"],
       "icon": {
         "id": "package",
         "color": "terminal.ansiGreen"
@@ -26,9 +24,7 @@
       "script": "watch",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": [
-        "$esbuild-watch"
-      ],
+      "problemMatcher": ["$esbuild-watch"],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"
@@ -39,9 +35,7 @@
       "script": "watch-web",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": [
-        "$esbuild-watch"
-      ],
+      "problemMatcher": ["$esbuild-watch"],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"

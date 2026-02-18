@@ -110,11 +110,14 @@ async function updatePinnedWorkflows() {
     }
 
     // Get all workflows to resolve names. We could do this locally, but for now, let's make the API call.
-    const workflows: Workflow[] = await gitHubRepoContext.client.paginate(gitHubRepoContext.client.actions.listRepoWorkflows, {
-      owner: gitHubRepoContext.owner,
-      repo: gitHubRepoContext.name,
-      per_page: 100
-    });
+    const workflows: Workflow[] = await gitHubRepoContext.client.paginate(
+      gitHubRepoContext.client.actions.listRepoWorkflows,
+      {
+        owner: gitHubRepoContext.owner,
+        repo: gitHubRepoContext.name,
+        per_page: 100
+      }
+    );
 
     const workflowByPath: Record<string, Workflow> = {};
     workflows.forEach(w => (workflowByPath[w.path] = w));

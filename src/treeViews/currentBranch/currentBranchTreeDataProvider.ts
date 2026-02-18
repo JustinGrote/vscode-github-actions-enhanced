@@ -1,32 +1,22 @@
 import * as vscode from "vscode";
 
-import { canReachGitHubAPI } from "../../api/canReachGitHubAPI";
-import { getRunsPrefetchCount } from "../../configuration/configuration";
-import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "../../git/repository";
-import { CurrentBranchRepoNode } from "./currentBranchRepoNode";
+import {canReachGitHubAPI} from "../../api/canReachGitHubAPI";
+import {getRunsPrefetchCount} from "../../configuration/configuration";
+import {getCurrentBranch, getGitHubContext, GitHubRepoContext} from "../../git/repository";
+import {CurrentBranchRepoNode} from "./currentBranchRepoNode";
 
-import {
-    CollectionImpl
-} from "@tanstack/db";
-import { match, P } from "ts-pattern";
-import {
-log,
-    logDebug, logError, logTrace, logWarn
-} from "../../log";
-import {
-    WorkflowRun
-} from "../../model";
-import { NoRunForBranchNode } from "./noRunForBranchNode";
-import {
-    createGithubCollection,
-    GithubCollection
-} from "../collections/githubCollection";
-import { WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode } from "../shared/workflowRunNode";
-import { GitHubAPIUnreachableNode } from "../shared/gitHubApiUnreachableNode";
-import { NoWorkflowJobsNode } from "../shared/noWorkflowJobsNode";
-import { WorkflowJobNode } from "../shared/workflowJobNode";
-import { WorkflowStepNode } from "../shared/workflowStepNode";
-import { GithubActionTreeDataProvider } from "../githubActionTreeDataProvider";
+import {CollectionImpl} from "@tanstack/db";
+import {match, P} from "ts-pattern";
+import {log, logDebug, logError, logTrace, logWarn} from "../../log";
+import {WorkflowRun} from "../../model";
+import {NoRunForBranchNode} from "./noRunForBranchNode";
+import {createGithubCollection, GithubCollection} from "../collections/githubCollection";
+import {WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode} from "../shared/workflowRunNode";
+import {GitHubAPIUnreachableNode} from "../shared/gitHubApiUnreachableNode";
+import {NoWorkflowJobsNode} from "../shared/noWorkflowJobsNode";
+import {WorkflowJobNode} from "../shared/workflowJobNode";
+import {WorkflowStepNode} from "../shared/workflowStepNode";
+import {GithubActionTreeDataProvider} from "../githubActionTreeDataProvider";
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode
@@ -39,14 +29,10 @@ type CurrentBranchTreeNode =
   | NoRunForBranchNode
   | GitHubAPIUnreachableNode;
 
-
 /** A "magic number" to signal to vscode to refresh the root of the tree */
 export const REFRESH_TREE_ROOT = undefined;
 
-
-export class CurrentBranchTreeDataProvider
-  extends GithubActionTreeDataProvider<CurrentBranchTreeNode>
-{
+export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<CurrentBranchTreeNode> {
   protected _updateNode(node: WorkflowRunNode): void {
     logTrace(`Node updated: ${node.id} ${node.label}`);
     this._onDidChangeTreeData.fire(node);
@@ -64,7 +50,7 @@ export class CurrentBranchTreeDataProvider
 
   async getChildren(element?: CurrentBranchTreeNode | undefined): Promise<CurrentBranchTreeNode[]> {
     const children = await super.getChildren(element);
-    if (children) return children
+    if (children) return children;
 
     // At this point it is a Tree Root Lookup
     const gitHubContext = await getGitHubContext();
@@ -91,15 +77,14 @@ export class CurrentBranchTreeDataProvider
     if (gitHubContext.repos.length === 1) {
       logDebug("Only one GitHub repository found in context, expanding it by default to save a click.");
       const singleRepoNode = repoNodes[0];
-      return await this.getRunNodes(singleRepoNode.gitHubRepoContext, singleRepoNode.currentBranchName)
+      return await this.getRunNodes(singleRepoNode.gitHubRepoContext, singleRepoNode.currentBranchName);
     }
 
     // Multi-Repository view
     return repoNodes;
   }
 
-
-  private workflowRunCollection: GithubCollection<WorkflowRun, {owner: string, repo: string}> | undefined;
+  private workflowRunCollection: GithubCollection<WorkflowRun, {owner: string; repo: string}> | undefined;
   private changeFeed: ReturnType<CollectionImpl<WorkflowRun>["subscribeChanges"]> | undefined;
 
   /** Cache of workflow run nodes by their ID. When the store notifies us of an update, we can use this cache to quickly find the corresponding nodes and notify vscode they have changed */
@@ -109,14 +94,13 @@ export class CurrentBranchTreeDataProvider
     gitHubRepoContext: GitHubRepoContext,
     currentBranchName?: string
   ): Promise<WorkflowRunNode[] | NoRunForBranchNode[]> {
-
     logDebug(`Getting current branch (${currentBranchName}) runs in repo ${gitHubRepoContext.name}`);
 
     const client = gitHubRepoContext.client;
-    const queryKey = ['workflowRuns', currentBranchName ?? 'all']
+    const queryKey = ["workflowRuns", currentBranchName ?? "all"];
     if (!this.workflowRunCollection) {
       logDebug(`Creating workflow run collection for repo ${gitHubRepoContext.name}`);
-      client.actions.listRepoWorkflows
+      client.actions.listRepoWorkflows;
       this.workflowRunCollection = createGithubCollection(
         queryKey,
         client,
@@ -127,7 +111,7 @@ export class CurrentBranchTreeDataProvider
           branch: currentBranchName,
           per_page: 30
         },
-        (response) => response.data.workflow_runs,
+        response => response.data.workflow_runs,
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         "id"
       );
@@ -137,32 +121,36 @@ export class CurrentBranchTreeDataProvider
 
     // Subscribe for future changes after initial query
     if (!this.changeFeed) {
-      this.changeFeed = this.workflowRunCollection.subscribeChanges((changes) => {
+      this.changeFeed = this.workflowRunCollection.subscribeChanges(changes => {
         // HACK: If a deletion occurs, VSCode needs us to supply its parent so it can do a getChildren on it. Since deletions are rare, we just tell it to refresh the entire tree for simplicity.
         let rootRefreshNeeded = false;
 
-        const nodesToRefresh = changes.map(change => {
-          logTrace(`🚨 WorkflowRuns change detected: ${change.type} ${change.value.id} ${change.value.name} #${change.value.run_number}`);
-          return match(change)
-            .with({type: "update"}, () => {
-              log(`✏️ Run ${change.value.id} was updated`);
-              return this.toWorkflowRunNode(change.value, gitHubRepoContext);
-            })
-            .with({type: "insert"}, () => {
-              log(`➕ Run ${change.value.id} was inserted`);
-              rootRefreshNeeded = true;
-              return this.toWorkflowRunNode(change.value, gitHubRepoContext);
-            })
-            .with({type: "delete"}, () => {
-              log(`🗑️ Run ${change.value.id} was deleted`);
-              this.workflowRunNodes.delete(change.value.id.toString());
-              rootRefreshNeeded = true;
-            })
-            .exhaustive()
-        }).filter(node => node !== undefined);
+        const nodesToRefresh = changes
+          .map(change => {
+            logTrace(
+              `🚨 WorkflowRuns change detected: ${change.type} ${change.value.id} ${change.value.name} #${change.value.run_number}`
+            );
+            return match(change)
+              .with({type: "update"}, () => {
+                log(`✏️ Run ${change.value.id} was updated`);
+                return this.toWorkflowRunNode(change.value, gitHubRepoContext);
+              })
+              .with({type: "insert"}, () => {
+                log(`➕ Run ${change.value.id} was inserted`);
+                rootRefreshNeeded = true;
+                return this.toWorkflowRunNode(change.value, gitHubRepoContext);
+              })
+              .with({type: "delete"}, () => {
+                log(`🗑️ Run ${change.value.id} was deleted`);
+                this.workflowRunNodes.delete(change.value.id.toString());
+                rootRefreshNeeded = true;
+              })
+              .exhaustive();
+          })
+          .filter(node => node !== undefined);
 
         this._onDidChangeTreeData.fire(rootRefreshNeeded ? REFRESH_TREE_ROOT : nodesToRefresh);
-      })
+      });
 
       logDebug(`👁️ Watcher for WorkflowRuns created for repo ${gitHubRepoContext.name}`);
     }
@@ -178,30 +166,27 @@ export class CurrentBranchTreeDataProvider
     // Perform opportunistic prefetching
     const prefetchCount = getRunsPrefetchCount();
     if (prefetchCount > 0) {
-      runNodes.slice(0, prefetchCount)
-        .map(node => node.getChildren()
-        .catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`))
-      );
+      runNodes
+        .slice(0, prefetchCount)
+        .map(node =>
+          node.getChildren().catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`))
+        );
     }
 
-    return runNodes
+    return runNodes;
   }
 
-  private toWorkflowRunNode(
-    run: WorkflowRun,
-    gitHubRepoContext: GitHubRepoContext
-  ) {
-      const existingNode = this.workflowRunNodes.get(run.id.toString());
-      if (existingNode) {
-        logTrace(`🖊️ Run ${run.id} already exists in tree, reusing existing node and updating its data`);
-        existingNode.updateRun(run);
-        return existingNode;
-      }
+  private toWorkflowRunNode(run: WorkflowRun, gitHubRepoContext: GitHubRepoContext) {
+    const existingNode = this.workflowRunNodes.get(run.id.toString());
+    if (existingNode) {
+      logTrace(`🖊️ Run ${run.id} already exists in tree, reusing existing node and updating its data`);
+      existingNode.updateRun(run);
+      return existingNode;
+    }
 
-      logTrace(`➕ Adding run ${run.id} ${run.name} #${run.run_number} to tree`);
-      const workflowRunNode = new WorkflowRunNode(gitHubRepoContext, run, () => this._updateNode(workflowRunNode));
-      this.workflowRunNodes.set(run.id.toString(), workflowRunNode);
-      return workflowRunNode;
+    logTrace(`➕ Adding run ${run.id} ${run.name} #${run.run_number} to tree`);
+    const workflowRunNode = new WorkflowRunNode(gitHubRepoContext, run, () => this._updateNode(workflowRunNode));
+    this.workflowRunNodes.set(run.id.toString(), workflowRunNode);
+    return workflowRunNode;
   }
 }
-

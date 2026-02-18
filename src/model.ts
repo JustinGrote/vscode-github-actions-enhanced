@@ -1,11 +1,10 @@
-import { Octokit } from "@octokit/rest";
+import {Octokit} from "@octokit/rest";
 
 type ActionResponse<T extends keyof Octokit["actions"]> = Awaited<ReturnType<Octokit["actions"][T]>>;
 type ActionData<T extends keyof Octokit["actions"]> = ActionResponse<T>["data"];
 
 type RepoResponse<T extends keyof Octokit["repos"]> = Awaited<ReturnType<Octokit["repos"][T]>>;
 type RepoData<T extends keyof Octokit["repos"]> = RepoResponse<T>["data"];
-
 
 //
 // Domain contracts

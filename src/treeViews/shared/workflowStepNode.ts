@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import {GitHubRepoContext} from "../../git/repository";
 import {WorkflowJob, WorkflowStep} from "../../model";
 import {getIconForWorkflowNode} from "../icons";
-import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
+import {GithubActionTreeNode} from "../githubActionTreeDataProvider";
 
 export class WorkflowStepNode extends GithubActionTreeNode {
   constructor(

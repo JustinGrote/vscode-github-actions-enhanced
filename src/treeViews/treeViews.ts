@@ -5,7 +5,7 @@ import {executeCacheClearCommand} from "../workflow/languageServer";
 import {getGitHubContext} from "../git/repository";
 import {logDebug} from "../log";
 import {RunStore} from "../store/store";
-import { CurrentBranchTreeDataProvider } from "./currentBranch/currentBranchTreeDataProvider";
+import {CurrentBranchTreeDataProvider} from "./currentBranch/currentBranchTreeDataProvider";
 import {SettingsTreeProvider} from "./settings/settings";
 import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider";
 
@@ -20,7 +20,6 @@ export async function initTreeViews(context: vscode.ExtensionContext): Promise<v
 
   const settingsTreeProvider = new SettingsTreeProvider();
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.settings", settingsTreeProvider));
-
 
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.explorer.refresh", async () => {

@@ -1,26 +1,23 @@
 import * as vscode from "vscode";
-import { match } from "ts-pattern";
+import {match} from "ts-pattern";
 
-import { canReachGitHubAPI } from "../../api/canReachGitHubAPI";
-import { getGitHubContext, GitHubRepoContext } from "../../git/repository";
-import { log, logDebug, logError, logTrace } from "../../log";
-import { Workflow } from "../../model";
-import { REFRESH_TREE_ROOT } from "../currentBranch/currentBranchTreeDataProvider";
-import {
-  createGithubCollection,
-  GithubCollection
-} from "../collections/githubCollection";
-import { GithubActionTreeDataProvider } from "../githubActionTreeDataProvider";
-import { AuthenticationNode } from "../shared/authenticationNode";
-import { ErrorNode } from "../shared/errorNode";
-import { GitHubAPIUnreachableNode } from "../shared/gitHubApiUnreachableNode";
-import { NoGitHubRepositoryNode } from "../shared/noGitHubRepositoryNode";
-import { NoWorkflowJobsNode } from "../shared/noWorkflowJobsNode";
-import { WorkflowJobNode } from "../shared/workflowJobNode";
-import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "../shared/workflowRunNode";
-import { WorkflowStepNode } from "../shared/workflowStepNode";
-import { WorkflowNode } from "./workflowNode";
-import { WorkflowsRepoNode } from "./workflowsRepoNode";
+import {canReachGitHubAPI} from "../../api/canReachGitHubAPI";
+import {getGitHubContext, GitHubRepoContext} from "../../git/repository";
+import {log, logDebug, logError, logTrace} from "../../log";
+import {Workflow} from "../../model";
+import {REFRESH_TREE_ROOT} from "../currentBranch/currentBranchTreeDataProvider";
+import {createGithubCollection, GithubCollection} from "../collections/githubCollection";
+import {GithubActionTreeDataProvider} from "../githubActionTreeDataProvider";
+import {AuthenticationNode} from "../shared/authenticationNode";
+import {ErrorNode} from "../shared/errorNode";
+import {GitHubAPIUnreachableNode} from "../shared/gitHubApiUnreachableNode";
+import {NoGitHubRepositoryNode} from "../shared/noGitHubRepositoryNode";
+import {NoWorkflowJobsNode} from "../shared/noWorkflowJobsNode";
+import {WorkflowJobNode} from "../shared/workflowJobNode";
+import {PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode} from "../shared/workflowRunNode";
+import {WorkflowStepNode} from "../shared/workflowStepNode";
+import {WorkflowNode} from "./workflowNode";
+import {WorkflowsRepoNode} from "./workflowsRepoNode";
 
 type WorkflowsTreeNode =
   | AuthenticationNode
@@ -34,11 +31,12 @@ type WorkflowsTreeNode =
   | WorkflowStepNode
   | GitHubAPIUnreachableNode;
 
-export class WorkflowsTreeDataProvider
-  extends GithubActionTreeDataProvider<WorkflowsTreeNode>
-{
-  private workflowCollections: Map<string, GithubCollection<Workflow, {owner: string, repo: string}>> = new Map();
-  private workflowChangeFeeds: Map<string, ReturnType<GithubCollection<Workflow, {owner: string, repo: string}>["subscribeChanges"]>> = new Map();
+export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<WorkflowsTreeNode> {
+  private workflowCollections: Map<string, GithubCollection<Workflow, {owner: string; repo: string}>> = new Map();
+  private workflowChangeFeeds: Map<
+    string,
+    ReturnType<GithubCollection<Workflow, {owner: string; repo: string}>["subscribeChanges"]>
+  > = new Map();
   private workflowNodes: Map<string, WorkflowNode> = new Map();
 
   protected _updateNode(node: WorkflowRunNode): void {
@@ -57,7 +55,7 @@ export class WorkflowsTreeDataProvider
 
   async getChildren(element?: WorkflowsTreeNode): Promise<WorkflowsTreeNode[]> {
     const children = await super.getChildren(element);
-    if (children) return children
+    if (children) return children;
 
     // Root Refresh
     logDebug("🌲 Tree Root Request for Workflows");
@@ -110,7 +108,7 @@ export class WorkflowsTreeDataProvider
           repo: gitHubRepoContext.name,
           per_page: 100
         },
-        (response) => response.data.workflows,
+        response => response.data.workflows,
         (a, b) => a.name.localeCompare(b.name),
         "id"
       );
@@ -122,32 +120,34 @@ export class WorkflowsTreeDataProvider
     // Subscribe for future changes after initial query
     let changeFeed = this.workflowChangeFeeds.get(collectionKey);
     if (!changeFeed) {
-      changeFeed = collection.subscribeChanges((changes) => {
+      changeFeed = collection.subscribeChanges(changes => {
         logDebug(`🚨 Workflow changes detected for ${gitHubRepoContext.name}`);
 
-        const nodesToRefresh = changes.map(change => {
-          logTrace(`🚨 Workflow change detected: ${change.type} ${change.value.id} ${change.value.name}`);
-          return match(change)
-            .with({type: "update"}, () => {
-              log(`✏️ Workflow ${change.value.id} was updated`);
-              return this.toWorkflowNode(change.value, gitHubRepoContext);
-            })
-            .with({type: "insert"}, () => {
-              log(`➕ Workflow ${change.value.id} was inserted`);
-              return this.toWorkflowNode(change.value, gitHubRepoContext);
-            })
-            .with({type: "delete"}, () => {
-              log(`🗑️ Workflow ${change.value.id} was deleted`);
-              this.workflowNodes.delete(change.value.id.toString());
-              return undefined;
-            })
-            .exhaustive()
-        }).filter(node => node !== undefined);
+        const nodesToRefresh = changes
+          .map(change => {
+            logTrace(`🚨 Workflow change detected: ${change.type} ${change.value.id} ${change.value.name}`);
+            return match(change)
+              .with({type: "update"}, () => {
+                log(`✏️ Workflow ${change.value.id} was updated`);
+                return this.toWorkflowNode(change.value, gitHubRepoContext);
+              })
+              .with({type: "insert"}, () => {
+                log(`➕ Workflow ${change.value.id} was inserted`);
+                return this.toWorkflowNode(change.value, gitHubRepoContext);
+              })
+              .with({type: "delete"}, () => {
+                log(`🗑️ Workflow ${change.value.id} was deleted`);
+                this.workflowNodes.delete(change.value.id.toString());
+                return undefined;
+              })
+              .exhaustive();
+          })
+          .filter(node => node !== undefined);
 
         if (nodesToRefresh.length > 0) {
           this._onDidChangeTreeData.fire(nodesToRefresh);
         }
-      })
+      });
 
       this.workflowChangeFeeds.set(collectionKey, changeFeed);
       logDebug(`👁️ Watcher for workflows created for repo ${gitHubRepoContext.name}`);
@@ -156,10 +156,7 @@ export class WorkflowsTreeDataProvider
     return workflows.map(wf => this.toWorkflowNode(wf, gitHubRepoContext));
   }
 
-  private toWorkflowNode(
-    workflow: Workflow,
-    gitHubRepoContext: GitHubRepoContext
-  ): WorkflowNode {
+  private toWorkflowNode(workflow: Workflow, gitHubRepoContext: GitHubRepoContext): WorkflowNode {
     const existingNode = this.workflowNodes.get(workflow.id.toString());
     if (existingNode) {
       logTrace(`🖊️ Workflow ${workflow.id} already exists in tree, reusing existing node and updating its data`);

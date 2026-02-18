@@ -105,7 +105,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // Editing features
   await initLanguageServer(context);
   log("⭐ Github Actions extension activated!");
-
 }
 
 export function deactivate(): Thenable<void> | undefined {

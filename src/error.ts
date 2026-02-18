@@ -1,6 +1,6 @@
 import {RequestError} from "@octokit/request-error";
-import { log } from "node:util";
-import { logError,logWarn } from "./log";
+import {log} from "node:util";
+import {logError, logWarn} from "./log";
 
 /**
  * Ensures that the unknown value is an Error object.

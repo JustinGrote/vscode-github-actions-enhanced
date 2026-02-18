@@ -2,18 +2,15 @@ import * as vscode from "vscode";
 import {GitHubRepoContext} from "../../git/repository";
 import {getIconForWorkflowNode} from "../icons";
 import {WorkflowStepNode} from "./workflowStepNode";
-import { WorkflowJob } from "../../model";
-import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
+import {WorkflowJob} from "../../model";
+import {GithubActionTreeNode} from "../githubActionTreeDataProvider";
 
 export class WorkflowJobNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
     public readonly job: WorkflowJob
   ) {
-    super(
-      job.name,
-      (job.steps && job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined
-    );
+    super(job.name, (job.steps && job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined);
 
     this.contextValue = "job";
     if (this.job.status === "completed") {

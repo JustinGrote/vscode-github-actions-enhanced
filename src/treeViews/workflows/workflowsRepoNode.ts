@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 
-import { GitHubRepoContext } from "../../git/repository";
-import { GithubActionTreeNode } from "../githubActionTreeDataProvider";
-import { WorkflowNode } from "./workflowNode";
-import type { WorkflowsTreeDataProvider } from "./workflowsTreeDataProvider";
+import {GitHubRepoContext} from "../../git/repository";
+import {GithubActionTreeNode} from "../githubActionTreeDataProvider";
+import {WorkflowNode} from "./workflowNode";
+import type {WorkflowsTreeDataProvider} from "./workflowsTreeDataProvider";
 
 export class WorkflowsRepoNode extends GithubActionTreeNode {
   constructor(
