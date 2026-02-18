@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-
 import {GitHubRepoContext} from "../../git/repository";
 import {hasWritePermission, RepositoryPermission} from "../../git/repository-permissions";
 import {logDebug, logTrace} from "../../log";
@@ -76,7 +75,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
 
     if (!this.jobsWatcher) {
       logDebug(`👁️ Watching jobs for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`);
-      this.jobsWatcher = this.jobsCollection.subscribeChanges(changes => {
+      this.jobsWatcher = this.jobsCollection.subscribeChanges(_changes => {
         logDebug(
           `📋 Jobs change detected for workflow run ${this.run.display_title} #${this.run.run_number} (${this.run.id})`
         );
@@ -146,6 +145,8 @@ export class WorkflowRunNode extends GithubActionTreeNode {
     parts.push("---");
 
     // Status and Duration
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tempRun = {
       run: this.run,
       duration: () => this.duration(),

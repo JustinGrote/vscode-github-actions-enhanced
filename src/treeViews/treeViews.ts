@@ -4,7 +4,6 @@ import {canReachGitHubAPI} from "../api/canReachGitHubAPI";
 import {executeCacheClearCommand} from "../workflow/languageServer";
 import {getGitHubContext} from "../git/repository";
 import {logDebug} from "../log";
-import {RunStore} from "../store/store";
 import {CurrentBranchTreeDataProvider} from "./currentBranch/currentBranchTreeDataProvider";
 import {SettingsTreeProvider} from "./settings/settings";
 import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider";
