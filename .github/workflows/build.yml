@@ -26,8 +26,6 @@ jobs:
         with:
           node-version: 22.21.x
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-          package-manager-cache: true
       - name: 🕒 Version
         shell: pwsh
         run: pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
