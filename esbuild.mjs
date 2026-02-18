@@ -12,6 +12,30 @@ const web = process.argv.includes("--web");
 const websuffix = web ? "/web" : "";
 const platform = web ? "browser" : "node";
 
+// Plugin to handle libsodium-wrappers resolution - use CommonJS everywhere to avoid ESM import issues
+const libsodiumPlugin = {
+  name: 'libsodium-resolver',
+  setup(build) {
+    // Resolve libsodium-wrappers to CommonJS version
+    build.onResolve({ filter: /^libsodium-wrappers$/ }, (args) => {
+      return {
+        path: resolve(process.cwd(), 'node_modules/libsodium-wrappers/dist/modules/libsodium-wrappers.js'),
+        external: false
+      };
+    });
+
+    // Also resolve libsodium.mjs imports (from libsodium-wrappers ESM) to the JS version
+    build.onResolve({ filter: /libsodium\.mjs|libsodium\.js/ }, (args) => {
+      // Resolve to the JS version from libsodium package
+      const libsodiumPath = resolve(process.cwd(), 'node_modules/libsodium/dist/modules/libsodium.js');
+      return {
+        path: libsodiumPath,
+        external: false
+      };
+    });
+  }
+};
+
 async function main() {
   const ctx = await context({
     // Separate builds are required because Octokit bundles differently depending on browser vs node
@@ -23,7 +47,7 @@ async function main() {
     sourcesContent: false,
     platform: platform,
     outdir: `dist${websuffix}`,
-    external: ["vscode", "Worker"],
+    external: web ? ["vscode", "Worker"] : ["vscode", "Worker", "crypto", "path"],
     logLevel: "warning",
     // Node.js global to browser globalThis
     define: {
@@ -32,7 +56,19 @@ async function main() {
     },
     // Added .d.ts to resolve extensions
     treeShaking: true,
-    plugins: [esbuildProblemMatcherPlugin()]
+    plugins: [
+      libsodiumPlugin,
+      ...(platform === "browser"
+        ? [
+            polyfillNode({
+              globals: {
+                buffer: true
+              }
+            })
+          ]
+        : []),
+      esbuildProblemMatcherPlugin()
+    ]
   });
 
   // We need language server as esm rather than cjs to load as a process/worker appropriately
@@ -51,6 +87,7 @@ async function main() {
       PRODUCTION: production.toString() // Add PRODUCTION global variable
     },
     plugins: [
+      libsodiumPlugin,
       //BUG: The language server still incorrectly references Buffer even in its browser-only mode, so we polyfill this.
       ...(platform === "browser"
         ? [
