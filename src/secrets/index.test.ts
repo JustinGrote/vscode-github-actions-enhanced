@@ -1,5 +1,5 @@
 import {encodeSecret} from "./index";
-import sodium from 'libsodium-wrappers';
+const sodium = require('libsodium-wrappers');
 
 describe("secret encryption", () => {
   it("encrypts secret correctly", async () => {

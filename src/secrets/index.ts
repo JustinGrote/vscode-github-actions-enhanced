@@ -1,4 +1,4 @@
-import sodium from 'libsodium-wrappers';
+const sodium = require('libsodium-wrappers');
 
 export async function encodeSecret(key: string, value: string): Promise<string> {
   // Check if libsodium is ready and then proceed.
