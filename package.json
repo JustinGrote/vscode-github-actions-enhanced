@@ -13,6 +13,7 @@
     "vscode": "^1.109.0",
     "node": ">22.21.0"
   },
+  "packageManager": "pnpm@10.29.3",
   "extensionKind": [
     "workspace"
   ],
