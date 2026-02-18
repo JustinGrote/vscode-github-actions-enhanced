@@ -111,10 +111,9 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage("Failed to activate GitHub Actions extension: " + error.message);
     } else {
       vscode.window.showErrorMessage("Failed to activate GitHub Actions extension: " + JSON.stringify(error));
-      throw error
+      throw error;
     }
   }
-
 }
 
 export function deactivate(): Thenable<void> | undefined {
