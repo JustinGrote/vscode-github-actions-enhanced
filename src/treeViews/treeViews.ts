@@ -10,16 +10,17 @@ import {SettingsTreeProvider} from "./settings/settings";
 import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider";
 
 export async function initTreeViews(context: vscode.ExtensionContext): Promise<void> {
+  const currentBranchTreeProvider = new CurrentBranchTreeDataProvider();
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider("github-actions.current-branch", currentBranchTreeProvider)
+  );
+
   const workflowTreeProvider = new WorkflowsTreeDataProvider();
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.workflows", workflowTreeProvider));
 
   const settingsTreeProvider = new SettingsTreeProvider();
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.settings", settingsTreeProvider));
 
-  const currentBranchTreeProvider = new CurrentBranchTreeDataProvider();
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("github-actions.current-branch", currentBranchTreeProvider)
-  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.explorer.refresh", async () => {

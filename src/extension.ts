@@ -41,6 +41,11 @@ export async function activate(context: vscode.ExtensionContext) {
   if (await officialExtensionIsActive()) return;
 
   initLogger();
+  if (!PRODUCTION) {
+    // In debugging mode, always open the log for the extension in the `Output` window
+    revealLog();
+  }
+
   log("🚀 Activating GitHub Actions extension!");
   const hasSession = !!(await getSession());
   const canReachAPI = hasSession && (await canReachGitHubAPI());
@@ -54,14 +59,15 @@ export async function activate(context: vscode.ExtensionContext) {
   ]);
   initResources(context);
   initConfiguration(context);
+  // Tree views
+  await initTreeViews(context);
   // Track workflow documents and workspace changes
   initWorkspaceChangeTracker(context);
   await initWorkflowDocumentTracking(context);
   const store = new RunStore();
   // Pinned workflows
   await initPinnedWorkflows(store);
-  // Tree views
-  await initTreeViews(context);
+
   // Commands
   registerOpenWorkflowRun(context);
   registerOpenWorkflowFile(context);
@@ -98,11 +104,8 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   // Editing features
   await initLanguageServer(context);
-  log("...initialized");
-  if (!PRODUCTION) {
-    // In debugging mode, always open the log for the extension in the `Output` window
-    revealLog();
-  }
+  log("⭐ Github Actions extension activated!");
+
 }
 
 export function deactivate(): Thenable<void> | undefined {
