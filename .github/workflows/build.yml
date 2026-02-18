@@ -33,7 +33,7 @@ jobs:
         run: |
           pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
       - name: 🚚 Restore Packages (CI)
-        run: pnpm ci
+        run: pnpm install --frozen-lockfile
       - name: 💄 Prettier Formatting Check
         run: pnpm format-check
       - name: 🧹 Lint
