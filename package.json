@@ -523,7 +523,7 @@
     "watch": "pnpm esbuild -- --watch",
     "watch-web": "pnpm esbuild -- --watch --web",
     "clean": "git clean -fdX -- ./dist ./out",
-    "package": "pnpm clean && vsce package",
+    "package": "pnpm vsce package --no-dependencies",
     "vscode:prepublish": "pnpm build",
     "open-in-browser": "vscode-test-web --extensionDevelopmentPath=. .",
     "lint": "tsgo --noEmit && eslint",
