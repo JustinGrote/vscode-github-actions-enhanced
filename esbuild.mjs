@@ -16,10 +16,6 @@ async function main() {
   const ctx = await context({
     // Separate builds are required because Octokit bundles differently depending on browser vs node
     entryPoints: ["./src/extension.ts"],
-    alias: {
-      // This is necessary only for libsodium
-      path: "path-browserify"
-    },
     bundle: true,
     format: "cjs",
     minify: production,
@@ -27,7 +23,7 @@ async function main() {
     sourcesContent: false,
     platform: platform,
     outdir: `dist${websuffix}`,
-    external: ["vscode", "Worker"], // Mark libsodium-wrappers as external
+    external: ["vscode", "Worker"],
     logLevel: "warning",
     // Node.js global to browser globalThis
     define: {
