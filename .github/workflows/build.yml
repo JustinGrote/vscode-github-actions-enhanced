@@ -44,7 +44,7 @@ jobs:
         run: pnpm test
       - name: 📦 Package
         run: |
-          pnpx @vscode/vsce package --no-update-package-json --no-git-tag-version --pre-release
+          pnpm package
       - name: ⬆️ Upload Artifact
         uses: actions/upload-artifact@v6
         with:
