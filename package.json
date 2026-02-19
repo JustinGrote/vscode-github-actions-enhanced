@@ -1,5 +1,6 @@
 {
   "name": "github-actions-enhanced",
+  "type": "module",
   "displayName": "GitHub Actions Enhanced",
   "publisher": "justin-grote",
   "icon": "resources/logo.png",
@@ -44,7 +45,6 @@
     "workspaceContains:**/.github/workflows/**"
   ],
   "main": "./dist/extension.js",
-  "browser": "./dist/web/extension.js",
   "contributes": {
     "languages": [
       {
@@ -518,20 +518,16 @@
     }
   },
   "scripts": {
-    "esbuild": "node esbuild.mjs",
-    "build": "pnpm clean && pnpm esbuild -- --production && pnpm esbuild -- --production --web",
-    "watch": "pnpm esbuild -- --watch",
-    "watch-web": "pnpm esbuild -- --watch --web",
+    "rd": "pnpm rolldown --config rolldown.config.ts",
+    "build": "pnpm clean && pnpm rd --environment PRODUCTION:true",
+    "watch": "pnpm rd --watch",
     "clean": "git clean -fdX -- ./dist ./out",
     "package": "pnpm vsce package --no-dependencies",
     "vscode:prepublish": "pnpm build",
-    "open-in-browser": "vscode-test-web --extensionDevelopmentPath=. .",
     "lint": "tsgo --noEmit && eslint",
     "lint-fix": "eslint --fix",
     "format": "prettier --write \"**/*.ts\"",
-    "format-check": "prettier --check \"**/*.ts\"",
-    "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test-watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch"
+    "format-check": "prettier --check \"**/*.ts\""
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
@@ -544,8 +540,6 @@
     "@vscode/test-web": "^0.0.71",
     "@vscode/vsce": "^3.7.1",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.25.5",
-    "esbuild-plugin-polyfill-node": "^0.3.0",
     "eslint": "^9.30.1",
     "eslint-config-prettier": "^10.1.5",
     "glob": "^11.0.3",
@@ -556,11 +550,12 @@
     "source-map-loader": "^4.0.2",
     "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
+    "rolldown": "latest",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.1"
   },
   "dependencies": {
-    "@actions/languageserver": "^0.3.17",
+    "@actions/languageserver": "^0.3.44",
     "@actions/workflow-parser": "^0.3.17",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",

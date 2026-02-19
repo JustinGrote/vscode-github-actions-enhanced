@@ -10,8 +10,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "isBackground": true,
-      "problemMatcher": ["$esbuild"],
+      "isBackground": false,
       "icon": {
         "id": "package",
         "color": "terminal.ansiGreen"
@@ -24,7 +23,27 @@
       "script": "watch",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": ["$esbuild-watch"],
+      "problemMatcher": [
+        {
+          "owner": "rolldown",
+          "severity": "info",
+          "source": "rolldown",
+          "fileLocation": "relative",
+          "pattern": [
+            {
+              "kind": "file",
+              "regexp": "()()",
+              "file": 1,
+              "message": 2
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^Found .* changed, rebuilding...$",
+            "endsPattern": "^✔ (rolldown v.+? Finished|Rebuilt)"
+          }
+        }
+      ],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"
@@ -35,7 +54,9 @@
       "script": "watch-web",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": ["$esbuild-watch"],
+      "problemMatcher": [
+        "$esbuild-watch"
+      ],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"

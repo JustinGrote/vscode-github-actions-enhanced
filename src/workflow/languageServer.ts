@@ -11,6 +11,7 @@ import {getSession} from "../auth/auth";
 import {getGitHubContext} from "../git/repository";
 import {WorkflowSelector} from "./documentSelector";
 import {getGitHubApiUri, useEnterprise} from "../configuration/configReader";
+import { log } from "../log";
 
 let client: BaseLanguageClient;
 
@@ -21,7 +22,6 @@ export function isNode(): boolean {
 
 export async function initLanguageServer(context: vscode.ExtensionContext) {
   const session = await getSession();
-
   const ghContext = await getGitHubContext();
   const initializationOptions: InitializationOptions = {
     sessionToken: session?.accessToken,
@@ -47,8 +47,9 @@ export async function initLanguageServer(context: vscode.ExtensionContext) {
 
   if (isNode()) {
     const serverUri = vscode.Uri.joinPath(context.extensionUri, "dist", "langserver.js");
-
     const debugOptions = {execArgv: ["--nolazy", "--inspect=6010"]};
+    log(`Starting language server with node runtime: ${serverUri.toString()} ${debugOptions.execArgv.join(" ")}`);
+
     const serverOptions: ServerOptions = {
       run: {module: serverUri.fsPath, transport: TransportKind.ipc},
       debug: {

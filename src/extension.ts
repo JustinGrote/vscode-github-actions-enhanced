@@ -67,28 +67,28 @@ export async function activate(context: vscode.ExtensionContext) {
   // Track workflow documents and workspace changes
   initWorkspaceChangeTracker(context);
   await initWorkflowDocumentTracking(context);
-  //   const store = new RunStore();
-  //   TODO: Reimplement
-  //   await initPinnedWorkflows(store);
+  // //   const store = new RunStore();
+  // //   TODO: Reimplement
+  // //   await initPinnedWorkflows(store);
 
-  // Commands
+  // // Commands
   registerOpenWorkflowRun(context);
   registerOpenWorkflowFile(context);
   registerOpenWorkflowJobLogs(context);
   registerOpenWorkflowStepLogs(context);
-  registerTriggerWorkflowRun(context);
-  registerReRunWorkflowRun(context);
-  registerCancelWorkflowRun(context);
-  registerAddSecret(context);
-  registerDeleteSecret(context);
-  registerCopySecret(context);
-  registerUpdateSecret(context);
-  registerAddVariable(context);
-  registerUpdateVariable(context);
-  registerDeleteVariable(context);
-  registerCopyVariable(context);
-  registerPinWorkflow(context);
-  registerUnPinWorkflow(context);
+  // registerTriggerWorkflowRun(context);
+  // registerReRunWorkflowRun(context);
+  // registerCancelWorkflowRun(context);
+  // registerAddSecret(context);
+  // registerDeleteSecret(context);
+  // registerCopySecret(context);
+  // registerUpdateSecret(context);
+  // registerAddVariable(context);
+  // registerUpdateVariable(context);
+  // registerDeleteVariable(context);
+  // registerCopyVariable(context);
+  // registerPinWorkflow(context);
+  // registerUnPinWorkflow(context);
   //   registerSignIn(context);
   //   // Log providers
   //   context.subscriptions.push(
@@ -106,7 +106,7 @@ export async function activate(context: vscode.ExtensionContext) {
   //     )
   //   );
   //   // Editing features
-  //   await initLanguageServer(context);
+    await initLanguageServer(context);
     log("⭐ Github Actions extension activated!");
   } catch (error) {
     // Surface unhandled exceptions more explicitly.
@@ -118,6 +118,6 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 }
 
-export function deactivate(): Thenable<void> | undefined {
-  return deactivateLanguageServer();
-}
+// export function deactivate(): Thenable<void> | undefined {
+//   return deactivateLanguageServer();
+// }
