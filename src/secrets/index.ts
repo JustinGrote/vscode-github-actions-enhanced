@@ -1,4 +1,4 @@
-import { ready, from_base64, base64_variants, from_string, crypto_box_seal, to_base64} from 'libsodium-wrappers';
+import libsodium, { ready, from_base64, base64_variants, from_string, to_base64} from 'libsodium-wrappers';
 
 export async function encodeSecret(key: string, value: string): Promise<string> {
   // Check if libsodium is ready and then proceed.
@@ -9,7 +9,7 @@ export async function encodeSecret(key: string, value: string): Promise<string> 
   const binsec = from_string(value);
 
   // Encrypt the secret using libsodium
-  const encBytes = crypto_box_seal(binsec, binkey);
+  const encBytes = libsodium.crypto_box_seal(binsec, binkey);
 
   // Convert the encrypted Uint8Array to Base64
   const output = to_base64(encBytes, base64_variants.ORIGINAL);

@@ -4,7 +4,7 @@ import process from "node:process";
 const production = process.env.PRODUCTION === "true";
 
 const baseConfig: RolldownOptions = {
-  external: ["vscode", "libsodium-wrappers"],
+  external: ["vscode"],
 	output: {
 		dir: "dist",
 		minify: production,
