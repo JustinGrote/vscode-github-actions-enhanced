@@ -34,6 +34,7 @@ import {initTreeViews} from "./treeViews/treeViews";
 import {deactivateLanguageServer, initLanguageServer} from "./workflow/languageServer";
 import {registerSignIn} from "./commands/signIn";
 import {assertOfficalExtensionNotPresent as officialExtensionIsActive} from "./extensionConflictHandler";
+import { RunStore } from "./store/store";
 
 export async function activate(context: vscode.ExtensionContext) {
   // Github Actions Enhanced conflict avoidance
@@ -75,9 +76,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
     startupPromises.push(initLanguageServer(context));
     // //   TODO: Reimplement
-    // //   await initPinnedWorkflows(store);
+    startupPromises.push(initPinnedWorkflows(new RunStore()));
 
-    // // Commands
+    // Commands
     registerOpenWorkflowRun(context);
     registerOpenWorkflowFile(context);
     registerOpenWorkflowJobLogs(context);
@@ -93,9 +94,8 @@ export async function activate(context: vscode.ExtensionContext) {
     registerDeleteSecret(context);
     registerCopySecret(context);
     registerUpdateSecret(context);
-
-    // registerPinWorkflow(context);
-    // registerUnPinWorkflow(context);
+    registerPinWorkflow(context);
+    registerUnPinWorkflow(context);
 
     // Log providers
     context.subscriptions.push(
