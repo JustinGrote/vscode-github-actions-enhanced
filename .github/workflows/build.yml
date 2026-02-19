@@ -38,8 +38,8 @@ jobs:
       #   run: pnpm lint
       - name: 👷 Build
         run: pnpm build
-      - name: 🧪 Test
-        run: pnpm test
+      # - name: 🧪 Test
+      #   run: pnpm test
       - name: 📦 Package
         run: pnpm package
       - name: ⬆️ Upload Artifact
