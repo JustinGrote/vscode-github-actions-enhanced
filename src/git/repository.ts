@@ -3,7 +3,7 @@ import {type GhaOctokit} from "../api/api";
 import {canReachGitHubAPI} from "../api/canReachGitHubAPI";
 import {handleSamlError} from "../api/handleSamlError";
 import {getSession} from "../auth/auth";
-import {getGitHubApiUri, getRemoteName, useEnterprise} from "../configuration/configuration";
+import {getGitHubApiUri, getRemoteName, useEnterprise} from "../configuration/configReader";
 import {Protocol} from "../external/protocol";
 import {logDebug, logError} from "../log";
 import {type RepositoryPermission, getRepositoryPermission} from "./repository-permissions";

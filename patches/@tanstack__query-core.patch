@@ -1,0 +1,70 @@
+diff --git a/build/modern/queryObserver.cjs b/build/modern/queryObserver.cjs
+index 17db8270b9228011d5b3ce591f5ed3ad905ba2a0..af79f94c363f2285368b0191ae1c33dfcf7b5caa 100644
+--- a/build/modern/queryObserver.cjs
++++ b/build/modern/queryObserver.cjs
+@@ -206,7 +206,7 @@ var QueryObserver = class extends import_subscribable.Subscribable {
+       this.options.staleTime,
+       this.#currentQuery
+     );
+-    if (import_utils.isServer || this.#currentResult.isStale || !(0, import_utils.isValidTimeout)(staleTime)) {
++    if (this.#currentResult.isStale || !(0, import_utils.isValidTimeout)(staleTime)) {
+       return;
+     }
+     const time = (0, import_utils.timeUntilStale)(this.#currentResult.dataUpdatedAt, staleTime);
+@@ -223,7 +223,7 @@ var QueryObserver = class extends import_subscribable.Subscribable {
+   #updateRefetchInterval(nextInterval) {
+     this.#clearRefetchInterval();
+     this.#currentRefetchInterval = nextInterval;
+-    if (import_utils.isServer || (0, import_utils.resolveEnabled)(this.options.enabled, this.#currentQuery) === false || !(0, import_utils.isValidTimeout)(this.#currentRefetchInterval) || this.#currentRefetchInterval === 0) {
++    if ((0, import_utils.resolveEnabled)(this.options.enabled, this.#currentQuery) === false || !(0, import_utils.isValidTimeout)(this.#currentRefetchInterval) || this.#currentRefetchInterval === 0) {
+       return;
+     }
+     this.#refetchIntervalId = import_timeoutManager.timeoutManager.setInterval(() => {
+diff --git a/build/modern/queryObserver.js b/build/modern/queryObserver.js
+index 279baf4369b8197972b6ae3fcd021a2b53d15dc1..343d93f83e864441ba08716a7ce6fa0a798afcb4 100644
+--- a/build/modern/queryObserver.js
++++ b/build/modern/queryObserver.js
+@@ -191,7 +191,7 @@ var QueryObserver = class extends Subscribable {
+       this.options.staleTime,
+       this.#currentQuery
+     );
+-    if (isServer || this.#currentResult.isStale || !isValidTimeout(staleTime)) {
++    if (this.#currentResult.isStale || !isValidTimeout(staleTime)) {
+       return;
+     }
+     const time = timeUntilStale(this.#currentResult.dataUpdatedAt, staleTime);
+@@ -208,7 +208,7 @@ var QueryObserver = class extends Subscribable {
+   #updateRefetchInterval(nextInterval) {
+     this.#clearRefetchInterval();
+     this.#currentRefetchInterval = nextInterval;
+-    if (isServer || resolveEnabled(this.options.enabled, this.#currentQuery) === false || !isValidTimeout(this.#currentRefetchInterval) || this.#currentRefetchInterval === 0) {
++    if (resolveEnabled(this.options.enabled, this.#currentQuery) === false || !isValidTimeout(this.#currentRefetchInterval) || this.#currentRefetchInterval === 0) {
+       return;
+     }
+     this.#refetchIntervalId = timeoutManager.setInterval(() => {
+diff --git a/build/modern/removable.js b/build/modern/removable.js
+index 8eb8f6c65996336a5dad48c7b6b36b9d1a4ef3d6..b04a9b21499525e3299d31f35f321d1d2fd01ea3 100644
+--- a/build/modern/removable.js
++++ b/build/modern/removable.js
+@@ -17,7 +17,7 @@ var Removable = class {
+   updateGcTime(newGcTime) {
+     this.gcTime = Math.max(
+       this.gcTime || 0,
+-      newGcTime ?? (isServer ? Infinity : 5 * 60 * 1e3)
++      newGcTime ?? (5 * 60 * 1e3)
+     );
+   }
+   clearGcTimeout() {
+diff --git a/build/modern/retryer.js b/build/modern/retryer.js
+index 9aec541d35267a74756f11968a3ca7ca88ff636d..227bb46c20273116885f0497c39f379bde65ed3a 100644
+--- a/build/modern/retryer.js
++++ b/build/modern/retryer.js
+@@ -82,7 +82,7 @@ function createRetryer(config) {
+       if (isResolved()) {
+         return;
+       }
+-      const retry = config.retry ?? (isServer ? 0 : 3);
++      const retry = config.retry ?? 3;
+       const retryDelay = config.retryDelay ?? defaultRetryDelay;
+       const delay = typeof retryDelay === "function" ? retryDelay(failureCount, error) : retryDelay;
+       const shouldRetry = retry === true || typeof retry === "number" && failureCount < retry || typeof retry === "function" && retry(failureCount, error);

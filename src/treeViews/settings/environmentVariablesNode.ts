@@ -22,7 +22,6 @@ export class EnvironmentVariablesNode extends vscode.TreeItem {
     let variables: VariableNode[] = [];
     try {
       variables = await this.gitHubRepoContext.client.paginate(
-        // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
         this.gitHubRepoContext.client.actions.listEnvironmentVariables,
         {
           owner: this.gitHubRepoContext.owner,
@@ -30,7 +29,6 @@ export class EnvironmentVariablesNode extends vscode.TreeItem {
           environment_name: this.environment.name,
           per_page: 100
         },
-        // @ts-expect-error FIXME: Newer Typescript catches a problem that previous didn't. This will be fixed in Octokit bump.
         response => response.data.map(v => new VariableNode(this.gitHubRepoContext, v, this.environment))
       );
     } catch (e) {

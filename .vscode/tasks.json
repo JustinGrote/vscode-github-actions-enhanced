@@ -10,10 +10,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "isBackground": true,
-      "problemMatcher": [
-        "$esbuild"
-      ],
+      "isBackground": false,
       "icon": {
         "id": "package",
         "color": "terminal.ansiGreen"
@@ -27,7 +24,25 @@
       "group": "build",
       "isBackground": true,
       "problemMatcher": [
-        "$esbuild-watch"
+        {
+          "owner": "rolldown",
+          "severity": "info",
+          "source": "rolldown",
+          "fileLocation": "relative",
+          "pattern": [
+            {
+              "kind": "file",
+              "regexp": "()()",
+              "file": 1,
+              "message": 2
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^Found .* changed, rebuilding...$",
+            "endsPattern": "^✔ (rolldown v.+? Finished|Rebuilt)"
+          }
+        }
       ],
       "icon": {
         "id": "sync",

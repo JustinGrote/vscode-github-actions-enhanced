@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import {deactivateLanguageServer, initLanguageServer} from "../workflow/languageServer";
 import {resetGitHubContext} from "../git/repository";
+import {useEnterprise} from "./configReader";
 
 const settingsKey = "github-actions";
-const DEFAULT_GITHUB_API = "https://api.github.com";
 const PINNED_WORKFLOWS_KEY = `${settingsKey}.pinnedWorkflows`;
 
 // Store workspaceState directly for easier access
@@ -100,27 +100,13 @@ export function pinnedWorkflowsRefreshInterval(): number {
   return getConfiguration().get<number>(getSettingsKey("workflows.pinned.refresh.interval"), 1);
 }
 
-export function getRemoteName(): string {
-  return getConfiguration().get<string>(getSettingsKey("remote-name"), "origin");
+export function getRunsPrefetchCount(): number {
+  return getConfiguration().get<number>(getSettingsKey("runs.prefetch.count"), 3);
 }
 
-export function useEnterprise(): boolean {
-  return getConfiguration().get<boolean>(getSettingsKey("use-enterprise"), false);
-}
-
-export function getGitHubApiUri(): string {
-  if (!useEnterprise()) return DEFAULT_GITHUB_API;
-  const base = getConfiguration().get<string>("github-enterprise.uri", DEFAULT_GITHUB_API).replace(/\/$/, "");
-  if (base === DEFAULT_GITHUB_API) {
-    return base;
-  }
-
-  if (base.endsWith(".ghe.com")) {
-    return base.replace(/^(https?):\/\//, "$1://api.");
-  } else {
-    return `${base}/api/v3`;
-  }
-}
+// Re-export from configReader to maintain backward compatibility
+// These functions are in a separate module to break circular dependencies
+export {getRemoteName, useEnterprise, getGitHubApiUri} from "./configReader";
 
 async function updateLanguageServerApiUrl(context: vscode.ExtensionContext) {
   await deactivateLanguageServer();

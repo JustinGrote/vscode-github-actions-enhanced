@@ -1,4 +1,6 @@
 import {RequestError} from "@octokit/request-error";
+import {log} from "node:util";
+import {logError, logWarn} from "./log";
 
 /**
  * Ensures that the unknown value is an Error object.
@@ -43,11 +45,14 @@ export function ensureError(value: unknown): Error {
  */
 export function assertRequestError(value: unknown, message?: string): RequestError {
   const error = ensureError(value);
-  if (!(value instanceof RequestError)) {
+  if (!(value instanceof RequestError || error.name === "HttpError")) {
+    logWarn(`Expected a RequestError, but got type ${typeof error} with value:`, error);
     if (message) {
       error.message = `${message}: ${error.message}`;
     }
     throw error;
   }
-  return value;
+
+  // BUG: Sometimes we get HttpError as the class but we don't know where to source that type
+  return value as RequestError;
 }

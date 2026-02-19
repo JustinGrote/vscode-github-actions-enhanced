@@ -1,16 +1,17 @@
 import * as vscode from "vscode";
-import {WorkflowStepNode} from "../treeViews/workflows/workflowStepNode";
+import {WorkflowStepNode} from "../treeViews/shared/workflowStepNode";
+import {WorkflowStep} from "../model";
 
 type WorkflowStepCommandArgs = Pick<WorkflowStepNode, "job" | "step" | "gitHubRepoContext">;
 
 export function registerOpenWorkflowStepLogs(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.step.logs", async (args: WorkflowStepCommandArgs) => {
-      const job = args.job.job;
+      const job = args.job;
       let url = job.html_url ?? "";
       const stepName = args.step.name;
 
-      const index = job.steps && job.steps.findIndex(step => step.name === stepName) + 1;
+      const index = job.steps && job.steps.findIndex((step: WorkflowStep) => step.name === stepName) + 1;
 
       if (url && index) {
         url = url + "#step:" + index.toString() + ":1";

@@ -30,7 +30,7 @@ export function revealLog() {
   logger.show();
 }
 
-const octoPrefix = "[Octokit]";
+const octoPrefix = "🐙";
 
 export function createOctokitLogger() {
   return {
@@ -41,9 +41,8 @@ export function createOctokitLogger() {
       logTrace(
         octoPrefix,
         "[ERR]",
-        args[0] instanceof Error ? (args[0] as Error) : new Error(octoPrefix + String(args[0])),
+        args[0] instanceof Error ? (args[0] as Error) : new Error(String(args[0])),
         ...args.slice(1)
       )
   };
 }
-

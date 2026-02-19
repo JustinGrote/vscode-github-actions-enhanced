@@ -1,21 +1,24 @@
-import libsodium from "libsodium-wrappers";
 import {encodeSecret} from "./index";
+const sodium = require('libsodium-wrappers');
 
 describe("secret encryption", () => {
   it("encrypts secret correctly", async () => {
-    await libsodium.ready;
+    // Check if libsodium is ready
+    await sodium.ready;
 
-    // The keys were generated for this test using libsodium.crypto_box_keypair()
     const publicKey = "M2Kq4k1y9DiqlqLfm2YYm75x5M3SuwuNYbLyiHEMUAM=";
     const privateKey = "RI2kKSjSOBmcjme5x8iv42Ozdu1rDo9QkaU2l+IFcrE=";
 
-    const a = await encodeSecret(publicKey, "secret-value");
+    const encrypted = await encodeSecret(publicKey, "secret-value");
 
-    const da = libsodium.crypto_box_seal_open(
-      libsodium.from_base64(a, libsodium.base64_variants.ORIGINAL),
-      libsodium.from_base64(publicKey, libsodium.base64_variants.ORIGINAL),
-      libsodium.from_base64(privateKey, libsodium.base64_variants.ORIGINAL)
-    );
-    expect(libsodium.to_string(da)).toBe("secret-value");
+    // Decrypt to verify
+    const encBytes = sodium.from_base64(encrypted, sodium.base64_variants.ORIGINAL);
+    const publicKeyBytes = sodium.from_base64(publicKey, sodium.base64_variants.ORIGINAL);
+    const privateKeyBytes = sodium.from_base64(privateKey, sodium.base64_variants.ORIGINAL);
+
+    // Decrypt the secret using libsodium
+    const decrypted = sodium.crypto_box_seal_open(encBytes, publicKeyBytes, privateKeyBytes);
+
+    expect(sodium.to_string(decrypted)).toBe("secret-value");
   });
 });

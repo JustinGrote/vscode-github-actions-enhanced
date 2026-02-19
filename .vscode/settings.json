@@ -16,5 +16,11 @@
     "${workspaceFolder}/**",
     "!**/node_modules/**",
     "**/$KNOWN_TOOLS$/**"
-  ]
+  ],
+  "chat.tools.terminal.autoApprove": {
+    "/^pnpx madge --circular --extensions ts,tsx \\./src$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }

@@ -8,11 +8,7 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--profile=debug-gha"],
       "smartStep": true,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/dist/*.(m|c|)js",
-        "!**/node_modules/**"
-      ],
-      "preLaunchTask": "npm: watch",
+      "preLaunchTask": "npm: watch"
     },
     {
       "name": "Launch Web Extension",
@@ -24,10 +20,7 @@
         "--profile=debug-gha",
         "--extensionDevelopmentKind=web"
       ],
-      "outFiles": [
-        "${workspaceFolder}/dist/*.(m|c|)js",
-        "!**/node_modules/**"
-      ],
+      "outFiles": ["${workspaceFolder}/dist/*.(m|c|)js", "!**/node_modules/**"],
       "preLaunchTask": "npm: watch-web"
     },
     {

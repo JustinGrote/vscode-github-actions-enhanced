@@ -1,6 +1,6 @@
 import {Octokit} from "@octokit/rest";
 import {version} from "../../package.json";
-import {getGitHubApiUri} from "../configuration/configuration";
+import {getGitHubApiUri} from "../configuration/configReader";
 import {throttling} from "@octokit/plugin-throttling";
 import {retry} from "@octokit/plugin-retry";
 import {conditionalRequest} from "./conditionalRequests";

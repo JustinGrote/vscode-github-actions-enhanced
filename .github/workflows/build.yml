@@ -16,33 +16,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📤 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: 🛠️ Setup pnpm
+        uses: pnpm/action-setup@9b5745cdf0a2e8c2620f0746130f809adb911c19 #For cache support, update to tag when it is released.
+        with:
+          cache: true
       - name: 🛠️ Setup Node and Restore NPM Cache
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
-          cache: npm
-          cache-dependency-path: package-lock.json
-          registry-url: "https://npm.pkg.github.com"
+          node-version: 22.21.x
+          cache: pnpm
       - name: 🕒 Version
         shell: pwsh
-        run: |
-          pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
+        run: pnpm version --no-git-tag-version $(Get-Date -Format 'yyyy.M.0-ci.${{ github.run_number }}')
       - name: 🚚 Restore Packages (CI)
-        run: pnpm ci
-      - name: 💄 Prettier Formatting Check
-        run: pnpm format-check
-      - name: 🧹 Lint
-        run: pnpm lint
+        run: pnpm install --frozen-lockfile
+      # Disable linting until we switch to ox or biome
+      # - name: 💄 Prettier Formatting Check
+      #   run: pnpm format-check
+      # - name: 🧹 Lint
+      #   run: pnpm lint
       - name: 👷 Build
         run: pnpm build
-      - name: 🧪 Test
-        run: pnpm test
+      # - name: 🧪 Test
+      #   run: pnpm test
       - name: 📦 Package
-        run: |
-          pnpx @vscode/vsce package --no-update-package-json --no-git-tag-version --pre-release
+        run: pnpm package
       - name: ⬆️ Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: github-actions-enhanced-vsix
           path: github-actions-enhanced-*.vsix

@@ -4,22 +4,21 @@ import {canReachGitHubAPI} from "../api/canReachGitHubAPI";
 import {executeCacheClearCommand} from "../workflow/languageServer";
 import {getGitHubContext} from "../git/repository";
 import {logDebug} from "../log";
-import {RunStore} from "../store/store";
-import {CurrentBranchTreeProvider} from "./currentBranch";
-import {SettingsTreeProvider} from "./settings";
-import {WorkflowsTreeProvider} from "./workflows";
+import {CurrentBranchTreeDataProvider} from "./currentBranch/currentBranchTreeDataProvider";
+import {SettingsTreeProvider} from "./settings/settings";
+import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider";
 
-export async function initTreeViews(context: vscode.ExtensionContext, store: RunStore): Promise<void> {
-  const workflowTreeProvider = new WorkflowsTreeProvider(store);
+export async function initTreeViews(context: vscode.ExtensionContext): Promise<void> {
+  const currentBranchTreeProvider = new CurrentBranchTreeDataProvider();
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider("github-actions.current-branch", currentBranchTreeProvider)
+  );
+
+  const workflowTreeProvider = new WorkflowsTreeDataProvider();
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.workflows", workflowTreeProvider));
 
   const settingsTreeProvider = new SettingsTreeProvider();
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.settings", settingsTreeProvider));
-
-  const currentBranchTreeProvider = new CurrentBranchTreeProvider(store);
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("github-actions.current-branch", currentBranchTreeProvider)
-  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.explorer.refresh", async () => {
@@ -31,7 +30,7 @@ export async function initTreeViews(context: vscode.ExtensionContext, store: Run
       await vscode.commands.executeCommand("setContext", "github-actions.has-repos", hasGitHubRepos);
 
       if (canReachAPI && hasGitHubRepos) {
-        await workflowTreeProvider.refresh();
+        // await workflowTreeProvider.refresh();
         await settingsTreeProvider.refresh();
       }
       await executeCacheClearCommand();

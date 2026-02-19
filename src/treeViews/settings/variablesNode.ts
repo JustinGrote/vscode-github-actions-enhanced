@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import {GitHubRepoContext} from "../../git/repository";
 import {OrgVariablesNode} from "./orgVariablesNode";
 import {RepoVariablesNode} from "./repoVariablesNode";
-import {SettingsExplorerNode} from "./types";
 
 export class VariablesNode extends vscode.TreeItem {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
@@ -11,7 +10,7 @@ export class VariablesNode extends vscode.TreeItem {
     this.iconPath = new vscode.ThemeIcon("symbol-text");
   }
 
-  get nodes(): SettingsExplorerNode[] {
+  get nodes(): (RepoVariablesNode | OrgVariablesNode)[] {
     if (this.gitHubRepoContext.organizationOwned) {
       return [new RepoVariablesNode(this.gitHubRepoContext), new OrgVariablesNode(this.gitHubRepoContext)];
     }
