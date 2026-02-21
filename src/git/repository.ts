@@ -8,8 +8,12 @@ import { getGitHubApiUri, getRemoteName, useEnterprise } from "~/configuration/c
 import { Protocol } from "~/external/protocol"
 import { type RepositoryPermission, getRepositoryPermission } from "~/git/repository-permissions"
 import { logDebug, logError } from "~/log"
-import type { API, GitExtension, RepositoryState } from "~/typings/git"
-import { RefType } from "~/typings/git"
+
+import { type API, type GitExtension, type RefType, type RepositoryState } from "../typings/git"
+
+// HACK: Workaround for the enum from the git extension not being importable directly
+const RefTypeHead = 0 as RefType
+
 interface GitHubUrls {
   workspaceUri: vscode.Uri
   url: string
@@ -48,7 +52,7 @@ export async function getGitHead(): Promise<string | undefined> {
   const git = await getGitExtension()
   if (git && git.repositories.length > 0) {
     const head = git.repositories[0].state.HEAD
-    if (head && head.name && head.type === RefType.Head) {
+    if (head && head.name && head.type == RefTypeHead) {
       return `refs/heads/${head.name}`
     }
   }
@@ -281,7 +285,7 @@ export function getCurrentBranch(state: RepositoryState | undefined): string | u
     return
   }
 
-  if (head.type != RefType.Head) {
+  if (head.type != RefTypeHead) {
     return
   }
 

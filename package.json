@@ -30,7 +30,7 @@
   "main": "./dist/extension.js",
   "scripts": {
     "rd": "pnpm rolldown --config rolldown.config.ts",
-    "build": "pnpm clean && pnpm rd --environment PRODUCTION:true",
+    "build": "pnpm clean && pnpm lint && pnpm format-check && pnpm rd --environment PRODUCTION:true",
     "watch": "pnpm rd --watch",
     "clean": "git clean -fdX -- ./dist ./out",
     "package": "pnpm vsce package --no-dependencies",

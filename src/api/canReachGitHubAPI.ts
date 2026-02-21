@@ -1,6 +1,5 @@
 import { TTLCache } from "@actions/languageserver/utils/cache"
 
-import { getClient } from "~/api/api"
 import { getSession } from "~/auth/auth"
 import { logError } from "~/log"
 
@@ -14,9 +13,9 @@ export async function canReachGitHubAPI() {
   }
   return await cache.get("canReachGitHubAPI", undefined, async () => {
     try {
-      const octokit = getClient(session.accessToken)
+      // const octokit = getClient(session.accessToken)
       // TODO: Add a "slow mode" when the core rate limit goes below 1000
-      const rateLimit = await octokit.rest.rateLimit.get()
+      // await octokit.request("GET /")
     } catch (e) {
       logError(e as Error, "Error getting GitHub context")
       return false
