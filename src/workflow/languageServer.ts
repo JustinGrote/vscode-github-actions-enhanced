@@ -1,17 +1,17 @@
-import {Commands} from "@actions/languageserver/commands"
-import {type InitializationOptions, LogLevel} from "@actions/languageserver/initializationOptions"
-import {ReadFileRequest, Requests} from "@actions/languageserver/request"
+import { Commands } from "@actions/languageserver/commands"
+import { type InitializationOptions, LogLevel } from "@actions/languageserver/initializationOptions"
+import { ReadFileRequest, Requests } from "@actions/languageserver/request"
 import * as vscode from "vscode"
-import {BaseLanguageClient, LanguageClientOptions} from "vscode-languageclient"
-import {LanguageClient as BrowserLanguageClient} from "vscode-languageclient/browser"
-import {LanguageClient as NodeLanguageClient, type ServerOptions, TransportKind} from "vscode-languageclient/node"
+import { BaseLanguageClient, LanguageClientOptions } from "vscode-languageclient"
+import { LanguageClient as BrowserLanguageClient } from "vscode-languageclient/browser"
+import { LanguageClient as NodeLanguageClient, type ServerOptions, TransportKind } from "vscode-languageclient/node"
 
-import {userAgent} from "../api/api"
-import {getSession} from "../auth/auth"
-import {getGitHubApiUri, useEnterprise} from "../configuration/configReader"
-import {getGitHubContext} from "../git/repository"
-import {log} from "../log"
-import {WorkflowSelector} from "./documentSelector"
+import { userAgent } from "~/api/api"
+import { getSession } from "~/auth/auth"
+import { getGitHubApiUri, useEnterprise } from "~/configuration/configReader"
+import { getGitHubContext } from "~/git/repository"
+import { log } from "~/log"
+import { WorkflowSelector } from "~/workflow/documentSelector"
 
 let client: BaseLanguageClient
 
@@ -27,7 +27,7 @@ export async function initLanguageServer(context: vscode.ExtensionContext) {
     sessionToken: session?.accessToken,
     userAgent: userAgent,
     gitHubApiUrl: useEnterprise() ? getGitHubApiUri() : undefined,
-    repos: ghContext?.repos.map(repo => ({
+    repos: ghContext?.repos.map((repo) => ({
       id: repo.id,
       owner: repo.owner,
       name: repo.name,
@@ -47,11 +47,11 @@ export async function initLanguageServer(context: vscode.ExtensionContext) {
 
   if (isNode()) {
     const serverUri = vscode.Uri.joinPath(context.extensionUri, "dist", "langserver.js")
-    const debugOptions = {execArgv: ["--nolazy", "--inspect=6010"]}
+    const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] }
     log(`Starting language server with node runtime: ${serverUri.toString()} ${debugOptions.execArgv.join(" ")}`)
 
     const serverOptions: ServerOptions = {
-      run: {module: serverUri.fsPath, transport: TransportKind.ipc},
+      run: { module: serverUri.fsPath, transport: TransportKind.ipc },
       debug: {
         module: serverUri.fsPath,
         transport: 1,
@@ -66,7 +66,7 @@ export async function initLanguageServer(context: vscode.ExtensionContext) {
     worker.onerror = (error: ErrorEvent) => {
       console.error("Language server worker error:", error)
     }
-    worker.onmessage = event => {
+    worker.onmessage = (event) => {
       if (event.data) {
         console.error("Language server worker message:", event.data)
       }
@@ -101,5 +101,5 @@ export function executeCacheClearCommand(): Promise<void> {
     return Promise.resolve()
   }
 
-  return client.sendRequest("workspace/executeCommand", {command: Commands.ClearCache})
+  return client.sendRequest("workspace/executeCommand", { command: Commands.ClearCache })
 }

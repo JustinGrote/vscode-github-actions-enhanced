@@ -1,17 +1,17 @@
-import type {RequestError} from "@octokit/request-error"
+import type { RequestError } from "@octokit/request-error"
 import * as vscode from "vscode"
 
-import {getGitHubContextForRepo} from "../git/repository"
-import {cacheLogInfo} from "./logInfo"
-import {parseLog} from "./model"
-import {parseUri} from "./scheme"
+import { getGitHubContextForRepo } from "~/git/repository"
+import { cacheLogInfo } from "~/logs/logInfo"
+import { parseLog } from "~/logs/model"
+import { parseUri } from "~/logs/scheme"
 
 export class WorkflowStepLogProvider implements vscode.TextDocumentContentProvider {
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>()
   onDidChange = this.onDidChangeEmitter.event
 
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    const {owner, repo, jobId} = parseUri(uri)
+    const { owner, repo, jobId } = parseUri(uri)
 
     const githubRepoContext = await getGitHubContextForRepo(owner, repo)
     if (!githubRepoContext) {

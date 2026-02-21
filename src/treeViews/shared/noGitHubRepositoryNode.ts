@@ -1,6 +1,4 @@
-import * as vscode from "vscode"
-
-import {GithubActionTreeNode} from "../githubActionTreeDataProvider"
+import { GithubActionTreeNode } from "~/treeViews/githubActionTreeDataProvider"
 
 /**
  * When no github.com remote can be found in the current workspace.

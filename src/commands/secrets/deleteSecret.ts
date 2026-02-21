@@ -1,11 +1,11 @@
 import * as vscode from "vscode"
 
-import {SecretCommandArgs} from "../../treeViews/settings/secretNode"
+import { SecretCommandArgs } from "~/treeViews/settings/secretNode"
 
 export function registerDeleteSecret(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.settings.secret.delete", async (args: SecretCommandArgs) => {
-      const {gitHubRepoContext, secret, environment} = args
+      const { gitHubRepoContext, secret, environment } = args
 
       const acceptText = "Yes, delete this secret"
       try {
@@ -18,7 +18,7 @@ export function registerDeleteSecret(context: vscode.ExtensionContext) {
             },
             acceptText,
           )
-          .then(async answer => {
+          .then(async (answer) => {
             if (answer === acceptText) {
               if (environment) {
                 await gitHubRepoContext.client.actions.deleteEnvironmentSecret({

@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {LogScheme} from "./constants"
+import { LogScheme } from "~/logs/constants"
 
 /**
  * @param displayName Must not contain '/'

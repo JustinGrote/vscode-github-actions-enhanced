@@ -1,11 +1,12 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {hasWritePermission} from "../../git/repository-permissions"
-import {EnvironmentsNode} from "./environmentsNode"
-import {SecretsNode} from "./secretsNode"
-import {SettingsExplorerNode} from "./types"
-import {VariablesNode} from "./variablesNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { hasWritePermission } from "~/git/repository-permissions"
+
+import { EnvironmentsNode } from "./environmentsNode"
+import { SecretsNode } from "./secretsNode"
+import { SettingsExplorerNode } from "./types"
+import { VariablesNode } from "./variablesNode"
 
 export class SettingsRepoNode extends vscode.TreeItem {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {

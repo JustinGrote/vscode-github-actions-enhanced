@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {Environment, EnvironmentVariable, OrgVariable, RepoVariable} from "../../model"
+import { GitHubRepoContext } from "~/git/repository"
+import { Environment, EnvironmentVariable, OrgVariable, RepoVariable } from "~/model"
 
 export type VariableCommandArgs = Pick<VariableNode, "gitHubRepoContext" | "variable" | "environment">
 

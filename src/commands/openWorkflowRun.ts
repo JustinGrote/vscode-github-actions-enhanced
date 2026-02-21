@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {WorkflowRunCommandArgs} from "../treeViews/shared/workflowRunNode"
+import { WorkflowRunCommandArgs } from "~/treeViews/shared/workflowRunNode"
 
 export function registerOpenWorkflowRun(context: vscode.ExtensionContext) {
   context.subscriptions.push(

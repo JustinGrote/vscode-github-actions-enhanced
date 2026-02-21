@@ -1,26 +1,14 @@
 {
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "[typescript][javascript][json][yaml]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "modificationsIfAvailable",
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit",
-      "source.fixAll.ts": "explicit",
-      "source.organizeImports.ts": "explicit",
-      "source.addMissingImports.ts": "explicit"
+      "source.fixAll.oxc": "explicit"
     }
   },
-  "debug.javascript.autoAttachSmartPattern": [
-    "!esbuild.mjs", //Dont debug our build script automatically, it's annoying
-    "${workspaceFolder}/**",
-    "!**/node_modules/**",
-    "**/$KNOWN_TOOLS$/**"
-  ],
-  "chat.tools.terminal.autoApprove": {
-    "/^pnpx madge --circular --extensions ts,tsx \\./src$/": {
-      "approve": true,
-      "matchCommandLine": true
-    }
-  }
+  "debug.javascript.autoAttachSmartPattern": ["${workspaceFolder}/**", "!**/node_modules/**", "**/$KNOWN_TOOLS$/**"],
+  "oxc.enable": true
 }

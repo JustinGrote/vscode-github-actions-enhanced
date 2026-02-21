@@ -1,9 +1,9 @@
-import {EventEmitter} from "vscode"
+import { EventEmitter } from "vscode"
 
-import {GitHubRepoContext} from "../git/repository"
-import {logDebug} from "../log"
-import * as model from "../model"
-import {WorkflowRun} from "./workflowRun"
+import { GitHubRepoContext } from "~/git/repository"
+import { logDebug } from "~/log"
+import * as model from "~/model"
+import { WorkflowRun } from "~/store/workflowRun"
 
 export interface RunStoreEvent {
   run: WorkflowRun
@@ -38,6 +38,6 @@ export class RunStore extends EventEmitter<RunStoreEvent> {
     }
 
     this.runs.set(runData.id, run)
-    this.fire({run})
+    this.fire({ run })
   }
 }

@@ -3,7 +3,7 @@ import duration from "dayjs/plugin/duration.js"
 import localizedFormat from "dayjs/plugin/localizedFormat.js"
 import relativeTime from "dayjs/plugin/relativeTime.js"
 
-import {WorkflowRun, WorkflowRunAttempt} from "../../store/workflowRun"
+import { WorkflowRun, WorkflowRunAttempt } from "~/store/workflowRun"
 
 dayjs.extend(duration)
 dayjs.extend(localizedFormat)

@@ -1,4 +1,4 @@
-import libsodium, {ready, from_base64, base64_variants, from_string, to_base64} from "libsodium-wrappers"
+import libsodium, { ready, from_base64, base64_variants, from_string, to_base64 } from "libsodium-wrappers"
 
 export async function encodeSecret(key: string, value: string): Promise<string> {
   // Check if libsodium is ready and then proceed.

@@ -1,5 +1,5 @@
-import {assertRequestError} from "../error"
-import {logDebug, logError, logTrace} from "../log"
+import { assertRequestError } from "~/error"
+import { logError, logTrace } from "~/log"
 
 export const conditionalRequest = () => ({
   conditionalRequest: returnIfChanged,
@@ -36,9 +36,9 @@ async function returnIfChanged<TResponse, TParams>(
   timestamp: boolean = false,
 ): Promise<TResponse | undefined> {
   try {
-    const options = {...requestParams} as TParams extends {headers: Record<string, string>}
+    const options = { ...requestParams } as TParams extends { headers: Record<string, string> }
       ? TParams
-      : TParams & {headers: Record<string, string>}
+      : TParams & { headers: Record<string, string> }
 
     const cacheKey = cacheId ?? JSON.stringify(options)
     logTrace("🐙 Performing conditional request for cache key:", cacheKey)
@@ -82,7 +82,7 @@ async function returnIfChanged<TResponse, TParams>(
     }
 
     logError(err)
-    throw new Error("Error making conditional request: ", {cause: err})
+    throw new Error("Error making conditional request: ", { cause: err })
   }
 }
 

@@ -1,9 +1,10 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {Environment} from "../../model"
-import {EmptyNode} from "./emptyNode"
-import {VariableNode} from "./variableNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { Environment } from "~/model"
+
+import { EmptyNode } from "./emptyNode"
+import { VariableNode } from "./variableNode"
 
 export type EnvironmentVariablesCommandArgs = Pick<EnvironmentVariablesNode, "gitHubRepoContext" | "environment">
 
@@ -30,7 +31,7 @@ export class EnvironmentVariablesNode extends vscode.TreeItem {
           environment_name: this.environment.name,
           per_page: 100,
         },
-        response => response.data.map(v => new VariableNode(this.gitHubRepoContext, v, this.environment)),
+        (response) => response.data.map((v) => new VariableNode(this.gitHubRepoContext, v, this.environment)),
       )
     } catch (e) {
       await vscode.window.showErrorMessage((e as Error).message)

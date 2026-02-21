@@ -1,5 +1,5 @@
-import {GitHubRepoContext} from "../git/repository"
-import * as model from "../model"
+import { GitHubRepoContext } from "~/git/repository"
+import * as model from "~/model"
 
 export class WorkflowJob {
   readonly job: model.WorkflowJob

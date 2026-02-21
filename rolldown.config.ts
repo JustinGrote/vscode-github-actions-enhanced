@@ -1,6 +1,6 @@
 import process from "node:process"
 
-import {defineConfig, RolldownOptions} from "rolldown"
+import { defineConfig, RolldownOptions } from "rolldown"
 
 const production = process.env.PRODUCTION === "true"
 
@@ -20,7 +20,7 @@ export default defineConfig([
     input: "src/extension.ts",
     platform: "node",
     transform: {
-      define: {PRODUCTION: String(production)},
+      define: { PRODUCTION: String(production) },
     },
   },
   {

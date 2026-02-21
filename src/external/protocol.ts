@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode"
 
-import {resolve} from "./ssh"
+import { resolve } from "~/external/ssh"
 
 export enum ProtocolType {
   Local,
@@ -44,7 +44,7 @@ export class Protocol {
         this.repositoryName = this.getRepositoryName(this.url.path) || ""
         this.owner = this.getOwnerName(this.url.path) || ""
       }
-    } catch (e) {
+    } catch {
       // Logger.appendLine(`Failed to parse '${uriString}'`);
       void vscode.window.showWarningMessage(
         `Unable to parse remote '${uriString}'. Please check that it is correctly formatted.`,
@@ -73,7 +73,7 @@ export class Protocol {
     if (!sshConfig) {
       return false
     }
-    const {HostName, path} = sshConfig
+    const { HostName, path } = sshConfig
     this.host = HostName
     this.owner = this.getOwnerName(path) || ""
     this.repositoryName = this.getRepositoryName(path) || ""
@@ -138,7 +138,7 @@ export class Protocol {
 
     try {
       return vscode.Uri.parse(`${scheme}://${this.host.toLocaleLowerCase()}/${this.nameWithOwner.toLocaleLowerCase()}`)
-    } catch (e) {
+    } catch {
       return
     }
   }
@@ -171,7 +171,7 @@ export class Protocol {
     return
   }
 
-  update(change: {type?: ProtocolType; host?: string; owner?: string; repositoryName?: string}): Protocol {
+  update(change: { type?: ProtocolType; host?: string; owner?: string; repositoryName?: string }): Protocol {
     if (change.type) {
       this.type = change.type
     }

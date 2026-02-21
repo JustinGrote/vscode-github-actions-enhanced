@@ -1,11 +1,11 @@
 import * as vscode from "vscode"
 
-import {VariableCommandArgs} from "../../treeViews/settings/variableNode"
+import { VariableCommandArgs } from "~/treeViews/settings/variableNode"
 
 export function registerDeleteVariable(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.settings.variable.delete", async (args: VariableCommandArgs) => {
-      const {gitHubRepoContext, variable, environment} = args
+      const { gitHubRepoContext, variable, environment } = args
       const acceptText = "Yes, delete this variable"
 
       try {
@@ -18,7 +18,7 @@ export function registerDeleteVariable(context: vscode.ExtensionContext) {
             },
             acceptText,
           )
-          .then(async answer => {
+          .then(async (answer) => {
             if (answer === acceptText) {
               if (environment) {
                 await gitHubRepoContext.client.request(

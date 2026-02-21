@@ -1,8 +1,9 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {EmptyNode} from "./emptyNode"
-import {VariableNode} from "./variableNode"
+import { GitHubRepoContext } from "~/git/repository"
+
+import { EmptyNode } from "./emptyNode"
+import { VariableNode } from "./variableNode"
 
 export type RepoVariablesCommandArgs = Pick<RepoVariablesNode, "gitHubRepoContext">
 
@@ -23,7 +24,7 @@ export class RepoVariablesNode extends vscode.TreeItem {
           repo: this.gitHubRepoContext.name,
           per_page: 100,
         },
-        response => response.data.map(s => new VariableNode(this.gitHubRepoContext, s)),
+        (response) => response.data.map((s) => new VariableNode(this.gitHubRepoContext, s)),
       )
     } catch (e) {
       await vscode.window.showErrorMessage((e as Error).message)

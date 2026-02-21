@@ -1,10 +1,10 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../git/repository"
-import {RepositoryPermission, hasWritePermission} from "../git/repository-permissions"
-import {log, logDebug} from "../log"
-import * as model from "../model"
-import {WorkflowJob} from "./WorkflowJob"
+import { GitHubRepoContext } from "~/git/repository"
+import { RepositoryPermission, hasWritePermission } from "~/git/repository-permissions"
+import { log, logDebug } from "~/log"
+import * as model from "~/model"
+import { WorkflowJob } from "~/store/WorkflowJob"
 
 abstract class WorkflowRunBase {
   protected _gitHubRepoContext: GitHubRepoContext
@@ -94,7 +94,7 @@ export class WorkflowRun extends WorkflowRunBase {
       await vscode.window.showErrorMessage((e as Error).message)
     }
 
-    return jobs.map(j => new WorkflowJob(this._gitHubRepoContext, j))
+    return jobs.map((j) => new WorkflowJob(this._gitHubRepoContext, j))
   }
 
   attempts(): Promise<WorkflowRunAttempt[]> {
@@ -166,6 +166,6 @@ export class WorkflowRunAttempt extends WorkflowRunBase {
       await vscode.window.showErrorMessage((e as Error).message)
     }
 
-    return jobs.map(j => new WorkflowJob(this._gitHubRepoContext, j))
+    return jobs.map((j) => new WorkflowJob(this._gitHubRepoContext, j))
   }
 }

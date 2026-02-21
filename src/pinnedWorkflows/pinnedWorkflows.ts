@@ -1,6 +1,6 @@
-import {sep} from "path"
+import { sep } from "path"
 
-import {RequestError} from "@octokit/request-error"
+import { RequestError } from "@octokit/request-error"
 import * as vscode from "vscode"
 
 import {
@@ -8,15 +8,15 @@ import {
   isPinnedWorkflowsRefreshEnabled,
   onPinnedWorkflowsChange,
   pinnedWorkflowsRefreshInterval,
-} from "../configuration/configuration"
-import {ensureError} from "../error"
-import {getGitHubContextForWorkspaceUri, GitHubRepoContext} from "../git/repository"
-import {log, logDebug, logError} from "../log"
-import {Workflow} from "../model"
-import {RunStore} from "../store/store"
-import {WorkflowRun} from "../store/workflowRun"
-import {getCodIconForWorkflowRun} from "../treeViews/icons"
-import {WorkflowRunCommandArgs} from "../treeViews/shared/workflowRunNode"
+} from "~/configuration/configuration"
+import { ensureError } from "~/error"
+import { getGitHubContextForWorkspaceUri, GitHubRepoContext } from "~/git/repository"
+import { log, logDebug, logError } from "~/log"
+import { Workflow } from "~/model"
+import { RunStore } from "~/store/store"
+import { WorkflowRun } from "~/store/workflowRun"
+import { getCodIconForWorkflowRun } from "~/treeViews/icons"
+import { WorkflowRunCommandArgs } from "~/treeViews/shared/workflowRunNode"
 
 interface PinnedWorkflow {
   /** Displayed name */
@@ -41,7 +41,7 @@ export async function initPinnedWorkflows(store: RunStore) {
   onPinnedWorkflowsChange(() => void _init())
 
   runStore = store
-  runStore.event(({run}) => {
+  runStore.event(({ run }) => {
     // Are we listening to this run?
     const workflowId = run.run.workflow_id
     for (const pinnedWorkflow of pinnedWorkflows) {
@@ -99,7 +99,7 @@ async function updatePinnedWorkflows() {
   }
 
   for (const workspaceName of workflowsByWorkspace.keys()) {
-    const workspace = vscode.workspace.workspaceFolders?.find(x => x.name === workspaceName)
+    const workspace = vscode.workspace.workspaceFolders?.find((x) => x.name === workspaceName)
     if (!workspace) {
       continue
     }
@@ -120,10 +120,10 @@ async function updatePinnedWorkflows() {
     )
 
     const workflowByPath: Record<string, Workflow> = {}
-    workflows.forEach(w => (workflowByPath[w.path] = w))
+    workflows.forEach((w) => (workflowByPath[w.path] = w))
 
     await Promise.all(
-      (workflowsByWorkspace.get(workspaceName) || []).map(async pinnedWorkflow => {
+      (workflowsByWorkspace.get(workspaceName) || []).map(async (pinnedWorkflow) => {
         if (!workflowByPath[pinnedWorkflow]) {
           log(`Unable to find pinned workflow ${pinnedWorkflow} in ${workspaceName}, ignoring`)
           return
@@ -169,8 +169,8 @@ async function refreshPinnedWorkflows() {
 }
 
 async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
-  const {gitHubRepoContext} = pinnedWorkflow
-  const {client} = gitHubRepoContext
+  const { gitHubRepoContext } = pinnedWorkflow
+  const { client } = gitHubRepoContext
   logDebug("Checking for updates to pinned workflow", pinnedWorkflow.workflowName, "in", gitHubRepoContext.name)
   try {
     const workflowRunCacheId = `MostRecentRun-${gitHubRepoContext.owner}/${gitHubRepoContext.name}/${pinnedWorkflow.workflowId}`

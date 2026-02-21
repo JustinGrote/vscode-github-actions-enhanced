@@ -1,11 +1,12 @@
-import {retry} from "@octokit/plugin-retry"
-import {throttling} from "@octokit/plugin-throttling"
-import {Octokit} from "@octokit/rest"
+import { retry } from "@octokit/plugin-retry"
+import { throttling } from "@octokit/plugin-throttling"
+import { Octokit } from "@octokit/rest"
 
-import {version} from "../../package.json"
-import {getGitHubApiUri} from "../configuration/configReader"
-import {createOctokitLogger} from "../log"
-import {conditionalRequest} from "./conditionalRequests"
+import { conditionalRequest } from "~/api/conditionalRequests"
+import { getGitHubApiUri } from "~/configuration/configReader"
+import { createOctokitLogger } from "~/log"
+
+import { version } from "package.json"
 
 export const userAgent = `VS Code GitHub Actions (${version})`
 

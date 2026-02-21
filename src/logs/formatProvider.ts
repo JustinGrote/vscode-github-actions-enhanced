@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 
-import {LogInfo} from "./model"
-import {Parser, VSCodeDefaultColors} from "./parser"
+import { LogInfo } from "~/logs/model"
+import { Parser, VSCodeDefaultColors } from "~/logs/parser"
 
 const timestampRE = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}Z/
 
@@ -19,23 +19,23 @@ export function updateDecorations(activeEditor: vscode.TextEditor, logInfo: LogI
   activeEditor.setDecorations(
     timestampDecorationType,
     Array.from(Array(numberOfLines).keys())
-      .filter(i => {
+      .filter((i) => {
         const line = activeEditor.document.lineAt(i).text
         return timestampRE.test(line)
       })
-      .map(i => ({
+      .map((i) => ({
         range: new vscode.Range(i, 0, i, 28), // timestamps always have 28 chars
       })),
   )
 
   // Custom decorations
   const decoratorTypes: {
-    [key: string]: {type: vscode.TextEditorDecorationType; ranges: vscode.Range[]}
+    [key: string]: { type: vscode.TextEditorDecorationType; ranges: vscode.Range[] }
   } = {}
 
   for (let lineNo = 0; lineNo < logInfo.updatedLogLines.length; lineNo++) {
     // .filter() preserves the order of the array
-    const lineStyles = logInfo.styleFormats.filter(style => style.line == lineNo)
+    const lineStyles = logInfo.styleFormats.filter((style) => style.line == lineNo)
     let pos = 0
     for (let styleNo = 0; styleNo < lineStyles.length; styleNo++) {
       const styleInfo = lineStyles[styleNo]

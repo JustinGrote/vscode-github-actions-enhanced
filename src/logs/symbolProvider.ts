@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {getLogInfo} from "./logInfo"
+import { getLogInfo } from "~/logs/logInfo"
 
 export class WorkflowStepLogSymbolProvider implements vscode.DocumentSymbolProvider {
   provideDocumentSymbols(
@@ -12,7 +12,7 @@ export class WorkflowStepLogSymbolProvider implements vscode.DocumentSymbolProvi
     }
 
     return logInfo.sections.map(
-      s =>
+      (s) =>
         new vscode.DocumentSymbol(
           s.name || "Setup",
           "Step",

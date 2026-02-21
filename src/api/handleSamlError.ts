@@ -1,8 +1,8 @@
-import {AuthenticationSession} from "vscode"
+import { AuthenticationSession } from "vscode"
 
-import {newSession} from "../auth/auth"
-import {logDebug} from "../log"
-import {getClient, GhaOctokit} from "./api"
+import { getClient, GhaOctokit } from "~/api/api"
+import { newSession } from "~/auth/auth"
+import { logDebug } from "~/log"
 
 export async function handleSamlError<T>(
   session: AuthenticationSession,

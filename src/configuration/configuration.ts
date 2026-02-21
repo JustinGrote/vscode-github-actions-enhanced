@@ -1,8 +1,8 @@
 import * as vscode from "vscode"
 
-import {resetGitHubContext} from "../git/repository"
-import {deactivateLanguageServer, initLanguageServer} from "../workflow/languageServer"
-import {useEnterprise} from "./configReader"
+import { useEnterprise } from "~/configuration/configReader"
+import { resetGitHubContext } from "~/git/repository"
+import { deactivateLanguageServer, initLanguageServer } from "~/workflow/languageServer"
 
 const settingsKey = "github-actions"
 const PINNED_WORKFLOWS_KEY = `${settingsKey}.pinnedWorkflows`
@@ -18,7 +18,7 @@ export function initConfiguration(context: vscode.ExtensionContext) {
   migrateSettingsToPinnedWorkflows()
 
   context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration(async e => {
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
       // Since we're no longer using settings for pinned workflows, we don't need to check for them
       if (
         e.affectsConfiguration(getSettingsKey("use-enterprise")) ||
@@ -78,7 +78,7 @@ export async function pinWorkflow(workflow: string) {
   await workspaceState.update(PINNED_WORKFLOWS_KEY, pinnedWorkflows)
 
   // Notify handlers of the change
-  pinnedWorkflowsChangeHandlers.forEach(h => h())
+  pinnedWorkflowsChangeHandlers.forEach((h) => h())
 }
 
 export async function unpinWorkflow(workflow: string) {
@@ -90,7 +90,7 @@ export async function unpinWorkflow(workflow: string) {
   await workspaceState.update(PINNED_WORKFLOWS_KEY, pinnedWorkflows)
 
   // Notify handlers of the change
-  pinnedWorkflowsChangeHandlers.forEach(h => h())
+  pinnedWorkflowsChangeHandlers.forEach((h) => h())
 }
 
 export function isPinnedWorkflowsRefreshEnabled(): boolean {
@@ -107,7 +107,7 @@ export function getRunsPrefetchCount(): number {
 
 // Re-export from configReader to maintain backward compatibility
 // These functions are in a separate module to break circular dependencies
-export {getRemoteName, useEnterprise, getGitHubApiUri} from "./configReader"
+export { getRemoteName, useEnterprise, getGitHubApiUri } from "./configReader"
 
 async function updateLanguageServerApiUrl(context: vscode.ExtensionContext) {
   await deactivateLanguageServer()

@@ -1,16 +1,15 @@
 import * as vscode from "vscode"
 
-import {type GhaOctokit} from "../api/api"
-import {canReachGitHubAPI} from "../api/canReachGitHubAPI"
-import {handleSamlError} from "../api/handleSamlError"
-import {getSession} from "../auth/auth"
-import {getGitHubApiUri, getRemoteName, useEnterprise} from "../configuration/configReader"
-import {Protocol} from "../external/protocol"
-import {logDebug, logError} from "../log"
-import type {API, GitExtension, RepositoryState} from "../typings/git"
-// @ts-expect-error esbuild needs the enum from this declaration to interact with git plugin
-import {RefType} from "../typings/git.d.ts"
-import {type RepositoryPermission, getRepositoryPermission} from "./repository-permissions"
+import { type GhaOctokit } from "~/api/api"
+import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
+import { handleSamlError } from "~/api/handleSamlError"
+import { getSession } from "~/auth/auth"
+import { getGitHubApiUri, getRemoteName, useEnterprise } from "~/configuration/configReader"
+import { Protocol } from "~/external/protocol"
+import { type RepositoryPermission, getRepositoryPermission } from "~/git/repository-permissions"
+import { logDebug, logError } from "~/log"
+import type { API, GitExtension, RepositoryState } from "~/typings/git"
+import { RefType } from "~/typings/git"
 interface GitHubUrls {
   workspaceUri: vscode.Uri
   url: string
@@ -27,11 +26,11 @@ async function getGitExtension(): Promise<API | undefined> {
 
     if (git.state !== "initialized") {
       // Wait for the plugin to be initialized
-      await new Promise<void>(resolve => {
+      await new Promise<void>((resolve) => {
         if (git.state === "initialized") {
           resolve()
         } else {
-          const listener = git.onDidChangeState(state => {
+          const listener = git.onDidChangeState((state) => {
             if (state === "initialized") {
               resolve()
             }
@@ -63,12 +62,12 @@ export async function getGitHubUrls(): Promise<GitHubUrls[] | null> {
     const remoteName = getRemoteName()
 
     const p = await Promise.all(
-      git.repositories.map(async r => {
+      git.repositories.map(async (r) => {
         logDebug("Find `origin` remote for repository", r.rootUri.path)
         await r.status()
 
         // Try to get "origin" remote first
-        let remote = r.state.remotes.filter(remote => remote.name === remoteName)
+        let remote = r.state.remotes.filter((remote) => remote.name === remoteName)
 
         // If "origin" does not exist, automatically get another remote
         if (r.state.remotes.length !== 0 && remote.length === 0) {
@@ -95,7 +94,7 @@ export async function getGitHubUrls(): Promise<GitHubUrls[] | null> {
         return undefined
       }),
     )
-    return p.filter(x => !!x) as GitHubUrls[]
+    return p.filter((x) => !!x) as GitHubUrls[]
   }
 
   // If we cannot find the git extension, assume for now that we are running a web context,
@@ -104,12 +103,12 @@ export async function getGitHubUrls(): Promise<GitHubUrls[] | null> {
   // if (!git) {
   // Support for virtual workspaces
   const isVirtualWorkspace =
-    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.every(f => f.uri.scheme !== "file")
+    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.every((f) => f.uri.scheme !== "file")
   if (isVirtualWorkspace) {
     logDebug("Found virtual workspace")
 
     const ghFolder = vscode.workspace.workspaceFolders?.find(
-      x => x.uri.scheme === "vscode-vfs" && x.uri.authority === "github",
+      (x) => x.uri.scheme === "vscode-vfs" && x.uri.authority === "github",
     )
     if (ghFolder) {
       logDebug("Found virtual GitHub workspace folder")
@@ -171,7 +170,7 @@ export async function getGitHubContext(): Promise<GitHubContext | undefined> {
     const allProtocolInfos = await getGitHubUrls()
 
     // Filter out wiki repositories because the GET call will fail and throw an error
-    const protocolInfos = allProtocolInfos?.filter(info => !info.protocol.repositoryName.match(/\.wiki$/))
+    const protocolInfos = allProtocolInfos?.filter((info) => !info.protocol.repositoryName.match(/\.wiki$/))
 
     if (!protocolInfos) {
       logDebug("Could not get protocol infos")
@@ -216,8 +215,8 @@ export async function getGitHubContext(): Promise<GitHubContext | undefined> {
 
     gitHubContext = Promise.resolve({
       repos,
-      reposByUri: new Map(repos.map(r => [r.workspaceUri.toString(), r])),
-      reposByOwnerAndName: new Map(repos.map(r => [`${r.owner}/${r.name}`.toLocaleLowerCase(), r])),
+      reposByUri: new Map(repos.map((r) => [r.workspaceUri.toString(), r])),
+      reposByOwnerAndName: new Map(repos.map((r) => [`${r.owner}/${r.name}`.toLocaleLowerCase(), r])),
       username,
     })
   } catch (e) {

@@ -1,4 +1,4 @@
-import {encodeSecret} from "./index"
+import { encodeSecret } from "~/secrets/index"
 const sodium = require("libsodium-wrappers")
 
 describe("secret encryption", () => {

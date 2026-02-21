@@ -1,10 +1,10 @@
 {
   "folders": [
-    {"path": "./languageservices/expressions"},
-    {"path": "./languageservices/workflow-parser"},
-    {"path": "./languageservices/languageservice"},
-    {"path": "./languageservices/languageserver"},
-    {"path": "./vscode-github-actions"},
+    { "path": "./languageservices/expressions" },
+    { "path": "./languageservices/workflow-parser" },
+    { "path": "./languageservices/languageservice" },
+    { "path": "./languageservices/languageserver" },
+    { "path": "./vscode-github-actions" },
   ],
   "extensions": {
     "recommendations": ["firsttris.vscode-jest-runner", "Orta.vscode-jest"],

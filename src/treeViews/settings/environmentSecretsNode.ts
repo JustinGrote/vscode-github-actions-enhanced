@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {Environment} from "../../model"
+import {GitHubRepoContext} from "~/git/repository"
+import {Environment} from "~/model"
 import {EmptyNode} from "./emptyNode"
 import {SecretNode} from "./secretNode"
 

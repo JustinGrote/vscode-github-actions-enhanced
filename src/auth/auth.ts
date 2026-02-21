@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {useEnterprise} from "../configuration/configReader"
+import { useEnterprise } from "~/configuration/configReader"
 
 const AUTH_PROVIDER_ID = "github"
 const AUTH_PROVIDER_ID_ENTERPRISE = "github-enterprise"
@@ -43,7 +43,7 @@ export async function getSession(skipPrompt = false): Promise<vscode.Authenticat
   vscode.window
     .showInformationMessage("Sign in to GitHub to access your repositories and GitHub Actions workflows.", signInAction)
     .then(
-      async result => {
+      async (result) => {
         if (result === signInAction) {
           const session = await getSessionInternal(true)
           if (session) {
@@ -68,8 +68,8 @@ async function getSessionInternal(
   // forceNewSession and createIfNone are mutually exclusive
   const options: vscode.AuthenticationGetSessionOptions =
     typeof createOrForceMessage === "string"
-      ? {forceNewSession: {detail: createOrForceMessage}}
-      : {createIfNone: createOrForceMessage}
+      ? { forceNewSession: { detail: createOrForceMessage } }
+      : { createIfNone: createOrForceMessage }
   const authProviderId = useEnterprise() ? AUTH_PROVIDER_ID_ENTERPRISE : AUTH_PROVIDER_ID
   return await vscode.authentication.getSession(authProviderId, getScopes(), options)
 }

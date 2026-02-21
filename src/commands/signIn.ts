@@ -1,8 +1,8 @@
 import * as vscode from "vscode"
 
-import {canReachGitHubAPI} from "../api/canReachGitHubAPI"
-import {getSession} from "../auth/auth"
-import {getGitHubContext} from "../git/repository"
+import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
+import { getSession } from "~/auth/auth"
+import { getGitHubContext } from "~/git/repository"
 
 export function registerSignIn(context: vscode.ExtensionContext) {
   context.subscriptions.push(

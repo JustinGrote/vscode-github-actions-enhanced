@@ -1,12 +1,12 @@
 import * as vscode from "vscode"
 
-import {SecretCommandArgs} from "../../treeViews/settings/secretNode"
-import {createOrUpdateEnvSecret, createOrUpdateRepoSecret} from "./addSecret"
+import { createOrUpdateEnvSecret, createOrUpdateRepoSecret } from "~/commands/secrets/addSecret"
+import { SecretCommandArgs } from "~/treeViews/settings/secretNode"
 
 export function registerUpdateSecret(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.settings.secret.update", async (args: SecretCommandArgs) => {
-      const {gitHubRepoContext, secret, environment} = args
+      const { gitHubRepoContext, secret, environment } = args
 
       const value = await vscode.window.showInputBox({
         prompt: "Enter the new secret value",

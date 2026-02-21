@@ -1,9 +1,10 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {OrgVariable} from "../../model"
-import {EmptyNode} from "./emptyNode"
-import {VariableNode} from "./variableNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { OrgVariable } from "~/model"
+
+import { EmptyNode } from "./emptyNode"
+import { VariableNode } from "./variableNode"
 
 export class OrgVariablesNode extends vscode.TreeItem {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
@@ -31,6 +32,6 @@ export class OrgVariablesNode extends vscode.TreeItem {
       return [new EmptyNode("No organization variables shared with this repository")]
     }
 
-    return variables.map(s => new VariableNode(this.gitHubRepoContext, s, undefined, true))
+    return variables.map((s) => new VariableNode(this.gitHubRepoContext, s, undefined, true))
   }
 }

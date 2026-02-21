@@ -3,7 +3,7 @@ import * as vscode from "vscode"
 let logger: vscode.LogOutputChannel
 
 export function init() {
-  logger = vscode.window.createOutputChannel("GitHub Actions", {log: true})
+  logger = vscode.window.createOutputChannel("GitHub Actions", { log: true })
 }
 
 export function logError(e: Error, ...values: unknown[]) {

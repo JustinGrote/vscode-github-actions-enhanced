@@ -1,9 +1,9 @@
-import {createCollection} from "@tanstack/db"
-import {QueryClient} from "@tanstack/query-core"
-import {queryCollectionOptions} from "@tanstack/query-db-collection"
+import { createCollection } from "@tanstack/db"
+import { QueryClient } from "@tanstack/query-core"
+import { queryCollectionOptions } from "@tanstack/query-db-collection"
 
-import {GhaOctokit} from "../../api/api"
-import {logDebug} from "../../log"
+import { GhaOctokit } from "~/api/api"
+import { logDebug } from "~/log"
 
 // This should be a singleton that is shared across the entire extension for shared cache reasons.
 export const defaultQueryClient = new QueryClient({
@@ -33,7 +33,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
       syncMode: "eager",
       compare: compareFn,
       queryKey: queryKey,
-      queryFn: async ({client}) => {
+      queryFn: async ({ client }) => {
         logDebug(`♻️ Refreshing data for collection ${queryKey.join(",")}`)
         const response = await githubClient.conditionalRequest(apiCall, apiParams)
         // Indicates no changes to the API, so we should return the existing data to indicate no changes.
@@ -48,7 +48,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
         const result = selector(response)
         return result
       },
-      getKey: i => String(i[primaryKey]),
+      getKey: (i) => String(i[primaryKey]),
     }),
   )
 }

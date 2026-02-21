@@ -1,8 +1,8 @@
-import {createLiveQueryCollection} from "@tanstack/db"
 import * as vscode from "vscode"
 
-import {logTrace} from "../log"
-import {REFRESH_TREE_ROOT} from "./currentBranch/currentBranchTreeDataProvider"
+import { logTrace } from "~/log"
+
+import { REFRESH_TREE_ROOT } from "./currentBranch/currentBranchTreeDataProvider"
 
 /** All tree nodes should optionally implement getChildren. The provider will delegate the appropriate resolution to the node. If they do not, they are considered to be leafs and will not be expanded **/
 export abstract class GithubActionTreeNode extends vscode.TreeItem {
@@ -50,11 +50,11 @@ export abstract class GithubActionTreeDataProvider<
   constructor() {}
   protected readonly _onDidChangeTreeData = new vscode.EventEmitter<T | T[] | typeof REFRESH_TREE_ROOT>()
   public readonly onDidChangeTreeData = this._onDidChangeTreeData.event
-  protected readonly onDidChangeTreeDataTrace = this.onDidChangeTreeData(e => {
+  protected readonly onDidChangeTreeDataTrace = this.onDidChangeTreeData((e) => {
     if (e === REFRESH_TREE_ROOT) {
       logTrace(`👉 VSCode informed to refresh full tree`)
     } else if (Array.isArray(e)) {
-      logTrace(`👉 VSCode informed to refresh tree nodes: ${e.map(n => n.id).join(", ")}`)
+      logTrace(`👉 VSCode informed to refresh tree nodes: ${e.map((n) => n.id).join(", ")}`)
     } else {
       logTrace(`👉 VSCode informed to refresh tree node ${e.id} ${e.label}`)
     }

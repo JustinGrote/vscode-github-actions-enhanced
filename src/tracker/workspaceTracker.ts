@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {getGitHubContext, resetGitHubContext} from "../git/repository"
+import { getGitHubContext, resetGitHubContext } from "~/git/repository"
 
 export function initWorkspaceChangeTracker(context: vscode.ExtensionContext) {
   const onDidChangeWorkspaceFolders = async (event: vscode.WorkspaceFoldersChangeEvent) => {

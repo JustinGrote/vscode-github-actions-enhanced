@@ -2,7 +2,7 @@
 const ansiColorRegex = /\u001b\[(\d+;)*\d+m/gm
 const groupMarker = "##[group]"
 
-import {Parser, IStyle} from "./parser"
+import { IStyle, Parser } from "~/logs/parser"
 
 export interface LogSection {
   start: number
@@ -36,7 +36,7 @@ export function parseLog(log: string): LogInfo {
 
   const parser = new Parser()
   const styleInfo: LogStyleInfo[] = []
-  const lines = log.split(/\n|\r/).filter(l => !!l)
+  const lines = log.split(/\n|\r/).filter((l) => !!l)
 
   let lineIdx = 0
 

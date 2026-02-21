@@ -1,8 +1,8 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {OrgVariablesNode} from "./orgVariablesNode"
-import {RepoVariablesNode} from "./repoVariablesNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { OrgVariablesNode } from "~/treeViews/settings/orgVariablesNode"
+import { RepoVariablesNode } from "~/treeViews/settings/repoVariablesNode"
 
 export class VariablesNode extends vscode.TreeItem {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {

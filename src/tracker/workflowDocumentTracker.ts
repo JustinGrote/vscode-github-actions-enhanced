@@ -1,10 +1,10 @@
 import * as vscode from "vscode"
-import {Utils} from "vscode-uri"
+import { Utils } from "vscode-uri"
 
-import {LogScheme} from "../logs/constants"
-import {updateDecorations} from "../logs/formatProvider"
-import {getLogInfo} from "../logs/logInfo"
-import {getContextStringForWorkflow} from "../workflow/workflow"
+import { LogScheme } from "~/logs/constants"
+import { updateDecorations } from "~/logs/formatProvider"
+import { getLogInfo } from "~/logs/logInfo"
+import { getContextStringForWorkflow } from "~/workflow/workflow"
 
 const extname = Utils.extname
 

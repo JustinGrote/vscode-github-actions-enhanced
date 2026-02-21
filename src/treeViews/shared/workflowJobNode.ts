@@ -1,10 +1,11 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {WorkflowJob} from "../../model"
-import {GithubActionTreeNode} from "../githubActionTreeDataProvider"
-import {getIconForWorkflowNode} from "../icons"
-import {WorkflowStepNode} from "./workflowStepNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { WorkflowJob } from "~/model"
+import { WorkflowStepNode } from "~/treeViews/shared/workflowStepNode"
+
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider"
+import { getIconForWorkflowNode } from "../icons"
 
 export class WorkflowJobNode extends GithubActionTreeNode {
   constructor(
@@ -27,6 +28,6 @@ export class WorkflowJobNode extends GithubActionTreeNode {
   }
 
   getChildren(): WorkflowStepNode[] {
-    return (this.job.steps || []).map(s => new WorkflowStepNode(this.gitHubRepoContext, this.job, s))
+    return (this.job.steps || []).map((s) => new WorkflowStepNode(this.gitHubRepoContext, this.job, s))
   }
 }

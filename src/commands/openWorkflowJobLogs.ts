@@ -1,10 +1,10 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../git/repository"
-import {updateDecorations} from "../logs/formatProvider"
-import {getLogInfo} from "../logs/logInfo"
-import {buildLogURI} from "../logs/scheme"
-import {WorkflowJob} from "../model"
+import { GitHubRepoContext } from "~/git/repository"
+import { updateDecorations } from "~/logs/formatProvider"
+import { getLogInfo } from "~/logs/logInfo"
+import { buildLogURI } from "~/logs/scheme"
+import { WorkflowJob } from "~/model"
 
 export interface OpenWorkflowJobLogsCommandArgs {
   gitHubRepoContext: GitHubRepoContext

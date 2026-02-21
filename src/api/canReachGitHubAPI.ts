@@ -1,8 +1,8 @@
-import {TTLCache} from "@actions/languageserver/utils/cache"
+import { TTLCache } from "@actions/languageserver/utils/cache"
 
-import {getSession} from "../auth/auth"
-import {logError} from "../log"
-import {getClient} from "./api"
+import { getClient } from "~/api/api"
+import { getSession } from "~/auth/auth"
+import { logError } from "~/log"
 
 const API_ACCESS_TTL_MS = 10 * 1000
 const cache = new TTLCache(API_ACCESS_TTL_MS)

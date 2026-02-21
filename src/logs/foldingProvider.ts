@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {getLogInfo} from "./logInfo"
+import { getLogInfo } from "~/logs/logInfo"
 
 export class WorkflowStepLogFoldingProvider implements vscode.FoldingRangeProvider {
   provideFoldingRanges(document: vscode.TextDocument): vscode.ProviderResult<vscode.FoldingRange[]> {
@@ -9,6 +9,6 @@ export class WorkflowStepLogFoldingProvider implements vscode.FoldingRangeProvid
       return []
     }
 
-    return logInfo.sections.map(s => new vscode.FoldingRange(s.start, s.end, vscode.FoldingRangeKind.Region))
+    return logInfo.sections.map((s) => new vscode.FoldingRange(s.start, s.end, vscode.FoldingRangeKind.Region))
   }
 }

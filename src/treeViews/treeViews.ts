@@ -1,12 +1,12 @@
 import * as vscode from "vscode"
 
-import {canReachGitHubAPI} from "../api/canReachGitHubAPI"
-import {getGitHubContext} from "../git/repository"
-import {logDebug} from "../log"
-import {executeCacheClearCommand} from "../workflow/languageServer"
-import {CurrentBranchTreeDataProvider} from "./currentBranch/currentBranchTreeDataProvider"
-import {SettingsTreeProvider} from "./settings/settings"
-import {WorkflowsTreeDataProvider} from "./workflows/workflowsTreeDataProvider"
+import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
+import { getGitHubContext } from "~/git/repository"
+import { logDebug } from "~/log"
+import { CurrentBranchTreeDataProvider } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
+import { SettingsTreeProvider } from "~/treeViews/settings/settings"
+import { WorkflowsTreeDataProvider } from "~/treeViews/workflows/workflowsTreeDataProvider"
+import { executeCacheClearCommand } from "~/workflow/languageServer"
 
 export async function initTreeViews(context: vscode.ExtensionContext): Promise<void> {
   const currentBranchTreeProvider = new CurrentBranchTreeDataProvider()

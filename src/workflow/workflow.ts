@@ -1,4 +1,4 @@
-import {basename} from "path"
+import { basename } from "path"
 
 import {
   convertWorkflowTemplate,
@@ -6,10 +6,10 @@ import {
   parseWorkflow,
   WorkflowTemplate,
 } from "@actions/workflow-parser"
-import {ErrorPolicy} from "@actions/workflow-parser/model/convert"
+import { ErrorPolicy } from "@actions/workflow-parser/model/convert"
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../git/repository"
+import { GitHubRepoContext } from "~/git/repository"
 
 export async function getContextStringForWorkflow(workflowUri: vscode.Uri): Promise<string> {
   try {

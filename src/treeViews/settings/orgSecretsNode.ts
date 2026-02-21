@@ -1,9 +1,10 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {OrgSecret} from "../../model"
-import {EmptyNode} from "./emptyNode"
-import {SecretNode} from "./secretNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { OrgSecret } from "~/model"
+
+import { EmptyNode } from "./emptyNode"
+import { SecretNode } from "./secretNode"
 
 export class OrgSecretsNode extends vscode.TreeItem {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
@@ -28,6 +29,6 @@ export class OrgSecretsNode extends vscode.TreeItem {
       return [new EmptyNode("No organization secrets shared with this repository")]
     }
 
-    return secrets.map(s => new SecretNode(this.gitHubRepoContext, s, undefined, true))
+    return secrets.map((s) => new SecretNode(this.gitHubRepoContext, s, undefined, true))
   }
 }

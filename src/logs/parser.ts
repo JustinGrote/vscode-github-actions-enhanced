@@ -66,7 +66,7 @@ const specials = {
   "1": "bold",
   "3": "italic",
   "4": "underline",
-} as {[key: string]: string}
+} as { [key: string]: string }
 
 const bgColors = {
   // 40 (black), 41 (red), 42 (green), 43 (yellow), 44 (blue), 45 (magenta), 46 (cyan), 47 (white), 100 (grey)
@@ -79,7 +79,7 @@ const bgColors = {
   "46": "c",
   "47": "w",
   "100": "gr",
-} as {[key: string]: string}
+} as { [key: string]: string }
 
 const fgColors = {
   // 30 (black), 31 (red), 32 (green), 33 (yellow), 34 (blue), 35 (magenta), 36 (cyan), 37 (white), 90 (grey)
@@ -92,7 +92,7 @@ const fgColors = {
   "36": "c",
   "37": "w",
   "90": "gr",
-} as {[key: string]: string}
+} as { [key: string]: string }
 
 const base8BitColors = {
   // 0 (black), 1 (red), 2 (green), 3 (yellow), 4 (blue), 5 (magenta), 6 (cyan), 7 (white), 8 (grey)

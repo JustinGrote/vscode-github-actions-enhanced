@@ -1,11 +1,11 @@
 import * as vscode from "vscode"
 
-import {VariableCommandArgs} from "../../treeViews/settings/variableNode"
+import { VariableCommandArgs } from "~/treeViews/settings/variableNode"
 
 export function registerUpdateVariable(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.settings.variable.update", async (args: VariableCommandArgs) => {
-      const {gitHubRepoContext, variable, environment} = args
+      const { gitHubRepoContext, variable, environment } = args
 
       const name = await vscode.window.showInputBox({
         prompt: "Enter the new variable name",
@@ -21,7 +21,7 @@ export function registerUpdateVariable(context: vscode.ExtensionContext) {
         return
       }
 
-      const payload: {name?: string; value?: string} = {}
+      const payload: { name?: string; value?: string } = {}
       if (name != variable.name) {
         payload.name = name
       }

@@ -1,4 +1,4 @@
-import {Config, ConfigResolver, parse as parseConfig} from "ssh-config"
+import { Config, ConfigResolver, parse as parseConfig } from "ssh-config"
 
 const SSH_URL_RE = /^(?:([^@:]+)@)?([^:/]+):?(.+)$/
 const URL_SCHEME_RE = /^([a-z-]+):\/\//
@@ -59,7 +59,7 @@ const parse = (url: string): Config | undefined => {
     return
   }
   const [, User, Host, path] = match
-  return {User, Host, path}
+  return { User, Host, path }
 }
 
 function baseResolver(config: Config) {
@@ -84,11 +84,11 @@ function baseResolver(config: Config) {
 export function resolverFromConfig(text: string): ConfigResolver {
   // This causes many linter issues, ignore them in whole file for now
   const config = parseConfig(text)
-  return h => config.compute(h.Host)
+  return (h) => config.compute(h.Host)
 }
 
 function chainResolvers(...chain: (ConfigResolver | undefined)[]): ConfigResolver {
-  const resolvers = chain.filter(x => !!x) as ConfigResolver[]
+  const resolvers = chain.filter((x) => !!x) as ConfigResolver[]
   return (config: Config) =>
     resolvers.reduce(
       (resolved, next) => ({

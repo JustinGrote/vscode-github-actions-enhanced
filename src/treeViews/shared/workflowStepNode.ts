@@ -1,7 +1,8 @@
-import {GitHubRepoContext} from "../../git/repository"
-import {WorkflowJob, WorkflowStep} from "../../model"
-import {GithubActionTreeNode} from "../githubActionTreeDataProvider"
-import {getIconForWorkflowNode} from "../icons"
+import { GitHubRepoContext } from "~/git/repository"
+import { WorkflowJob, WorkflowStep } from "~/model"
+
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider"
+import { getIconForWorkflowNode } from "../icons"
 
 export class WorkflowStepNode extends GithubActionTreeNode {
   constructor(

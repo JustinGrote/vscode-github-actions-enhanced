@@ -1,8 +1,6 @@
-import {log} from "node:util"
+import { RequestError } from "@octokit/request-error"
 
-import {RequestError} from "@octokit/request-error"
-
-import {logError, logWarn} from "./log"
+import { logWarn } from "~/log"
 
 /**
  * Ensures that the unknown value is an Error object.
@@ -33,7 +31,7 @@ export function ensureError(value: unknown): Error {
     stringified = "[Unknown value that cannot be stringified]"
   }
 
-  const error = new Error(`Non-Error Value: ${stringified}`, {cause: value})
+  const error = new Error(`Non-Error Value: ${stringified}`, { cause: value })
   return error
 }
 

@@ -1,5 +1,5 @@
-import {Octokit} from "@octokit/core"
-import {EventEmitter} from "vscode"
+import { Octokit } from "@octokit/core"
+import { EventEmitter } from "vscode"
 
 // Exported variables to track rate limits
 export interface RateLimit {

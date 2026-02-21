@@ -1,8 +1,8 @@
 import * as vscode from "vscode"
 
-import {getGitHead, getGitHubContextForWorkspaceUri, GitHubRepoContext} from "../git/repository"
-import {Workflow} from "../model"
-import {getWorkflowUri, parseWorkflowFile} from "../workflow/workflow"
+import { getGitHead, getGitHubContextForWorkspaceUri, GitHubRepoContext } from "~/git/repository"
+import { Workflow } from "~/model"
+import { getWorkflowUri, parseWorkflowFile } from "~/workflow/workflow"
 
 interface TriggerRunCommandOptions {
   wf?: Workflow
@@ -63,7 +63,7 @@ export function registerTriggerWorkflowRun(context: vscode.ExtensionContext) {
 
           if (ref) {
             // Inputs
-            let inputs: {[key: string]: string} | undefined
+            let inputs: { [key: string]: string } | undefined
             const definedInputs = workflow.events.workflow_dispatch?.inputs
             if (definedInputs) {
               inputs = {}

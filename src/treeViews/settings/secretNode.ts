@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {Environment, EnvironmentSecret, OrgSecret, RepoSecret} from "../../model"
+import { GitHubRepoContext } from "~/git/repository"
+import { Environment, EnvironmentSecret, OrgSecret, RepoSecret } from "~/model"
 
 export type SecretCommandArgs = Pick<SecretNode, "gitHubRepoContext" | "secret" | "environment">
 

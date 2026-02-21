@@ -1,7 +1,8 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "../../git/repository"
-import {EnvironmentNode} from "./environmentNode"
+import { GitHubRepoContext } from "~/git/repository"
+
+import { EnvironmentNode } from "./environmentNode"
 
 export class EnvironmentsNode extends vscode.TreeItem {
   constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
@@ -17,6 +18,6 @@ export class EnvironmentsNode extends vscode.TreeItem {
     })
 
     const data = result.data.environments || []
-    return data.map(e => new EnvironmentNode(this.gitHubRepoContext, e))
+    return data.map((e) => new EnvironmentNode(this.gitHubRepoContext, e))
   }
 }

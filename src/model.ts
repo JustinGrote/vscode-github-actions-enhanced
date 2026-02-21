@@ -1,4 +1,4 @@
-import {Octokit} from "@octokit/rest"
+import { Octokit } from "@octokit/rest"
 
 type ActionResponse<T extends keyof Octokit["actions"]> = Awaited<ReturnType<Octokit["actions"][T]>>
 type ActionData<T extends keyof Octokit["actions"]> = ActionResponse<T>["data"]
@@ -20,5 +20,5 @@ export type RepoVariable = ActionData<"listRepoVariables">["variables"][number]
 export type Environment = NonNullable<RepoData<"getAllEnvironments">["environments"]>[number]
 export type EnvironmentSecret = ActionData<"listEnvironmentSecrets">["secrets"][number]
 export type EnvironmentVariable = ActionData<"listEnvironmentVariables">["variables"][number]
-export type OrgSecret = {name: string}
-export type OrgVariable = {name: string; value: string}
+export type OrgSecret = { name: string }
+export type OrgVariable = { name: string; value: string }

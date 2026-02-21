@@ -1,21 +1,21 @@
-import {CollectionImpl} from "@tanstack/db"
-import {match, P} from "ts-pattern"
+import { CollectionImpl } from "@tanstack/db"
+import { match } from "ts-pattern"
 import * as vscode from "vscode"
 
-import {canReachGitHubAPI} from "../../api/canReachGitHubAPI"
-import {getRunsPrefetchCount} from "../../configuration/configuration"
-import {getCurrentBranch, getGitHubContext, GitHubRepoContext} from "../../git/repository"
-import {log, logDebug, logError, logTrace, logWarn} from "../../log"
-import {WorkflowRun} from "../../model"
-import {createGithubCollection, GithubCollection} from "../collections/githubCollection"
-import {GithubActionTreeDataProvider} from "../githubActionTreeDataProvider"
-import {GitHubAPIUnreachableNode} from "../shared/gitHubApiUnreachableNode"
-import {NoWorkflowJobsNode} from "../shared/noWorkflowJobsNode"
-import {WorkflowJobNode} from "../shared/workflowJobNode"
-import {WorkflowRunNode, WorkflowRunAttemptNode, PreviousAttemptsNode} from "../shared/workflowRunNode"
-import {WorkflowStepNode} from "../shared/workflowStepNode"
-import {CurrentBranchRepoNode} from "./currentBranchRepoNode"
-import {NoRunForBranchNode} from "./noRunForBranchNode"
+import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
+import { getRunsPrefetchCount } from "~/configuration/configuration"
+import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "~/git/repository"
+import { log, logDebug, logError, logTrace, logWarn } from "~/log"
+import { WorkflowRun } from "~/model"
+import { createGithubCollection, GithubCollection } from "~/treeViews/collections/githubCollection"
+import { CurrentBranchRepoNode } from "~/treeViews/currentBranch/currentBranchRepoNode"
+import { NoRunForBranchNode } from "~/treeViews/currentBranch/noRunForBranchNode"
+import { GithubActionTreeDataProvider } from "~/treeViews/githubActionTreeDataProvider"
+import { GitHubAPIUnreachableNode } from "~/treeViews/shared/gitHubApiUnreachableNode"
+import { NoWorkflowJobsNode } from "~/treeViews/shared/noWorkflowJobsNode"
+import { WorkflowJobNode } from "~/treeViews/shared/workflowJobNode"
+import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "~/treeViews/shared/workflowRunNode"
+import { WorkflowStepNode } from "~/treeViews/shared/workflowStepNode"
 
 type CurrentBranchTreeNode =
   | CurrentBranchRepoNode
@@ -66,7 +66,7 @@ export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<
         }
         return new CurrentBranchRepoNode(repoContext, currentBranch)
       })
-      .filter(x => x !== undefined) as CurrentBranchRepoNode[]
+      .filter((x) => x !== undefined) as CurrentBranchRepoNode[]
 
     if (gitHubContext.repos.length === 0) {
       logWarn("No GitHub repositories found in context")
@@ -83,7 +83,7 @@ export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<
     return repoNodes
   }
 
-  private workflowRunCollection: GithubCollection<WorkflowRun, {owner: string; repo: string}> | undefined
+  private workflowRunCollection: GithubCollection<WorkflowRun, { owner: string; repo: string }> | undefined
   private changeFeed: ReturnType<CollectionImpl<WorkflowRun>["subscribeChanges"]> | undefined
 
   /** Cache of workflow run nodes by their ID. When the store notifies us of an update, we can use this cache to quickly find the corresponding nodes and notify vscode they have changed */
@@ -110,7 +110,7 @@ export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<
           branch: currentBranchName,
           per_page: 30,
         },
-        response => response.data.workflow_runs,
+        (response) => response.data.workflow_runs,
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         "id",
       )
@@ -120,33 +120,33 @@ export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<
 
     // Subscribe for future changes after initial query
     if (!this.changeFeed) {
-      this.changeFeed = this.workflowRunCollection.subscribeChanges(changes => {
+      this.changeFeed = this.workflowRunCollection.subscribeChanges((changes) => {
         // HACK: If a deletion occurs, VSCode needs us to supply its parent so it can do a getChildren on it. Since deletions are rare, we just tell it to refresh the entire tree for simplicity.
         let rootRefreshNeeded = false
 
         const nodesToRefresh = changes
-          .map(change => {
+          .map((change) => {
             logTrace(
               `🚨 WorkflowRuns change detected: ${change.type} ${change.value.id} ${change.value.name} #${change.value.run_number}`,
             )
             return match(change)
-              .with({type: "update"}, () => {
+              .with({ type: "update" }, () => {
                 log(`✏️ Run ${change.value.id} was updated`)
                 return this.toWorkflowRunNode(change.value, gitHubRepoContext)
               })
-              .with({type: "insert"}, () => {
+              .with({ type: "insert" }, () => {
                 log(`➕ Run ${change.value.id} was inserted`)
                 rootRefreshNeeded = true
                 return this.toWorkflowRunNode(change.value, gitHubRepoContext)
               })
-              .with({type: "delete"}, () => {
+              .with({ type: "delete" }, () => {
                 log(`🗑️ Run ${change.value.id} was deleted`)
                 this.workflowRunNodes.delete(change.value.id.toString())
                 rootRefreshNeeded = true
               })
               .exhaustive()
           })
-          .filter(node => node !== undefined)
+          .filter((node) => node !== undefined)
 
         this._onDidChangeTreeData.fire(rootRefreshNeeded ? REFRESH_TREE_ROOT : nodesToRefresh)
       })
@@ -154,21 +154,21 @@ export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<
       logDebug(`👁️ Watcher for WorkflowRuns created for repo ${gitHubRepoContext.name}`)
     }
 
-    const currentBranchRuns = runs.filter(run => run.head_branch === currentBranchName)
+    const currentBranchRuns = runs.filter((run) => run.head_branch === currentBranchName)
 
     if (currentBranchRuns.length === 0) {
       return [new NoRunForBranchNode()]
     }
 
-    const runNodes = currentBranchRuns.map(run => this.toWorkflowRunNode(run, gitHubRepoContext))
+    const runNodes = currentBranchRuns.map((run) => this.toWorkflowRunNode(run, gitHubRepoContext))
 
     // Perform opportunistic prefetching
     const prefetchCount = getRunsPrefetchCount()
     if (prefetchCount > 0) {
       runNodes
         .slice(0, prefetchCount)
-        .map(node =>
-          node.getChildren().catch(err => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`)),
+        .map((node) =>
+          node.getChildren().catch((err) => logError(err, `Error pre-caching jobs for run ${node.id} ${node.label}`)),
         )
     }
 

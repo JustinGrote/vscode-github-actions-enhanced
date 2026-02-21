@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {GithubActionTreeNode} from "../githubActionTreeDataProvider"
+import { GithubActionTreeNode } from "~/treeViews/githubActionTreeDataProvider"
 
 /**
  * Shown when no calls to the github API can be made.

@@ -1,20 +1,21 @@
 import * as vscode from "vscode"
 
-import {canReachGitHubAPI} from "../../api/canReachGitHubAPI"
-import {getGitHubContext} from "../../git/repository"
-import {GitHubAPIUnreachableNode} from "../shared/gitHubApiUnreachableNode"
-import {EnvironmentNode} from "./environmentNode"
-import {EnvironmentSecretsNode} from "./environmentSecretsNode"
-import {EnvironmentsNode} from "./environmentsNode"
-import {EnvironmentVariablesNode} from "./environmentVariablesNode"
-import {OrgSecretsNode} from "./orgSecretsNode"
-import {OrgVariablesNode} from "./orgVariablesNode"
-import {RepoSecretsNode} from "./repoSecretsNode"
-import {RepoVariablesNode} from "./repoVariablesNode"
-import {SecretsNode} from "./secretsNode"
-import {SettingsRepoNode, getSettingNodes} from "./settingsRepoNode"
-import {SettingsExplorerNode} from "./types"
-import {VariablesNode} from "./variablesNode"
+import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
+import { getGitHubContext } from "~/git/repository"
+
+import { GitHubAPIUnreachableNode } from "../shared/gitHubApiUnreachableNode"
+import { EnvironmentNode } from "./environmentNode"
+import { EnvironmentSecretsNode } from "./environmentSecretsNode"
+import { EnvironmentsNode } from "./environmentsNode"
+import { EnvironmentVariablesNode } from "./environmentVariablesNode"
+import { OrgSecretsNode } from "./orgSecretsNode"
+import { OrgVariablesNode } from "./orgVariablesNode"
+import { RepoSecretsNode } from "./repoSecretsNode"
+import { RepoVariablesNode } from "./repoVariablesNode"
+import { SecretsNode } from "./secretsNode"
+import { SettingsRepoNode, getSettingNodes } from "./settingsRepoNode"
+import { SettingsExplorerNode } from "./types"
+import { VariablesNode } from "./variablesNode"
 
 export class SettingsTreeProvider implements vscode.TreeDataProvider<SettingsExplorerNode> {
   private _onDidChangeTreeData = new vscode.EventEmitter<SettingsExplorerNode | null>()
@@ -45,7 +46,7 @@ export class SettingsTreeProvider implements vscode.TreeDataProvider<SettingsExp
           return getSettingNodes(gitHubContext.repos[0])
         }
 
-        return gitHubContext.repos.map(r => new SettingsRepoNode(r))
+        return gitHubContext.repos.map((r) => new SettingsRepoNode(r))
       }
     }
 

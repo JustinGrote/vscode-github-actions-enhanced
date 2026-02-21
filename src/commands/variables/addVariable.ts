@@ -1,14 +1,14 @@
 import * as vscode from "vscode"
 
-import {EnvironmentVariablesCommandArgs} from "../../treeViews/settings/environmentVariablesNode"
-import {RepoVariablesCommandArgs} from "../../treeViews/settings/repoVariablesNode"
+import { EnvironmentVariablesCommandArgs } from "~/treeViews/settings/environmentVariablesNode"
+import { RepoVariablesCommandArgs } from "~/treeViews/settings/repoVariablesNode"
 
 type Args = RepoVariablesCommandArgs | EnvironmentVariablesCommandArgs
 
 export function registerAddVariable(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.settings.variable.add", async (args: Args) => {
-      const {gitHubRepoContext} = args
+      const { gitHubRepoContext } = args
 
       const name = await vscode.window.showInputBox({
         prompt: "Enter name for new variable",

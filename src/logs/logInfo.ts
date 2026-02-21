@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import {LogInfo} from "./model"
+import { LogInfo } from "~/logs/model"
 
 const cache = new Map<string, LogInfo>()
 

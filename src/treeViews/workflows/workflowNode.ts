@@ -1,19 +1,20 @@
-import {match} from "ts-pattern"
+import { match } from "ts-pattern"
 import * as vscode from "vscode"
 
-import {getPinnedWorkflows} from "../../configuration/configuration"
-import {GitHubRepoContext} from "../../git/repository"
-import {logDebug, log, logTrace} from "../../log"
-import {Workflow, WorkflowRun} from "../../model"
-import {getWorkflowUri} from "../../workflow/workflow"
-import {createGithubCollection, GithubCollection} from "../collections/githubCollection"
-import {GithubActionTreeNode} from "../githubActionTreeDataProvider"
-import {WorkflowRunNode} from "../shared/workflowRunNode"
+import { getPinnedWorkflows } from "~/configuration/configuration"
+import { GitHubRepoContext } from "~/git/repository"
+import { log, logDebug, logTrace } from "~/log"
+import { Workflow, WorkflowRun } from "~/model"
+import { getWorkflowUri } from "~/workflow/workflow"
+
+import { createGithubCollection, GithubCollection } from "../collections/githubCollection"
+import { GithubActionTreeNode } from "../githubActionTreeDataProvider"
+import { WorkflowRunNode } from "../shared/workflowRunNode"
 
 export class WorkflowNode extends GithubActionTreeNode {
-  private workflowRunCollection: GithubCollection<WorkflowRun, {workflow_id: string | number}> | undefined
+  private workflowRunCollection: GithubCollection<WorkflowRun, { workflow_id: string | number }> | undefined
   private workflowRunChangeFeed:
-    | ReturnType<GithubCollection<WorkflowRun, {workflow_id: string | number}>["subscribeChanges"]>
+    | ReturnType<GithubCollection<WorkflowRun, { workflow_id: string | number }>["subscribeChanges"]>
     | undefined
   private workflowRunNodes: Map<string, WorkflowRunNode> = new Map()
 
@@ -51,7 +52,7 @@ export class WorkflowNode extends GithubActionTreeNode {
           workflow_id: this.wf.id,
           per_page: 30,
         },
-        response => response.data.workflow_runs,
+        (response) => response.data.workflow_runs,
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         "id",
       )
@@ -61,31 +62,31 @@ export class WorkflowNode extends GithubActionTreeNode {
 
     // Subscribe for future changes after initial query
     if (!this.workflowRunChangeFeed) {
-      this.workflowRunChangeFeed = this.workflowRunCollection.subscribeChanges(changes => {
+      this.workflowRunChangeFeed = this.workflowRunCollection.subscribeChanges((changes) => {
         logDebug(`🚨 Workflow runs change detected for ${this.wf.name}`)
 
         const nodesToRefresh = changes
-          .map(change => {
+          .map((change) => {
             logTrace(
               `🚨 WorkflowRun change detected: ${change.type} ${change.value.id} ${change.value.name} #${change.value.run_number}`,
             )
             return match(change)
-              .with({type: "update"}, () => {
+              .with({ type: "update" }, () => {
                 log(`✏️ Run ${change.value.id} was updated`)
                 return this.toWorkflowRunNode(change.value)
               })
-              .with({type: "insert"}, () => {
+              .with({ type: "insert" }, () => {
                 log(`➕ Run ${change.value.id} was inserted`)
                 return this.toWorkflowRunNode(change.value)
               })
-              .with({type: "delete"}, () => {
+              .with({ type: "delete" }, () => {
                 log(`🗑️ Run ${change.value.id} was deleted`)
                 this.workflowRunNodes.delete(change.value.id.toString())
                 return undefined
               })
               .exhaustive()
           })
-          .filter(node => node !== undefined)
+          .filter((node) => node !== undefined)
 
         // Notify tree of changes
         if (nodesToRefresh.length > 0) {
@@ -98,7 +99,7 @@ export class WorkflowNode extends GithubActionTreeNode {
       logDebug(`👁️ Watcher for workflow runs created for workflow ${this.wf.name}`)
     }
 
-    return runs.map(run => this.toWorkflowRunNode(run))
+    return runs.map((run) => this.toWorkflowRunNode(run))
   }
 
   private toWorkflowRunNode(run: WorkflowRun): WorkflowRunNode {
