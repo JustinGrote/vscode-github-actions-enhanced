@@ -93,11 +93,11 @@ export async function activate(context: vscode.ExtensionContext) {
     registerPinWorkflow(context)
     registerUnPinWorkflow(context)
 
-    // The secret stuff uses libsodium-wrappers which are notoriously flaky for builds, try disabling these first if you have weird build errors.
-    // registerAddSecret(context)
-    // registerDeleteSecret(context)
-    // registerCopySecret(context)
-    // registerUpdateSecret(context)
+    // Secret management
+    registerAddSecret(context)
+    registerDeleteSecret(context)
+    registerCopySecret(context)
+    registerUpdateSecret(context)
 
     // Log providers
     context.subscriptions.push(

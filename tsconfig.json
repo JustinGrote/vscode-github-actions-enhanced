@@ -12,7 +12,7 @@
     "outDir": "out",
     "resolveJsonModule": true,
     "typeRoots": ["./node_modules/@types", "./src/typings"],
-    "types": ["node", "jest", "git", "vscode"],
+    "types": ["node", "git", "vscode"],
     "paths": {
       "~/*": ["./src/*"],
       "package.json": ["./package.json"]

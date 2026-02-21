@@ -1,11 +1,16 @@
+import assert from "node:assert/strict"
+import { describe, it } from "node:test"
+
+import sodium_module from "libsodium-wrappers"
+
 import { encodeSecret } from "~/secrets/index"
-const sodium = require("libsodium-wrappers")
 
 describe("secret encryption", () => {
   it("encrypts secret correctly", async () => {
-    // Check if libsodium is ready
-    await sodium.ready
+    // Ensure libsodium is ready (initializes WASM)
+    await sodium_module.ready
 
+    const sodium = sodium_module as any
     const publicKey = "M2Kq4k1y9DiqlqLfm2YYm75x5M3SuwuNYbLyiHEMUAM="
     const privateKey = "RI2kKSjSOBmcjme5x8iv42Ozdu1rDo9QkaU2l+IFcrE="
 
@@ -19,6 +24,6 @@ describe("secret encryption", () => {
     // Decrypt the secret using libsodium
     const decrypted = sodium.crypto_box_seal_open(encBytes, publicKeyBytes, privateKeyBytes)
 
-    expect(sodium.to_string(decrypted)).toBe("secret-value")
+    assert.strictEqual(sodium.to_string(decrypted), "secret-value")
   })
 })
