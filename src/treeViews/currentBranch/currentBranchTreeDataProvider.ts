@@ -99,7 +99,6 @@ export class CurrentBranchTreeDataProvider extends GithubActionTreeDataProvider<
     const queryKey = ["workflowRuns", currentBranchName ?? "all"]
     if (!this.workflowRunCollection) {
       logDebug(`Creating workflow run collection for repo ${gitHubRepoContext.name}`)
-      client.actions.listRepoWorkflows
       this.workflowRunCollection = createGithubCollection(
         queryKey,
         client,
