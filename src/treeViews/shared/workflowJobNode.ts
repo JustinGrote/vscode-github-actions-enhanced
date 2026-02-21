@@ -15,6 +15,7 @@ export class WorkflowJobNode extends GithubActionTreeNode {
     this.contextValue = "job";
     if (this.job.status === "completed") {
       this.contextValue += " completed";
+      this.description = this.getNodeDuration(this.job);
     }
 
     this.iconPath = getIconForWorkflowNode(this.job);

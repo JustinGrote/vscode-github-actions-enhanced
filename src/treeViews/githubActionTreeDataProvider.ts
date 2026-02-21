@@ -8,7 +8,38 @@ export abstract class GithubActionTreeNode extends vscode.TreeItem {
   getChildren(): vscode.ProviderResult<GithubActionTreeNode[]> {
     return [];
   }
+
+  /** Calculate the time a run, job, or step took to run. If completed_at is not specified, return duration to the current time */
+  protected getNodeDuration({started_at, completed_at}: {
+    started_at?: string | null;
+    completed_at?: string | null;
+  }): string | undefined {
+    if (!started_at) return undefined;
+    const started = new Date(started_at);
+    const completed = completed_at ? new Date(completed_at) : new Date();
+    return this.getHumanizedDuration(started, completed);
+  }
+
+  protected getHumanizedDuration(started: Date, completed: Date = new Date()): string | undefined {
+    const diffMs = Math.max(0, completed.getTime() - started.getTime());
+    const diffSeconds = Math.floor(diffMs / 1000);
+
+    let remaining = diffSeconds;
+    const hours = Math.floor(remaining / 3600);
+    remaining %= 3600;
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+
+    const parts: string[] = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0) parts.push(`${seconds}s`);
+
+    return parts.slice(0, 2).join(" ") || "0s";
+  }
 }
+
+
 
 /** Provides the base infrastructure for interfacing the Github Actions API to the vscode tree view */
 export abstract class GithubActionTreeDataProvider<
