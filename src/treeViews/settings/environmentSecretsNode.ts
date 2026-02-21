@@ -1,9 +1,10 @@
 import * as vscode from "vscode"
 
-import {GitHubRepoContext} from "~/git/repository"
-import {Environment} from "~/model"
-import {EmptyNode} from "./emptyNode"
-import {SecretNode} from "./secretNode"
+import { GitHubRepoContext } from "~/git/repository"
+import { Environment } from "~/model"
+
+import { EmptyNode } from "./emptyNode"
+import { SecretNode } from "./secretNode"
 
 export type EnvironmentSecretsCommandArgs = Pick<EnvironmentSecretsNode, "gitHubRepoContext" | "environment">
 
@@ -30,7 +31,7 @@ export class EnvironmentSecretsNode extends vscode.TreeItem {
           environment_name: this.environment.name,
           per_page: 100,
         },
-        response => response.data.map(s => new SecretNode(this.gitHubRepoContext, s, this.environment)),
+        (response) => response.data.map((s) => new SecretNode(this.gitHubRepoContext, s, this.environment)),
       )
     } catch (e) {
       await vscode.window.showErrorMessage((e as Error).message)

@@ -34,8 +34,8 @@ jobs:
       # Disable linting until we switch to ox or biome
       # - name: 💄 Prettier Formatting Check
       #   run: pnpm format-check
-      # - name: 🧹 Lint
-      #   run: pnpm lint
+      - name: 🧹 Lint
+        run: pnpm lint
       - name: 👷 Build
         run: pnpm build
       # - name: 🧪 Test
