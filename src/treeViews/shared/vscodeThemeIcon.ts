@@ -37,4 +37,4 @@ export type vscodeTestingThemeIcon =
   | "loading~spin"
   | "question"
   | "warning"
-  | "circle-slash";
+  | "circle-slash"

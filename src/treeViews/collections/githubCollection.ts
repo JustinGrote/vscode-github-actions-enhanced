@@ -1,18 +1,19 @@
-import {createCollection} from "@tanstack/db";
-import {QueryClient} from "@tanstack/query-core";
-import {queryCollectionOptions} from "@tanstack/query-db-collection";
-import {GhaOctokit} from "../../api/api";
-import {logDebug} from "../../log";
+import {createCollection} from "@tanstack/db"
+import {QueryClient} from "@tanstack/query-core"
+import {queryCollectionOptions} from "@tanstack/query-db-collection"
+
+import {GhaOctokit} from "../../api/api"
+import {logDebug} from "../../log"
 
 // This should be a singleton that is shared across the entire extension for shared cache reasons.
 export const defaultQueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Because we use conditional requests, this is OK to keep very low
-      refetchInterval: 500
-    }
-  }
-});
+      refetchInterval: 500,
+    },
+  },
+})
 
 /** Create a collection that syncs to the backend GitHub API, and polls efficiently using conditional requests to minimize rate limit usage. Subscribe to the collection or a query on the collection to get updates when the data changes. */
 export function createGithubCollection<TSelected extends object, TResult extends object, TParams extends object>(
@@ -23,7 +24,7 @@ export function createGithubCollection<TSelected extends object, TResult extends
   selector: (item: TResult) => TSelected[],
   compareFn: (a: TSelected, b: TSelected) => number,
   primaryKey: keyof TSelected,
-  queryClient = defaultQueryClient
+  queryClient = defaultQueryClient,
 ) {
   return createCollection(
     queryCollectionOptions({
@@ -33,25 +34,25 @@ export function createGithubCollection<TSelected extends object, TResult extends
       compare: compareFn,
       queryKey: queryKey,
       queryFn: async ({client}) => {
-        logDebug(`♻️ Refreshing data for collection ${queryKey.join(",")}`);
-        const response = await githubClient.conditionalRequest(apiCall, apiParams);
+        logDebug(`♻️ Refreshing data for collection ${queryKey.join(",")}`)
+        const response = await githubClient.conditionalRequest(apiCall, apiParams)
         // Indicates no changes to the API, so we should return the existing data to indicate no changes.
         if (!response) {
-          logDebug(`👎 No changes detected for collection ${queryKey.join(",")}`);
-          return client.getQueryData<TSelected[]>(queryKey) ?? ([] as TSelected[]);
+          logDebug(`👎 No changes detected for collection ${queryKey.join(",")}`)
+          return client.getQueryData<TSelected[]>(queryKey) ?? ([] as TSelected[])
         }
 
         // If the response is a single object, return it as an array
-        logDebug(`✨ Changes detected for collection ${queryKey.join(",")}`);
+        logDebug(`✨ Changes detected for collection ${queryKey.join(",")}`)
 
-        const result = selector(response);
-        return result;
+        const result = selector(response)
+        return result
       },
-      getKey: i => String(i[primaryKey])
-    })
-  );
+      getKey: i => String(i[primaryKey]),
+    }),
+  )
 }
 
 export type GithubCollection<T extends object, TParams extends object> = ReturnType<
   typeof createGithubCollection<T, any, TParams>
->;
+>

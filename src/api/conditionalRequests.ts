@@ -1,14 +1,14 @@
-import {logDebug, logError, logTrace} from "../log";
-import {assertRequestError} from "../error";
+import {assertRequestError} from "../error"
+import {logDebug, logError, logTrace} from "../log"
 
 export const conditionalRequest = () => ({
-  conditionalRequest: returnIfChanged
+  conditionalRequest: returnIfChanged,
   // conditionalIterate: iterateIfChanged.bind(octokit)
-});
+})
 
 // Map to store ETags for API requests. The key is the option
-const etagMap = new Map<string, string>();
-const timestampMap = new Map<string, string>();
+const etagMap = new Map<string, string>()
+const timestampMap = new Map<string, string>()
 
 /**
  * Makes an API request and returns the response data only if it has changed since the last request.
@@ -33,56 +33,56 @@ async function returnIfChanged<TResponse, TParams>(
   request: (params: TParams) => Promise<TResponse>,
   requestParams?: TParams,
   cacheId?: string,
-  timestamp: boolean = false
+  timestamp: boolean = false,
 ): Promise<TResponse | undefined> {
   try {
     const options = {...requestParams} as TParams extends {headers: Record<string, string>}
       ? TParams
-      : TParams & {headers: Record<string, string>};
+      : TParams & {headers: Record<string, string>}
 
-    const cacheKey = cacheId ?? JSON.stringify(options);
-    logTrace("🐙 Performing conditional request for cache key:", cacheKey);
+    const cacheKey = cacheId ?? JSON.stringify(options)
+    logTrace("🐙 Performing conditional request for cache key:", cacheKey)
 
     // Add If-None-Match header if we have an ETag for this key
-    const cacheMatch = timestamp ? timestampMap.get(cacheKey) : etagMap.get(cacheKey);
-    const cacheHeader = timestamp ? "if-modified-since" : "if-none-match";
+    const cacheMatch = timestamp ? timestampMap.get(cacheKey) : etagMap.get(cacheKey)
+    const cacheHeader = timestamp ? "if-modified-since" : "if-none-match"
     if (cacheMatch) {
-      logTrace("🐙 Cache Key FOUND:", cacheKey);
+      logTrace("🐙 Cache Key FOUND:", cacheKey)
       // Initialize headers if they don't exist
       if (!options.headers) {
-        options.headers = {};
+        options.headers = {}
       }
-      options.headers[cacheHeader] = cacheMatch;
+      options.headers[cacheHeader] = cacheMatch
     } else {
-      logTrace("🐙 Cache Key MISS:", cacheKey);
+      logTrace("🐙 Cache Key MISS:", cacheKey)
     }
 
     // TODO: Figure out how to make this type safe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = (await request(options)) as any;
+    const response = (await request(options)) as any
 
     // Store the new ETag if provided
-    const responseEtag = timestamp ? response.headers.last_modified : response.headers.etag;
+    const responseEtag = timestamp ? response.headers.last_modified : response.headers.etag
     if (responseEtag) {
-      logTrace("Cache Key STORE:", cacheKey, responseEtag);
+      logTrace("Cache Key STORE:", cacheKey, responseEtag)
       if (timestamp) {
-        timestampMap.set(cacheKey, responseEtag);
+        timestampMap.set(cacheKey, responseEtag)
       } else {
-        etagMap.set(cacheKey, responseEtag);
+        etagMap.set(cacheKey, responseEtag)
       }
     }
 
-    return response;
+    return response
   } catch (e) {
-    const err = assertRequestError(e);
+    const err = assertRequestError(e)
 
     // Resource not modified (304), return undefined.
     if (err.status === 304) {
-      return undefined;
+      return undefined
     }
 
-    logError(err);
-    throw new Error("Error making conditional request: ", {cause: err});
+    logError(err)
+    throw new Error("Error making conditional request: ", {cause: err})
   }
 }
 

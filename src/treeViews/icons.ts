@@ -1,24 +1,25 @@
-import * as vscode from "vscode";
-import {match} from "ts-pattern";
-import {type vscodeTestingThemeColor} from "./shared/vscodeThemeColor";
-import {type vscodeTestingThemeIcon} from "./shared/vscodeThemeIcon";
-import {logDebug} from "../log";
+import {match} from "ts-pattern"
+import * as vscode from "vscode"
 
-let _context: vscode.ExtensionContext;
+import {logDebug} from "../log"
+import {type vscodeTestingThemeColor} from "./shared/vscodeThemeColor"
+import {type vscodeTestingThemeIcon} from "./shared/vscodeThemeIcon"
+
+let _context: vscode.ExtensionContext
 export function initResources(context: vscode.ExtensionContext) {
-  _context = context;
+  _context = context
 }
 
 export interface StatusAndConclusion {
-  status: string | null;
-  conclusion: string | null;
+  status: string | null
+  conclusion: string | null
 }
 
 export function getAbsoluteIconPath(relativeIconPath: string) {
   return {
     light: vscode.Uri.joinPath(_context.extensionUri, "resources", "icons", "light", relativeIconPath),
-    dark: vscode.Uri.joinPath(_context.extensionUri, "resources", "icons", "dark", relativeIconPath)
-  };
+    dark: vscode.Uri.joinPath(_context.extensionUri, "resources", "icons", "dark", relativeIconPath),
+  }
 }
 
 export function getIconForWorkflowNode(run: StatusAndConclusion): vscode.ThemeIcon {
@@ -38,17 +39,17 @@ export function getIconForWorkflowNode(run: StatusAndConclusion): vscode.ThemeIc
     .with({status: "in_progress"}, () => ["loading~spin", "testing.iconUnset"])
     .with({status: "inprogress"}, () => ["loading~spin", "testing.iconUnset"])
     .otherwise(() => {
-      logDebug("Unknown status/conclusion combination: ", run.status, run.conclusion);
-      return ["question", "testing.iconUnset"];
-    });
+      logDebug("Unknown status/conclusion combination: ", run.status, run.conclusion)
+      return ["question", "testing.iconUnset"]
+    })
 
-  return new vscode.ThemeIcon(iconInfo[0], new vscode.ThemeColor(iconInfo[1]));
+  return new vscode.ThemeIcon(iconInfo[0], new vscode.ThemeColor(iconInfo[1]))
 }
 
 export function getCodIconForWorkflowRun(runOrJob?: StatusAndConclusion): string {
   if (!runOrJob) {
-    return "circle-outline";
+    return "circle-outline"
   }
 
-  return getIconForWorkflowNode(runOrJob).id;
+  return getIconForWorkflowNode(runOrJob).id
 }

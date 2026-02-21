@@ -54,9 +54,7 @@
       "script": "watch-web",
       "group": "build",
       "isBackground": true,
-      "problemMatcher": [
-        "$esbuild-watch"
-      ],
+      "problemMatcher": ["$esbuild-watch"],
       "icon": {
         "id": "sync",
         "color": "terminal.ansiCyan"

@@ -1,112 +1,112 @@
-import * as vscode from "vscode";
+import {sep} from "path"
+
+import {RequestError} from "@octokit/request-error"
+import * as vscode from "vscode"
 
 import {
   getPinnedWorkflows,
   isPinnedWorkflowsRefreshEnabled,
   onPinnedWorkflowsChange,
-  pinnedWorkflowsRefreshInterval
-} from "../configuration/configuration";
-import {getGitHubContextForWorkspaceUri, GitHubRepoContext} from "../git/repository";
-
-import {sep} from "path";
-import {log, logDebug, logError} from "../log";
-import {Workflow} from "../model";
-import {RunStore} from "../store/store";
-import {WorkflowRun} from "../store/workflowRun";
-import {getCodIconForWorkflowRun} from "../treeViews/icons";
-import {WorkflowRunCommandArgs} from "../treeViews/shared/workflowRunNode";
-import {ensureError} from "../error";
-import {RequestError} from "@octokit/request-error";
+  pinnedWorkflowsRefreshInterval,
+} from "../configuration/configuration"
+import {ensureError} from "../error"
+import {getGitHubContextForWorkspaceUri, GitHubRepoContext} from "../git/repository"
+import {log, logDebug, logError} from "../log"
+import {Workflow} from "../model"
+import {RunStore} from "../store/store"
+import {WorkflowRun} from "../store/workflowRun"
+import {getCodIconForWorkflowRun} from "../treeViews/icons"
+import {WorkflowRunCommandArgs} from "../treeViews/shared/workflowRunNode"
 
 interface PinnedWorkflow {
   /** Displayed name */
-  workflowName: string;
+  workflowName: string
 
-  workflowId: number;
+  workflowId: number
 
-  lastRunId: number | undefined;
+  lastRunId: number | undefined
 
-  gitHubRepoContext: GitHubRepoContext;
+  gitHubRepoContext: GitHubRepoContext
 
   /** Status bar item created for this workflow */
-  statusBarItem: vscode.StatusBarItem;
+  statusBarItem: vscode.StatusBarItem
 }
 
-const pinnedWorkflows: PinnedWorkflow[] = [];
-let refreshTimer: NodeJS.Timeout | undefined;
-let runStore: RunStore;
+const pinnedWorkflows: PinnedWorkflow[] = []
+let refreshTimer: NodeJS.Timeout | undefined
+let runStore: RunStore
 
 export async function initPinnedWorkflows(store: RunStore) {
   // Register handler for configuration changes
-  onPinnedWorkflowsChange(() => void _init());
+  onPinnedWorkflowsChange(() => void _init())
 
-  runStore = store;
+  runStore = store
   runStore.event(({run}) => {
     // Are we listening to this run?
-    const workflowId = run.run.workflow_id;
+    const workflowId = run.run.workflow_id
     for (const pinnedWorkflow of pinnedWorkflows) {
       if (pinnedWorkflow.workflowId === workflowId && pinnedWorkflow.lastRunId === run.run.id) {
-        updatePinnedWorkflow(pinnedWorkflow, run);
-        break;
+        updatePinnedWorkflow(pinnedWorkflow, run)
+        break
       }
     }
-  });
+  })
 
-  await _init();
+  await _init()
 }
 
 async function _init(): Promise<void> {
-  logDebug("Initializing pinned workflows watcher");
-  await updatePinnedWorkflows();
+  logDebug("Initializing pinned workflows watcher")
+  await updatePinnedWorkflows()
 
   if (refreshTimer) {
-    logDebug("Existing pinned workflows refresh timer found, clearing it");
-    clearInterval(refreshTimer);
-    refreshTimer = undefined;
+    logDebug("Existing pinned workflows refresh timer found, clearing it")
+    clearInterval(refreshTimer)
+    refreshTimer = undefined
   }
 
   if (isPinnedWorkflowsRefreshEnabled()) {
-    logDebug("Pinned workflows refresh enabled, checking every", pinnedWorkflowsRefreshInterval(), "seconds");
-    refreshTimer = setInterval(() => void refreshPinnedWorkflows(), pinnedWorkflowsRefreshInterval() * 1000);
+    logDebug("Pinned workflows refresh enabled, checking every", pinnedWorkflowsRefreshInterval(), "seconds")
+    refreshTimer = setInterval(() => void refreshPinnedWorkflows(), pinnedWorkflowsRefreshInterval() * 1000)
   }
 }
 
 async function updatePinnedWorkflows() {
-  clearPinnedWorkflows();
-  const pinnedWorkflows = getPinnedWorkflows();
+  clearPinnedWorkflows()
+  const pinnedWorkflows = getPinnedWorkflows()
 
   // Assume we have a folder open. Without a folder open, we can't do anything
   if (!vscode.workspace.workspaceFolders?.length) {
-    return;
+    return
   }
 
-  const firstWorkspaceFolderName = vscode.workspace.workspaceFolders[0].name;
+  const firstWorkspaceFolderName = vscode.workspace.workspaceFolders[0].name
 
-  const workflowsByWorkspace = new Map<string, string[]>();
+  const workflowsByWorkspace = new Map<string, string[]>()
 
   for (const pinnedWorkflow of pinnedWorkflows) {
-    const workflowPath = pinnedWorkflow;
+    const workflowPath = pinnedWorkflow
     if (pinnedWorkflow.startsWith(".github/")) {
       // No workspace, attribute to the first workspace folder
       workflowsByWorkspace.set(firstWorkspaceFolderName, [
         pinnedWorkflow,
-        ...(workflowsByWorkspace.get(firstWorkspaceFolderName) || [])
-      ]);
+        ...(workflowsByWorkspace.get(firstWorkspaceFolderName) || []),
+      ])
     } else {
-      const [workSpaceName, ...r] = workflowPath.split(sep);
-      workflowsByWorkspace.set(workSpaceName, [r.join(sep), ...(workflowsByWorkspace.get(workSpaceName) || [])]);
+      const [workSpaceName, ...r] = workflowPath.split(sep)
+      workflowsByWorkspace.set(workSpaceName, [r.join(sep), ...(workflowsByWorkspace.get(workSpaceName) || [])])
     }
   }
 
   for (const workspaceName of workflowsByWorkspace.keys()) {
-    const workspace = vscode.workspace.workspaceFolders?.find(x => x.name === workspaceName);
+    const workspace = vscode.workspace.workspaceFolders?.find(x => x.name === workspaceName)
     if (!workspace) {
-      continue;
+      continue
     }
 
-    const gitHubRepoContext = await getGitHubContextForWorkspaceUri(workspace.uri);
+    const gitHubRepoContext = await getGitHubContextForWorkspaceUri(workspace.uri)
     if (!gitHubRepoContext) {
-      return;
+      return
     }
 
     // Get all workflows to resolve names. We could do this locally, but for now, let's make the API call.
@@ -115,65 +115,65 @@ async function updatePinnedWorkflows() {
       {
         owner: gitHubRepoContext.owner,
         repo: gitHubRepoContext.name,
-        per_page: 100
-      }
-    );
+        per_page: 100,
+      },
+    )
 
-    const workflowByPath: Record<string, Workflow> = {};
-    workflows.forEach(w => (workflowByPath[w.path] = w));
+    const workflowByPath: Record<string, Workflow> = {}
+    workflows.forEach(w => (workflowByPath[w.path] = w))
 
     await Promise.all(
       (workflowsByWorkspace.get(workspaceName) || []).map(async pinnedWorkflow => {
         if (!workflowByPath[pinnedWorkflow]) {
-          log(`Unable to find pinned workflow ${pinnedWorkflow} in ${workspaceName}, ignoring`);
-          return;
+          log(`Unable to find pinned workflow ${pinnedWorkflow} in ${workspaceName}, ignoring`)
+          return
         }
 
-        const pW = createPinnedWorkflow(gitHubRepoContext, workflowByPath[pinnedWorkflow]);
-        return refreshPinnedWorkflow(pW);
-      })
-    );
+        const pW = createPinnedWorkflow(gitHubRepoContext, workflowByPath[pinnedWorkflow])
+        return refreshPinnedWorkflow(pW)
+      }),
+    )
   }
 }
 
 function clearPinnedWorkflows() {
   // Remove any existing pinned workflows
   for (const pinnedWorkflow of pinnedWorkflows) {
-    pinnedWorkflow.statusBarItem.hide();
-    pinnedWorkflow.statusBarItem.dispose();
+    pinnedWorkflow.statusBarItem.hide()
+    pinnedWorkflow.statusBarItem.dispose()
   }
 
-  pinnedWorkflows.splice(0, pinnedWorkflows.length);
+  pinnedWorkflows.splice(0, pinnedWorkflows.length)
 }
 
 function createPinnedWorkflow(gitHubRepoContext: GitHubRepoContext, workflow: Workflow): PinnedWorkflow {
-  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
 
   const pinnedWorkflow = {
     gitHubRepoContext,
     workflowId: (workflow as any).id,
     workflowName: (workflow as any).name,
     lastRunId: undefined,
-    statusBarItem
-  };
+    statusBarItem,
+  }
 
-  pinnedWorkflows.push(pinnedWorkflow);
+  pinnedWorkflows.push(pinnedWorkflow)
 
-  return pinnedWorkflow;
+  return pinnedWorkflow
 }
 
 async function refreshPinnedWorkflows() {
   for (const pinnedWorkflow of pinnedWorkflows) {
-    await refreshPinnedWorkflow(pinnedWorkflow);
+    await refreshPinnedWorkflow(pinnedWorkflow)
   }
 }
 
 async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
-  const {gitHubRepoContext} = pinnedWorkflow;
-  const {client} = gitHubRepoContext;
-  logDebug("Checking for updates to pinned workflow", pinnedWorkflow.workflowName, "in", gitHubRepoContext.name);
+  const {gitHubRepoContext} = pinnedWorkflow
+  const {client} = gitHubRepoContext
+  logDebug("Checking for updates to pinned workflow", pinnedWorkflow.workflowName, "in", gitHubRepoContext.name)
   try {
-    const workflowRunCacheId = `MostRecentRun-${gitHubRepoContext.owner}/${gitHubRepoContext.name}/${pinnedWorkflow.workflowId}`;
+    const workflowRunCacheId = `MostRecentRun-${gitHubRepoContext.owner}/${gitHubRepoContext.name}/${pinnedWorkflow.workflowId}`
     const workflowRunResult = await client.conditionalRequest(
       client.actions.listWorkflowRuns,
       {
@@ -181,49 +181,49 @@ async function refreshPinnedWorkflow(pinnedWorkflow: PinnedWorkflow) {
         repo: gitHubRepoContext.name,
         workflow_id: pinnedWorkflow.workflowId,
         per_page: 1,
-        page: 1
+        page: 1,
       },
-      workflowRunCacheId
-    );
+      workflowRunCacheId,
+    )
 
     if (workflowRunResult === undefined) {
-      logDebug("No new runs detected for pinned workflow", pinnedWorkflow.workflowName);
-      return;
+      logDebug("No new runs detected for pinned workflow", pinnedWorkflow.workflowName)
+      return
     }
 
-    const mostRecentRun = workflowRunResult.data.workflow_runs[0];
-    logDebug("Updating pinned workflow", pinnedWorkflow.workflowName, "with most recent run id", mostRecentRun?.id);
+    const mostRecentRun = workflowRunResult.data.workflow_runs[0]
+    logDebug("Updating pinned workflow", pinnedWorkflow.workflowName, "with most recent run id", mostRecentRun?.id)
 
-    runStore.addRun(gitHubRepoContext, mostRecentRun);
+    runStore.addRun(gitHubRepoContext, mostRecentRun)
 
-    updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id));
+    updatePinnedWorkflow(pinnedWorkflow, mostRecentRun && runStore.getRun(mostRecentRun.id))
   } catch (e) {
-    const error = ensureError(e);
+    const error = ensureError(e)
 
     // Filter out non-RequestError. This will enable type inference.
     if (!(error instanceof RequestError)) {
-      logError(error, "Unknown Error checking for pinned workflow updates");
-      return;
+      logError(error, "Unknown Error checking for pinned workflow updates")
+      return
     }
 
-    logError(error, "Error checking for pinned workflow updates");
+    logError(error, "Error checking for pinned workflow updates")
   }
 }
 
 function updatePinnedWorkflow(pinnedWorkflow: PinnedWorkflow, run: WorkflowRun | undefined) {
   if (!run) {
     // Workflow has never run, set default text
-    pinnedWorkflow.statusBarItem.text = `$(${getCodIconForWorkflowRun()}) ${pinnedWorkflow.workflowName}`;
+    pinnedWorkflow.statusBarItem.text = `$(${getCodIconForWorkflowRun()}) ${pinnedWorkflow.workflowName}`
 
     // Can't do anything without a run
-    pinnedWorkflow.statusBarItem.command = undefined;
+    pinnedWorkflow.statusBarItem.command = undefined
   } else {
-    pinnedWorkflow.statusBarItem.text = `$(${getCodIconForWorkflowRun(run.run)}) ${pinnedWorkflow.workflowName}`;
+    pinnedWorkflow.statusBarItem.text = `$(${getCodIconForWorkflowRun(run.run)}) ${pinnedWorkflow.workflowName}`
 
     if (run.run.conclusion === "failure") {
-      pinnedWorkflow.statusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.errorBackground");
+      pinnedWorkflow.statusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.errorBackground")
     } else {
-      pinnedWorkflow.statusBarItem.backgroundColor = undefined;
+      pinnedWorkflow.statusBarItem.backgroundColor = undefined
     }
 
     pinnedWorkflow.statusBarItem.command = {
@@ -232,14 +232,14 @@ function updatePinnedWorkflow(pinnedWorkflow: PinnedWorkflow, run: WorkflowRun |
       arguments: [
         {
           run: run.run,
-          gitHubRepoContext: pinnedWorkflow.gitHubRepoContext
-        } satisfies WorkflowRunCommandArgs
-      ]
-    };
+          gitHubRepoContext: pinnedWorkflow.gitHubRepoContext,
+        } satisfies WorkflowRunCommandArgs,
+      ],
+    }
   }
 
-  pinnedWorkflow.lastRunId = run?.run.id;
+  pinnedWorkflow.lastRunId = run?.run.id
 
   // Ensure the status bar item is visible
-  pinnedWorkflow.statusBarItem.show();
+  pinnedWorkflow.statusBarItem.show()
 }

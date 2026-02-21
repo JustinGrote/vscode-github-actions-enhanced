@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 120,
+  "semi": false,
+  "arrowParens": "avoid",
+  "bracketSpacing": false,
+  "ignorePatterns": ["dist", "out", "coverage", "node_modules", "pnpm-lock.yaml", "pnpm-workspace.yaml"],
+  "experimentalSortImports": {}
+}

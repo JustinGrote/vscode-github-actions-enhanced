@@ -8,9 +8,9 @@ module.exports = {
     "^.+\\.tsx?$": [
       "ts-jest",
       {
-        useESM: true
-      }
-    ]
+        useESM: true,
+      },
+    ],
   },
-  moduleFileExtensions: ["ts", "js"]
-};
+  moduleFileExtensions: ["ts", "js"],
+}

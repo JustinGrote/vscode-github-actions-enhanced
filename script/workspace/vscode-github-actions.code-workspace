@@ -4,23 +4,23 @@
     {"path": "./languageservices/workflow-parser"},
     {"path": "./languageservices/languageservice"},
     {"path": "./languageservices/languageserver"},
-    {"path": "./vscode-github-actions"}
+    {"path": "./vscode-github-actions"},
   ],
   "extensions": {
-    "recommendations": ["firsttris.vscode-jest-runner", "Orta.vscode-jest"]
+    "recommendations": ["firsttris.vscode-jest-runner", "Orta.vscode-jest"],
   },
   "settings": {
     "jestrunner.jestCommand": "npm test --",
     "jestrunner.debugOptions": {
       "program": "${workspaceFolder:vscode-github-actions}/../node_modules/jest/bin/jest.js",
       "env": {
-        "NODE_OPTIONS": "--experimental-vm-modules"
-      }
+        "NODE_OPTIONS": "--experimental-vm-modules",
+      },
     },
     "jest.jestCommandLine": "npm test --",
     "jest.nodeEnv": {
-      "NODE_OPTIONS": "--experimental-vm-modules"
-    }
+      "NODE_OPTIONS": "--experimental-vm-modules",
+    },
   },
   "launch": {
     "version": "0.2.0",
@@ -34,15 +34,15 @@
         "preLaunchTask": "watch",
         "smartStep": true,
         "sourceMaps": true,
-        "resolveSourceMapLocations": []
-      }
+        "resolveSourceMapLocations": [],
+      },
     ],
     "compounds": [
       {
         "name": "Watch all & Launch extension + language-server",
-        "configurations": ["Watch all & Launch extension", "Attach to language-server with delay"]
-      }
-    ]
+        "configurations": ["Watch all & Launch extension", "Attach to language-server with delay"],
+      },
+    ],
   },
   "tasks": {
     "version": "2.0.0",
@@ -51,7 +51,7 @@
         "label": "watch",
         "command": "./watch.sh",
         "options": {
-          "cwd": "${workspaceFolder:vscode-github-actions}/.."
+          "cwd": "${workspaceFolder:vscode-github-actions}/..",
         },
         "type": "shell",
         "isBackground": true,
@@ -59,25 +59,25 @@
         "presentation": {
           "reveal": "always",
           "clear": true,
-          "close": true
+          "close": true,
         },
-        "group": "build"
+        "group": "build",
       },
       {
         "label": "update package-lock",
         "command": "./update-package-locks.sh",
         "options": {
-          "cwd": "${workspaceFolder:vscode-github-actions}/.."
+          "cwd": "${workspaceFolder:vscode-github-actions}/..",
         },
         "type": "shell",
         "problemMatcher": ["$ts-webpack-watch", "$tsc"],
         "presentation": {
           "reveal": "always",
           "clear": true,
-          "close": true
+          "close": true,
         },
-        "group": "build"
-      }
-    ]
-  }
+        "group": "build",
+      },
+    ],
+  },
 }

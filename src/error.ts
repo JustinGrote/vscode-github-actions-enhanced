@@ -1,6 +1,8 @@
-import {RequestError} from "@octokit/request-error";
-import {log} from "node:util";
-import {logError, logWarn} from "./log";
+import {log} from "node:util"
+
+import {RequestError} from "@octokit/request-error"
+
+import {logError, logWarn} from "./log"
 
 /**
  * Ensures that the unknown value is an Error object.
@@ -22,17 +24,17 @@ import {logError, logWarn} from "./log";
  * ```
  */
 export function ensureError(value: unknown): Error {
-  if (value instanceof Error) return value;
+  if (value instanceof Error) return value
 
-  let stringified;
+  let stringified
   try {
-    stringified = JSON.stringify(value);
+    stringified = JSON.stringify(value)
   } catch {
-    stringified = "[Unknown value that cannot be stringified]";
+    stringified = "[Unknown value that cannot be stringified]"
   }
 
-  const error = new Error(`Non-Error Value: ${stringified}`, {cause: value});
-  return error;
+  const error = new Error(`Non-Error Value: ${stringified}`, {cause: value})
+  return error
 }
 
 /**
@@ -44,15 +46,15 @@ export function ensureError(value: unknown): Error {
  * @throws {Error} If the value is not a RequestError.
  */
 export function assertRequestError(value: unknown, message?: string): RequestError {
-  const error = ensureError(value);
+  const error = ensureError(value)
   if (!(value instanceof RequestError || error.name === "HttpError")) {
-    logWarn(`Expected a RequestError, but got type ${typeof error} with value:`, error);
+    logWarn(`Expected a RequestError, but got type ${typeof error} with value:`, error)
     if (message) {
-      error.message = `${message}: ${error.message}`;
+      error.message = `${message}: ${error.message}`
     }
-    throw error;
+    throw error
   }
 
   // BUG: Sometimes we get HttpError as the class but we don't know where to source that type
-  return value as RequestError;
+  return value as RequestError
 }

@@ -1,31 +1,32 @@
-import * as vscode from "vscode";
-import {GitHubRepoContext} from "../../git/repository";
-import {getIconForWorkflowNode} from "../icons";
-import {WorkflowStepNode} from "./workflowStepNode";
-import {WorkflowJob} from "../../model";
-import {GithubActionTreeNode} from "../githubActionTreeDataProvider";
+import * as vscode from "vscode"
+
+import {GitHubRepoContext} from "../../git/repository"
+import {WorkflowJob} from "../../model"
+import {GithubActionTreeNode} from "../githubActionTreeDataProvider"
+import {getIconForWorkflowNode} from "../icons"
+import {WorkflowStepNode} from "./workflowStepNode"
 
 export class WorkflowJobNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
-    public readonly job: WorkflowJob
+    public readonly job: WorkflowJob,
   ) {
-    super(job.name, (job.steps && job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined);
+    super(job.name, (job.steps && job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined)
 
-    this.contextValue = "job";
+    this.contextValue = "job"
     if (this.job.status === "completed") {
-      this.contextValue += " completed";
-      this.description = this.getNodeDuration(this.job);
+      this.contextValue += " completed"
+      this.description = this.getNodeDuration(this.job)
     }
 
-    this.iconPath = getIconForWorkflowNode(this.job);
+    this.iconPath = getIconForWorkflowNode(this.job)
   }
 
   hasSteps(): boolean {
-    return !!(this.job.steps && this.job.steps.length > 0);
+    return !!(this.job.steps && this.job.steps.length > 0)
   }
 
   getChildren(): WorkflowStepNode[] {
-    return (this.job.steps || []).map(s => new WorkflowStepNode(this.gitHubRepoContext, this.job, s));
+    return (this.job.steps || []).map(s => new WorkflowStepNode(this.gitHubRepoContext, this.job, s))
   }
 }

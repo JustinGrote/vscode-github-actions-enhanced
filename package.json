@@ -1,50 +1,105 @@
 {
   "name": "github-actions-enhanced",
-  "type": "module",
   "displayName": "GitHub Actions Enhanced",
-  "publisher": "justin-grote",
-  "icon": "resources/logo.png",
-  "license": "MIT",
-  "repository": {
-    "url": "https://github.com/justingrote/vscode-github-actions-enhanced"
-  },
-  "description": "GitHub Actions with enhancements that are pending merge to the official extension.",
   "version": "0.0.0-source",
-  "engines": {
-    "vscode": "^1.109.0",
-    "node": ">22.21.0"
-  },
-  "packageManager": "pnpm@10.29.3",
-  "extensionKind": [
-    "workspace"
-  ],
-  "capabilities": {
-    "virtualWorkspaces": true
-  },
+  "description": "GitHub Actions with enhancements that are pending merge to the official extension.",
   "categories": [
     "Other"
   ],
   "keywords": [
-    "github",
     "actions",
-    "improved",
     "better",
     "enhanced",
-    "workflow",
-    "runs",
+    "github",
+    "github-actions",
+    "improved",
     "jobs",
-    "steps",
+    "runs",
     "secrets",
-    "variables",
     "settings",
-    "github-actions"
+    "steps",
+    "variables",
+    "workflow"
   ],
-  "activationEvents": [
-    "onView:workflows",
-    "onView:settings",
-    "workspaceContains:**/.github/workflows/**"
-  ],
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/justingrote/vscode-github-actions-enhanced"
+  },
+  "publisher": "justin-grote",
+  "type": "module",
   "main": "./dist/extension.js",
+  "scripts": {
+    "rd": "pnpm rolldown --config rolldown.config.ts",
+    "build": "pnpm clean && pnpm rd --environment PRODUCTION:true",
+    "watch": "pnpm rd --watch",
+    "clean": "git clean -fdX -- ./dist ./out",
+    "package": "pnpm vsce package --no-dependencies",
+    "vscode:prepublish": "pnpm build",
+    "lint": "tsgo --noEmit && oxlint",
+    "lint-fix": "oxlint --fix",
+    "format": "oxfmt --write \"**/*.ts\"",
+    "format-check": "oxfmt --check \"**/*.ts\""
+  },
+  "dependencies": {
+    "@actions/languageserver": "^0.3.44",
+    "@actions/workflow-parser": "^0.3.17",
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
+    "@octokit/core": "^7.0.6",
+    "@octokit/plugin-retry": "^8.0.1",
+    "@octokit/plugin-throttling": "^11.0.1",
+    "@octokit/request-error": "^7.0.0",
+    "@octokit/rest": "^22.0.1",
+    "@tanstack/db": "^0.5.26",
+    "@tanstack/query-core": "^5.90.20",
+    "@tanstack/query-db-collection": "^1.0.23",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "dayjs": "^1.11.13",
+    "elliptic": "6.6.1",
+    "fast-deep-equal": "^3.1.3",
+    "libsodium-wrappers": "^0.8.2",
+    "path-browserify": "^1.0.1",
+    "ssh-config": "^3.0.1",
+    "stream-browserify": "^3.0.0",
+    "timers-browserify": "^2.0.12",
+    "ts-pattern": "^5.7.1",
+    "tunnel": "0.0.6",
+    "util": "^0.12.5",
+    "uuid": "^3.4.0",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@octokit/openapi-types": "^25.1.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.19.11",
+    "@types/uuid": "^3.4.13",
+    "@types/vscode": "^1.109.0",
+    "@typescript/native-preview": "7.0.0-dev.20260217.1",
+    "@vscode/test-web": "^0.0.71",
+    "@vscode/vsce": "^3.7.1",
+    "cross-env": "^7.0.3",
+    "glob": "^11.0.3",
+    "globals": "^16.3.0",
+    "jest": "^29.7.0",
+    "node-loader": "^0.6.0",
+    "oxfmt": "^0.34.0",
+    "oxlint": "^1.49.0",
+    "rolldown": "latest",
+    "source-map-loader": "^4.0.2",
+    "ts-jest": "^29.4.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "browserify-sign": {
+      "elliptic": "6.6.1"
+    },
+    "create-ecdh": {
+      "elliptic": "6.6.1"
+    }
+  },
   "contributes": {
     "languages": [
       {
@@ -517,79 +572,21 @@
       ]
     }
   },
-  "scripts": {
-    "rd": "pnpm rolldown --config rolldown.config.ts",
-    "build": "pnpm clean && pnpm rd --environment PRODUCTION:true",
-    "watch": "pnpm rd --watch",
-    "clean": "git clean -fdX -- ./dist ./out",
-    "package": "pnpm vsce package --no-dependencies",
-    "vscode:prepublish": "pnpm build",
-    "lint": "tsgo --noEmit && eslint",
-    "lint-fix": "eslint --fix",
-    "format": "prettier --write \"**/*.ts\"",
-    "format-check": "prettier --check \"**/*.ts\""
+  "activationEvents": [
+    "onView:settings",
+    "onView:workflows",
+    "workspaceContains:**/.github/workflows/**"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "icon": "resources/logo.png",
+  "engines": {
+    "node": ">22.21.0",
+    "vscode": "^1.109.0"
   },
-  "devDependencies": {
-    "@eslint/js": "^9.30.1",
-    "@octokit/openapi-types": "^25.1.0",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.19.11",
-    "@types/uuid": "^3.4.13",
-    "@types/vscode": "^1.109.0",
-    "@typescript/native-preview": "7.0.0-dev.20260217.1",
-    "@vscode/test-web": "^0.0.71",
-    "@vscode/vsce": "^3.7.1",
-    "cross-env": "^7.0.3",
-    "eslint": "^9.30.1",
-    "eslint-config-prettier": "^10.1.5",
-    "glob": "^11.0.3",
-    "globals": "^16.3.0",
-    "jest": "^29.7.0",
-    "node-loader": "^0.6.0",
-    "prettier": "^3.6.2",
-    "source-map-loader": "^4.0.2",
-    "ts-jest": "^29.4.0",
-    "ts-loader": "^9.5.2",
-    "rolldown": "latest",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.1"
-  },
-  "dependencies": {
-    "@actions/languageserver": "^0.3.44",
-    "@actions/workflow-parser": "^0.3.17",
-    "@noble/curves": "^2.0.1",
-    "@noble/hashes": "^2.0.1",
-    "@octokit/core": "^7.0.6",
-    "@octokit/plugin-retry": "^8.0.1",
-    "@octokit/plugin-throttling": "^11.0.1",
-    "@octokit/request-error": "^7.0.0",
-    "@octokit/rest": "^22.0.1",
-    "@tanstack/db": "^0.5.26",
-    "@tanstack/query-core": "^5.90.20",
-    "@tanstack/query-db-collection": "^1.0.23",
-    "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.1",
-    "dayjs": "^1.11.13",
-    "elliptic": "6.6.1",
-    "fast-deep-equal": "^3.1.3",
-    "libsodium-wrappers": "^0.8.2",
-    "path-browserify": "^1.0.1",
-    "ssh-config": "^3.0.1",
-    "stream-browserify": "^3.0.0",
-    "timers-browserify": "^2.0.12",
-    "ts-pattern": "^5.7.1",
-    "tunnel": "0.0.6",
-    "util": "^0.12.5",
-    "uuid": "^3.4.0",
-    "vscode-languageclient": "^9.0.1",
-    "vscode-uri": "^3.1.0"
-  },
-  "overrides": {
-    "browserify-sign": {
-      "elliptic": "6.6.1"
-    },
-    "create-ecdh": {
-      "elliptic": "6.6.1"
-    }
+  "packageManager": "pnpm@10.29.3",
+  "capabilities": {
+    "virtualWorkspaces": true
   }
 }

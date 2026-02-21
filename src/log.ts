@@ -1,36 +1,36 @@
-import * as vscode from "vscode";
+import * as vscode from "vscode"
 
-let logger: vscode.LogOutputChannel;
+let logger: vscode.LogOutputChannel
 
 export function init() {
-  logger = vscode.window.createOutputChannel("GitHub Actions", {log: true});
+  logger = vscode.window.createOutputChannel("GitHub Actions", {log: true})
 }
 
 export function logError(e: Error, ...values: unknown[]) {
-  logger.error(e, values);
+  logger.error(e, values)
 }
 
 export function logWarn(...values: unknown[]) {
-  logger.warn(values.join(" "));
+  logger.warn(values.join(" "))
 }
 
 export function log(...values: unknown[]) {
-  logger.info(values.join(" "));
+  logger.info(values.join(" "))
 }
 
 export function logDebug(...values: unknown[]) {
-  logger.debug(values.join(" "));
+  logger.debug(values.join(" "))
 }
 
 export function logTrace(...values: unknown[]) {
-  logger.trace(values.join(" "));
+  logger.trace(values.join(" "))
 }
 
 export function revealLog() {
-  logger.show();
+  logger.show()
 }
 
-const octoPrefix = "🐙";
+const octoPrefix = "🐙"
 
 export function createOctokitLogger() {
   return {
@@ -42,7 +42,7 @@ export function createOctokitLogger() {
         octoPrefix,
         "[ERR]",
         args[0] instanceof Error ? (args[0] as Error) : new Error(String(args[0])),
-        ...args.slice(1)
-      )
-  };
+        ...args.slice(1),
+      ),
+  }
 }

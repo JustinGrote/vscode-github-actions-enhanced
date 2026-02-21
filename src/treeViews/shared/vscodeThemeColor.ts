@@ -67,4 +67,4 @@ export type vscodeTestingThemeColor =
   | "testing.uncoveredBackground"
   | "testing.uncoveredBorder"
   | "testing.uncoveredBranchBackground"
-  | "testing.uncoveredGutterBackground";
+  | "testing.uncoveredGutterBackground"
