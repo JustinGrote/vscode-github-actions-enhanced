@@ -22,8 +22,8 @@ export function getClient(token: string) {
     userAgent: userAgent,
     baseUrl: getGitHubApiUri(),
     request: {
-      redirect: "manual"
-    }
+      redirect: "manual",
+    },
     // throttle: {
     //   onRateLimit: (retryAfter, options, octokit) => {
     //     octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}.`)
