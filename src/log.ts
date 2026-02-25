@@ -34,15 +34,23 @@ const octoPrefix = "🐙"
 
 export function createOctokitLogger() {
   return {
-    debug: (...args: unknown[]) => logTrace(octoPrefix, "[DBG]", ...args),
+    debug: (...args: unknown[]) => {
+      // Omit request logs, this is handled lower by the REST logger
+      if (String(args[0]) === "request") return
+      logTrace(octoPrefix, "[DBG]", ...args)
+    },
     info: (...args: unknown[]) => logTrace(octoPrefix, "[INF]", ...args),
     warn: (...args: unknown[]) => logTrace(octoPrefix, "[WRN]", ...args),
-    error: (...args: unknown[]) =>
-      logTrace(
-        octoPrefix,
-        "[ERR]",
-        args[0] instanceof Error ? (args[0] as Error) : new Error(String(args[0])),
-        ...args.slice(1),
-      ),
+    error: (...args: unknown[]) => {
+      // 304 Not Modified errors are expected in conditional requests, and are not errors.
+      const firstArgAsString = String(args[0])
+      if (firstArgAsString.includes("304 with id")) {
+        logTrace(octoPrefix, "[DBG]", firstArgAsString)
+        return
+      }
+
+      const error = args[0] instanceof Error ? (args[0] as Error) : new Error(firstArgAsString)
+      logTrace(octoPrefix, "[ERR]", error, ...args.slice(1))
+    },
   }
 }
