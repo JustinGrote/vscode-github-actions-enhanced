@@ -21,13 +21,35 @@ export class WorkflowJobNode extends GithubActionTreeNode {
     }
 
     this.iconPath = getIconForWorkflowNode(this.job)
-  }
-
-  hasSteps(): boolean {
-    return !!(this.job.steps && this.job.steps.length > 0)
+    this.tooltip = this.getToolTip()
   }
 
   getChildren(): WorkflowStepNode[] {
     return (this.job.steps || []).map((s) => new WorkflowStepNode(this.gitHubRepoContext, this.job, s))
+  }
+
+  getToolTip(): vscode.MarkdownString {
+    const tooltip = new vscode.MarkdownString(`### [${this.job.name}](${this.job.html_url})  \n`, true)
+    if (this.job.conclusion) {
+      tooltip.appendMarkdown(`**Conclusion:** ${this.job.conclusion}  \n`)
+    }
+    tooltip.appendMarkdown(`**Status:** ${this.job.status}  \n`)
+
+    tooltip.appendMarkdown(`\n---\n`)
+
+    const startDate = new Date(this.job.started_at)
+    const formattedDate = startDate.toLocaleDateString() + " " + startDate.toLocaleTimeString()
+    tooltip.appendMarkdown(`**Started:** ${formattedDate}  \n`)
+
+    if (this.job.completed_at) {
+      const endDate = new Date(this.job.completed_at)
+      const formattedDate = endDate.toLocaleDateString() + " " + endDate.toLocaleTimeString()
+      tooltip.appendMarkdown(`**Completed:** ${formattedDate}  \n`)
+    }
+    if (this.job.runner_name) {
+      tooltip.appendMarkdown(`**Runner:** ${this.job.runner_name}  \n`)
+    }
+    tooltip.appendMarkdown(`**Run ID:** ${this.job.run_id}  \n`)
+    return tooltip
   }
 }

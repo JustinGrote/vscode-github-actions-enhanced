@@ -72,7 +72,7 @@ export function getEventString(item: WorkflowRun | WorkflowRunAttempt): string {
 
   if (item.run.run_started_at) {
     const started_at = dayjs(item.run.run_started_at)
-    eventString += ` ${started_at.fromNow()} *(${started_at.format("LLL")})*`
+    eventString += ` ${started_at.fromNow()}`
   }
 
   return eventString
