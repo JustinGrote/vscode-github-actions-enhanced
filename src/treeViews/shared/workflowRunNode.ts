@@ -127,27 +127,14 @@ export class WorkflowRunNode extends GithubActionTreeNode {
   getTooltip(): vscode.MarkdownString {
     const parts: string[] = []
 
-    // Title with name and number
+    // Header: Workflow name and run number
     if (this.run.name) {
-      parts.push(`## ${this.run.name}`)
+      const runNumber = `#${this.run.run_number}`
+      const attemptBadge = this.hasPreviousAttempts && this.run.run_attempt ? ` (Attempt ${this.run.run_attempt})` : ""
+      parts.push(`## ${this.run.name} ${runNumber}${attemptBadge}`)
     }
 
-    // Attempt and Run Number
-    const runHeader = [
-      `#${this.run.run_number}`,
-      this.hasPreviousAttempts && this.run.run_attempt ? `${this.run.run_attempt} attempts` : null,
-    ]
-      .filter(Boolean)
-      .join(" • ")
-
-    // Add hyperlink to workflow run
-    const runLink = this.run.html_url ? `[${runHeader}](${this.run.html_url})` : runHeader
-    parts.push(runLink)
-
-    parts.push("---")
-
-    // Status and Duration
-
+    // Helper object for status/event formatting
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tempRun = {
       run: this.run,
@@ -155,54 +142,76 @@ export class WorkflowRunNode extends GithubActionTreeNode {
       hasPreviousAttempts: this.hasPreviousAttempts,
     } as any
 
-    parts.push(`**Status:** ${getStatusString(tempRun, false)}`)
+    // Status
+    const statusLine = getStatusString(tempRun, false)
+    parts.push(statusLine)
 
-    // Event Information
-    parts.push(`**Triggered:** ${getEventString(tempRun)}`)
+    parts.push("\n---\n")
 
-    // Branch Information with link
-    if (this.run.head_branch && this.run.repository) {
-      const branchIcon = this.run.head_branch === this.run.head_repository?.default_branch ? "📌" : "🌿"
-      const branchUrl = `${this.run.repository.html_url}/tree/${this.run.head_branch}`
-      const branchLink = `[${branchIcon} \`${this.run.head_branch}\`](${branchUrl})`
-      parts.push(`**Branch:** ${branchLink}`)
-    } else if (this.run.head_branch) {
-      const branchIcon = this.run.head_branch === this.run.head_repository?.default_branch ? "📌" : "🌿"
-      parts.push(`**Branch:** ${branchIcon} \`${this.run.head_branch}\``)
-    }
-
-    // Commit Information with link
-    if (this.run.head_sha && this.run.repository) {
-      const shortSha = this.run.head_sha.substring(0, 7)
-      const commitUrl = `${this.run.repository.html_url}/commit/${this.run.head_sha}`
-      const commitLink = `[${shortSha}](${commitUrl})`
-      parts.push(`**Commit:** \`${commitLink}\``)
-    } else if (this.run.head_sha) {
-      const shortSha = this.run.head_sha.substring(0, 7)
-      parts.push(`**Commit:** \`${shortSha}\``)
-    }
-
-    // Repository Information with link
-    if (this.run.repository?.html_url) {
-      const repoLink = `[${this.run.repository.full_name}](${this.run.repository.html_url})`
-      parts.push(`**Repository:** ${repoLink}`)
-    }
-
-    // Conclusion details if available
-    if (this.run.conclusion && this.run.conclusion !== "success") {
-      parts.push(`**Conclusion:** ${this.run.conclusion.replace("_", " ")}`)
-    }
+    // Trigger/Event
+    const eventLine = getEventString(tempRun)
+    parts.push(eventLine)
 
     // Timestamps
-    if (this.run.run_started_at && this.run.updated_at) {
-      const startDate = new Date(this.run.run_started_at).toLocaleString()
-      parts.push(`**Started:** ${startDate}`)
+    if (this.run.run_started_at) {
+      const startDate = new Date(this.run.run_started_at)
+      const formattedDate = startDate.toLocaleDateString() + " " + startDate.toLocaleTimeString()
+      parts.push(`\nStarted ${formattedDate}`)
+    }
+
+    parts.push("\n---\n")
+
+    // Branch
+    const commitInfoParts: string[] = []
+    if (this.run.head_branch) {
+      const branchIcon = this.run.head_branch === this.run.head_repository?.default_branch ? "📌" : "🌿"
+      if (this.run.repository) {
+        const branchUrl = `${this.run.repository.html_url}/tree/${this.run.head_branch}`
+        commitInfoParts.push(`${branchIcon} [**Branch:** \`${this.run.head_branch}\`](${branchUrl})`)
+      } else {
+        commitInfoParts.push(`${branchIcon} **Branch:** \`${this.run.head_branch}\``)
+      }
+    }
+
+    // Commit
+    if (this.run.head_sha) {
+      const shortSha = this.run.head_sha.substring(0, 7)
+      if (this.run.repository) {
+        commitInfoParts.push(`📝 [\`${shortSha}\`](${this.run.repository.html_url}/commit/${this.run.head_sha})`)
+      } else {
+        commitInfoParts.push(`📝 **Commit:** \`${shortSha}\``)
+      }
+    }
+
+    // Commit message
+    if (this.run.head_commit?.message) {
+      const firstLine = this.run.head_commit.message.split("\n")[0]
+      const maxLength = 70
+      const truncated = firstLine.length > maxLength ? firstLine.substring(0, maxLength) + "..." : firstLine
+      commitInfoParts.push(`\n> ${truncated}`)
+    }
+
+    parts.push(commitInfoParts.join(" "))
+
+    parts.push("\n---\n")
+
+    // Workflow file
+    if (this.run.path) {
+      parts.push(`**Workflow:** \`${this.run.path}\`\n`)
+    }
+
+    // Repository
+    if (this.run.repository?.html_url) {
+      const repoLink = `[${this.run.repository.full_name}](${this.run.repository.html_url})`
+      parts.push(`**Repository:** ${repoLink}\n`)
     }
 
     parts.push("---")
-    parts.push("ID: `" + this.run.id + "`")
 
-    const markdownString = parts.join("\n\n")
+    // Run ID footer
+    parts.push(`*Run ID: \`${this.run.id}\`*`)
+
+    const markdownString = parts.join("\n")
 
     return new vscode.MarkdownString(markdownString)
   }
@@ -211,9 +220,14 @@ export class WorkflowRunNode extends GithubActionTreeNode {
     return run.name || "Run " + run.id
   }
   private static _getDescription(run: WorkflowRun): string {
-    const attempt = run.run_attempt || 1
-    const description = `#${run.run_number}`
-    return attempt > 1 ? `${description} (Attempt #${attempt})` : description
+    const descriptionParts: string[] = [`#${run.run_number}`]
+    if (run.run_attempt && run.run_attempt > 1) {
+      descriptionParts.push(`(Attempt #${run.run_attempt})`)
+    }
+    if (run.head_commit?.message) {
+      descriptionParts.push(`- ${run.head_commit.message.split("\n")[0]}`)
+    }
+    return descriptionParts.join(" ")
   }
 }
 
