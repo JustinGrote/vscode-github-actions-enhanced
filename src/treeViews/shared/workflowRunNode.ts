@@ -222,7 +222,7 @@ export class WorkflowRunNode extends GithubActionTreeNode {
   private static _getDescription(run: WorkflowRun): string {
     const descriptionParts: string[] = [`#${run.run_number}`]
     if (run.run_attempt && run.run_attempt > 1) {
-      descriptionParts.push(`(Attempt #${run.run_attempt})`)
+      descriptionParts.push(`[Attempt ${run.run_attempt}]`)
     }
     if (run.head_commit?.message) {
       descriptionParts.push(`- ${run.head_commit.message.split("\n")[0]}`)

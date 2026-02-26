@@ -7,7 +7,7 @@ import { conditionalRequest } from "~/api/conditionalRequests"
 import { getGitHubApiUri } from "~/configuration/configReader"
 import { createOctokitLogger } from "~/log"
 
-import { cacheRedirect } from "./handlePermanentRedirect"
+import { cacheRedirect } from "./handleRedirect"
 // import { rateLimitTelemetryPlugin } from "./rateLimitTelemetry";
 
 export const userAgent = `VS Code GitHub Actions (${version})`

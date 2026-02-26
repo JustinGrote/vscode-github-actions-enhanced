@@ -3,7 +3,11 @@ import { OctokitPlugin } from "@octokit/core/types"
 import { logTrace } from "~/log"
 
 // HTTP status code for permanent redirect
-const HTTP_PERMANENT_REDIRECT = 301
+const HTTP_PERMANENT_MOVE = 301
+const HTTP_TEMPORARY_MOVE = 302
+const HTTP_SEE_OTHER = 303
+const HTTP_TEMPORARY_REDIRECT = 307
+const HTTP_PERMANENT_REDIRECT = 308
 
 // Map to store permanent redirects. Key is original URL, value is new URL
 const redirectCache = new Map<string, string>()
@@ -36,7 +40,13 @@ export const cacheRedirect: OctokitPlugin = (octokit) => {
     }
 
     let response: any = await request(options)
-    if (response.status === HTTP_PERMANENT_REDIRECT) {
+    if (
+      response.status === HTTP_PERMANENT_MOVE ||
+      response.status === HTTP_TEMPORARY_MOVE ||
+      response.status === HTTP_SEE_OTHER ||
+      response.status === HTTP_TEMPORARY_REDIRECT ||
+      response.status === HTTP_PERMANENT_REDIRECT
+    ) {
       const locationHeader = response.headers["location"]
 
       if (locationHeader) {
