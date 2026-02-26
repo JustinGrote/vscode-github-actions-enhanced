@@ -315,13 +315,13 @@
     "views": {
       "github-actions": [
         {
-          "id": "github-actions.workflows",
-          "name": "Workflows",
+          "id": "github-actions.current-branch",
+          "name": "Current Branch",
           "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
         },
         {
-          "id": "github-actions.current-branch",
-          "name": "Current Branch",
+          "id": "github-actions.workflows",
+          "name": "Workflows",
           "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
         },
         {
