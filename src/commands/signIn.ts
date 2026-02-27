@@ -3,6 +3,7 @@ import * as vscode from "vscode"
 import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
 import { getSession } from "~/auth/auth"
 import { getGitHubContext } from "~/git/repository"
+import { setViewContext } from "~/viewState"
 
 export function registerSignIn(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -13,9 +14,9 @@ export function registerSignIn(context: vscode.ExtensionContext) {
         const ghContext = await getGitHubContext()
         const hasGitHubRepos = ghContext && ghContext.repos.length > 0
 
-        await vscode.commands.executeCommand("setContext", "github-actions.signed-in", true)
-        await vscode.commands.executeCommand("setContext", "github-actions.internet-access", canReachAPI)
-        await vscode.commands.executeCommand("setContext", "github-actions.has-repos", hasGitHubRepos)
+        await setViewContext("signed-in")
+        await setViewContext("internet-access", canReachAPI)
+        await setViewContext("has-repos", hasGitHubRepos)
       }
     }),
   )

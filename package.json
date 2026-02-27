@@ -315,42 +315,90 @@
     "views": {
       "github-actions": [
         {
-          "id": "github-actions.current-branch",
-          "name": "Current Branch",
-          "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
-        },
-        {
           "id": "github-actions.workflows",
           "name": "Workflows",
-          "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
+          "when": "github-actions.started && github-actions.signed-in && github-actions.git-available && github-actions.has-repos"
+        },
+        {
+          "id": "github-actions.current-branch",
+          "name": "Current Branch",
+          "when": "github-actions.started && github-actions.signed-in && github-actions.git-available && github-actions.has-repos"
         },
         {
           "id": "github-actions.settings",
           "name": "Settings",
-          "when": "github-actions.internet-access && github-actions.signed-in && github-actions.has-repos"
+          "when": "github-actions.started && github-actions.signed-in && github-actions.git-available && github-actions.has-repos"
         },
         {
-          "id": "github-actions.empty-view",
+          "id": "github-actions.error",
           "name": "",
-          "when": "!github-actions.internet-access || !github-actions.signed-in || !github-actions.has-repos"
+          "when": "!github-actions.started || !github-actions.signed-in || !github-actions.git-available || !github-actions.has-repos"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "github-actions.empty-view",
-        "contents": "Sign in to GitHub to display runs, workflows, and configure Actions settings.\n[Sign in to GitHub](command:github-actions.sign-in)",
-        "when": "!github-actions.signed-in"
+        "view": "github-actions.workflows",
+        "contents": "⏳ Loading workflows..."
       },
       {
-        "view": "github-actions.empty-view",
-        "contents": "Unable to connect to the GitHub API, please check your internet connection.\n[Refresh](command:github-actions.explorer.refresh)",
-        "when": "github-actions.signed-in && !github-actions.internet-access"
+        "view": "github-actions.current-branch",
+        "contents": "⏳ Loading workflows for current branch..."
       },
       {
-        "view": "github-actions.empty-view",
-        "contents": "No GitHub repositories found. Please open a folder that contains a GitHub repository.",
-        "when": "github-actions.internet-access && github-actions.signed-in && !github-actions.has-repos"
+        "view": "github-actions.error",
+        "contents": "⏳ Waiting for extension to activate...",
+        "when": "!github-actions.started"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "✅ Extension activated",
+        "when": "github-actions.started"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "⏳ Signing into GitHub...",
+        "when": "!github-actions.signed-in && !github-actions.needs-sign-in"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "⚠️ Sign in to GitHub to display runs, workflows, and configure Actions settings.\n[Sign in to GitHub](command:github-actions.sign-in)",
+        "when": "github-actions.needs-sign-in"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "✅ Signed into GitHub",
+        "when": "github-actions.signed-in"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "⏳ Waiting for Git extension to be activated...",
+        "when": "!github-actions.git-available"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "❌ Git extension could not be activated or is unavailable, it is required...",
+        "when": "!github-actions.git-available && github-actions.needs-git"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "✅ Git extension activated",
+        "when": "github-actions.git-available"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "⏳ Searching for GitHub repositories in workspace...",
+        "when": "!github-actions.has-repos"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "✅ GitHub repositories found in workspace",
+        "when": "github-actions.has-repos"
+      },
+      {
+        "view": "github-actions.error",
+        "contents": "❌ No GitHub repositories found. Please open a folder that contains a GitHub repository.",
+        "when": "github-actions.needs-repos"
       }
     ],
     "viewsContainers": {

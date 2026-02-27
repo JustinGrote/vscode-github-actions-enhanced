@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { useEnterprise } from "~/configuration/configReader"
+import { setViewContext } from "~/viewState"
 
 const AUTH_PROVIDER_ID = "github"
 const AUTH_PROVIDER_ID_ENTERPRISE = "github-enterprise"
@@ -30,7 +31,7 @@ export async function newSession(forceMessage: string): Promise<vscode.Authentic
 export async function getSession(skipPrompt = false): Promise<vscode.AuthenticationSession | undefined> {
   const session = await getSessionInternal(skipPrompt)
   if (session) {
-    await vscode.commands.executeCommand("setContext", "github-actions.signed-in", true)
+    await setViewContext("signed-in", true)
     return session
   }
 
@@ -47,7 +48,7 @@ export async function getSession(skipPrompt = false): Promise<vscode.Authenticat
         if (result === signInAction) {
           const session = await getSessionInternal(true)
           if (session) {
-            await vscode.commands.executeCommand("setContext", "github-actions.signed-in", true)
+            await setViewContext("signed-in", true)
           }
         }
       },

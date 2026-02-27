@@ -92,7 +92,7 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   async getWorkflowNodes(gitHubRepoContext: GitHubRepoContext): Promise<WorkflowNode[]> {
     logDebug(`Getting workflow nodes for repo ${gitHubRepoContext.name}`)
 
-    const client = gitHubRepoContext.client
+    const githubClient = gitHubRepoContext.client
     const collectionKey = `${gitHubRepoContext.owner}/${gitHubRepoContext.name}`
     const queryKey = ["workflows", gitHubRepoContext.owner, gitHubRepoContext.name]
 
@@ -101,8 +101,8 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
       logDebug(`Creating workflow collection for repo ${gitHubRepoContext.name}`)
       collection = createGithubCollection(
         queryKey,
-        client,
-        client.actions.listRepoWorkflows,
+        githubClient,
+        githubClient.actions.listRepoWorkflows,
         {
           owner: gitHubRepoContext.owner,
           repo: gitHubRepoContext.name,

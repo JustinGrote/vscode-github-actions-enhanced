@@ -6,6 +6,7 @@ import { logDebug } from "~/log"
 import { CurrentBranchTreeDataProvider } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
 import { SettingsTreeProvider } from "~/treeViews/settings/settings"
 import { WorkflowsTreeDataProvider } from "~/treeViews/workflows/workflowsTreeDataProvider"
+import { setViewContext } from "~/viewState"
 import { executeCacheClearCommand } from "~/workflow/languageServer"
 
 export async function initTreeViews(context: vscode.ExtensionContext): Promise<void> {
@@ -23,11 +24,11 @@ export async function initTreeViews(context: vscode.ExtensionContext): Promise<v
   context.subscriptions.push(
     vscode.commands.registerCommand("github-actions.explorer.refresh", async () => {
       const canReachAPI = await canReachGitHubAPI()
-      await vscode.commands.executeCommand("setContext", "github-actions.internet-access", canReachAPI)
+      await setViewContext("internet-access", canReachAPI)
 
       const ghContext = await getGitHubContext()
       const hasGitHubRepos = ghContext && ghContext.repos.length > 0
-      await vscode.commands.executeCommand("setContext", "github-actions.has-repos", hasGitHubRepos)
+      await setViewContext("has-repos", hasGitHubRepos)
 
       if (canReachAPI && hasGitHubRepos) {
         // await workflowTreeProvider.refresh();
