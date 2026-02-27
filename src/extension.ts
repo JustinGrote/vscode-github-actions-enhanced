@@ -43,7 +43,6 @@ export async function activate(context: vscode.ExtensionContext) {
   initLogger()
   if (!PRODUCTION) {
     // In debugging mode, always open the log for the extension in the `Output` window
-
     revealLog()
   }
   log("🚀 Activating GitHub Actions extension!")

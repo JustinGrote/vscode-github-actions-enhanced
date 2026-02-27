@@ -14,7 +14,7 @@ export function registerSignIn(context: vscode.ExtensionContext) {
         const ghContext = await getGitHubContext()
         const hasGitHubRepos = ghContext && ghContext.repos.length > 0
 
-        await setViewContext("signed-in", true)
+        await setViewContext("signed-in")
         await setViewContext("internet-access", canReachAPI)
         await setViewContext("has-repos", hasGitHubRepos)
       }
