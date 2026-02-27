@@ -22,7 +22,7 @@ import { registerDeleteVariable } from "~/commands/variables/deleteVariable"
 import { registerUpdateVariable } from "~/commands/variables/updateVariable"
 import { initConfiguration } from "~/configuration/configuration"
 import { assertOfficalExtensionNotPresent as officialExtensionIsActive } from "~/extensionConflictHandler"
-import { getGitHubContext } from "~/git/repository"
+import { getGitExtension, getGitHubContext } from "~/git/repository"
 import { init as initLogger, log, revealLog } from "~/log"
 import { LogScheme } from "~/logs/constants"
 import { WorkflowStepLogProvider } from "~/logs/fileProvider"
@@ -34,18 +34,21 @@ import { initWorkflowDocumentTracking } from "~/tracker/workflowDocumentTracker"
 import { initWorkspaceChangeTracker } from "~/tracker/workspaceTracker"
 import { initResources } from "~/treeViews/icons"
 import { initTreeViews } from "~/treeViews/treeViews"
+import { setViewContext } from "~/viewState"
 import { deactivateLanguageServer, initLanguageServer } from "~/workflow/languageServer"
 
 export async function activate(context: vscode.ExtensionContext) {
-  // Github Actions Enhanced conflict avoidance
   if (await officialExtensionIsActive()) return
 
   initLogger()
   if (!PRODUCTION) {
     // In debugging mode, always open the log for the extension in the `Output` window
+
     revealLog()
   }
   log("🚀 Activating GitHub Actions extension!")
+
+  await setViewContext("started")
 
   // Initialize extension components in parallel and report errors afterwards.
   const startupPromises: Promise<void>[] = []
@@ -53,17 +56,21 @@ export async function activate(context: vscode.ExtensionContext) {
   try {
     log("GitHub: Checking authentication and API access...")
     const hasSession = !!(await getSession())
+    void (hasSession ? await setViewContext("signed-in") : await setViewContext("needs-sign-in"))
+
+    log("Waiting for git extension...")
+    const gitExtension = await getGitExtension()
+    void (gitExtension ? await setViewContext("git-available", true) : await setViewContext("needs-git", false))
+
     const canReachAPI = hasSession && (await canReachGitHubAPI())
+    setViewContext("internet-access", canReachAPI)
     // Prefetch git repository origin url
     const ghContext = hasSession && (await getGitHubContext())
-    const hasGitHubRepos = ghContext && ghContext.repos.length > 0
+
+    const hasGitHubRepos = !!ghContext && ghContext.repos.length > 0
+    void (hasGitHubRepos ? await setViewContext("has-repos", true) : await setViewContext("no-repos", false))
 
     registerSignIn(context)
-    await Promise.all([
-      vscode.commands.executeCommand("setContext", "github-actions.signed-in", hasSession),
-      vscode.commands.executeCommand("setContext", "github-actions.internet-access", canReachAPI),
-      vscode.commands.executeCommand("setContext", "github-actions.has-repos", hasGitHubRepos),
-    ])
 
     initResources(context)
     initConfiguration(context)
@@ -127,7 +134,6 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 }
 
-export function deactivate(): Thenable<void> | undefined {
-  log("👋 Deactivating GitHub Actions extension")
+export async function deactivate(): Promise<void> {
   return deactivateLanguageServer()
 }

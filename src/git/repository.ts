@@ -20,7 +20,7 @@ interface GitHubUrls {
   protocol: Protocol
 }
 
-async function getGitExtension(): Promise<API | undefined> {
+export async function getGitExtension(): Promise<API | undefined> {
   const gitExtension = vscode.extensions.getExtension<GitExtension>("vscode.git")
   if (gitExtension) {
     if (!gitExtension.isActive) {

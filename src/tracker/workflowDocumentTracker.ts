@@ -4,6 +4,7 @@ import { Utils } from "vscode-uri"
 import { LogScheme } from "~/logs/constants"
 import { updateDecorations } from "~/logs/formatProvider"
 import { getLogInfo } from "~/logs/logInfo"
+import { setViewContext } from "~/viewState"
 import { getContextStringForWorkflow } from "~/workflow/workflow"
 
 const extname = Utils.extname
@@ -27,11 +28,7 @@ async function onDidChangeActiveTextEditor(editor?: vscode.TextEditor) {
     extname(editor.document.uri).match(/\.ya?ml/) &&
     editor.document.fileName.indexOf(".github/workflows") !== -1
   ) {
-    await vscode.commands.executeCommand(
-      "setContext",
-      "githubActions:activeFile",
-      await getContextStringForWorkflow(editor.document.uri),
-    )
+    await setViewContext("githubActions:activeFile", await getContextStringForWorkflow(editor.document.uri))
   }
 
   // Is is a log file?
