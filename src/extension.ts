@@ -53,6 +53,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const startupPromises: Promise<void>[] = []
 
   try {
+    registerSignIn(context)
+
     log("GitHub: Checking authentication and API access...")
     const hasSession = !!(await getSession())
     void (hasSession ? await setViewContext("signed-in") : await setViewContext("needs-sign-in"))
@@ -69,7 +71,6 @@ export async function activate(context: vscode.ExtensionContext) {
     const hasGitHubRepos = !!ghContext && ghContext.repos.length > 0
     void (hasGitHubRepos ? await setViewContext("has-repos", true) : await setViewContext("no-repos", false))
 
-    registerSignIn(context)
 
     initResources(context)
     initConfiguration(context)
