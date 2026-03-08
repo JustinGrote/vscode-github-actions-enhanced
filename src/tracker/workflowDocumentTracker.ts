@@ -28,7 +28,8 @@ async function onDidChangeActiveTextEditor(editor?: vscode.TextEditor) {
     extname(editor.document.uri).match(/\.ya?ml/) &&
     editor.document.fileName.indexOf(".github/workflows") !== -1
   ) {
-    await setViewContext("githubActions:activeFile", await getContextStringForWorkflow(editor.document.uri))
+    // FIXME: Set title appropriately
+    // await context.   Providers("githubActions:activeFile", await getContextStringForWorkflow(editor.document.uri))
   }
 
   // Is is a log file?
