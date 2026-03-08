@@ -426,7 +426,7 @@
       "editor/title": [
         {
           "command": "github-actions.explorer.triggerRun",
-          "when": "(githubActions:activeFile =~ /rdispatch/ || githubActions:activeFile =~ /wdispatch/) && resourceExtname =~ /\\.ya?ml/",
+          "when": "(github-actions.activeFile =~ /rdispatch/ || github-actions.activeFile =~ /wdispatch/) && resourceExtname =~ /\\.ya?ml/",
           "group": "navigation"
         }
       ],
