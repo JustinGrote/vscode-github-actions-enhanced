@@ -1,4 +1,5 @@
-import { cp } from "fs";import { match } from "ts-pattern"
+import { Collection, createLiveQueryCollection, eq, type Context, type InitialQueryBuilder, type QueryBuilder } from "@tanstack/db";import { cp } from "fs";import { match } from "ts-pattern"
+import * as vscode from "vscode";
 import { GitHubRepoContext } from "~/git/repository"
 import { log, logDebug, logTrace,logWarn } from "~/log"
 import { WorkflowJob, WorkflowRun,WorkflowRunAttempt } from "~/model"
@@ -117,18 +118,6 @@ export class WorkflowService {
         }
       },
     }
-  }
-
-  /**
-   * Get workflow runs filtered by branch name.
-   */
-  async getWorkflowRunsByBranch(
-    gitHubRepoContext: GitHubRepoContext,
-    branchName: string,
-  ): Promise<WorkflowRun[]> {
-    const collection = await this.getWorkflowRunCollection(gitHubRepoContext)
-    const runs = await collection.toArrayWhenReady()
-    return runs.filter((run) => run.head_branch === branchName)
   }
 
   /**
@@ -268,5 +257,54 @@ export class WorkflowService {
 
   private getJobCollectionKey(gitHubRepoContext: GitHubRepoContext, runId: number, attemptNumber: number): string {
     return `${this.getRepoKey(gitHubRepoContext)}/${runId}/${attemptNumber}`
+  }
+}
+
+export class WorkflowRunView {
+  private static views: Map<string, WorkflowRunView> = new Map()
+  private query: Collection<WorkflowRun>
+  /** Use the async create factory **/
+  private constructor(
+    query: Collection<WorkflowRun>,
+  ) {
+    this.query = query
+  }
+
+  public static async create(githubRepoContext: GitHubRepoContext, branchName?: string): Promise<WorkflowRunView> {
+    const viewKey = `${githubRepoContext.owner}/${githubRepoContext.name}/${branchName ?? ""}`
+    const existingView = this.views.get(viewKey)
+    if (existingView) return existingView
+
+    const workflowService = WorkflowService.getInstance()
+    const collection = await workflowService.getWorkflowRunCollection(githubRepoContext)
+    const query = createLiveQueryCollection(
+      q => q.from({run: collection}).where(({run}) => branchName ? eq(run.head_branch, branchName) : true),
+    )
+    const view = new WorkflowRunView(query)
+    this.views.set(viewKey, view)
+    return view
+  }
+
+  public async get(): Promise<WorkflowRun[]> {
+    return this.query.toArrayWhenReady()
+  }
+
+  public async subscribe(callback: (changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowRun }>) => void): Promise<vscode.Disposable> {
+    const feed = this.query.subscribeChanges((changes) => {
+      logTrace(`🚨 WorkflowRunView changes detected: ${changes.length} changes`)
+      callback(
+        changes.map((change) =>
+          match(change)
+            .with({ type: "update" }, (c) => ({ type: "update" as const, value: c.value }))
+            .with({ type: "insert" }, (c) => ({ type: "insert" as const, value: c.value }))
+            .with({ type: "delete" }, (c) => ({ type: "delete" as const, value: c.value }))
+            .exhaustive(),
+        ),
+      )
+    })
+
+    return {
+      dispose: () => feed.unsubscribe()
+    }
   }
 }
