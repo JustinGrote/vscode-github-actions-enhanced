@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { logTrace } from "./log";
 
 export const ViewContextStates = {
   Started: "started",
@@ -17,6 +18,7 @@ const viewContextNamespace = "github-actions."
 
 /** Use this function to set the view context for the extension in a type safe manner that is cleaned up on extension deactivation */
 export async function setViewContext(key: ViewContextState, value: boolean = true) {
+  logTrace(`Updating view context: ${key} = ${value}`)
   await vscode.commands.executeCommand("setContext", viewContextNamespace + key, value)
 }
 

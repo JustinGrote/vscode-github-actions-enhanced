@@ -19,7 +19,7 @@ export class OrgSecretsNode extends vscode.TreeItem {
       secrets = await this.gitHubRepoContext.client.paginate("GET /repos/{owner}/{repo}/actions/organization-secrets", {
         owner: this.gitHubRepoContext.owner,
         repo: this.gitHubRepoContext.name,
-        per_page: 100,
+        per_page: 30,
       })
     } catch (e) {
       await vscode.window.showErrorMessage((e as Error).message)

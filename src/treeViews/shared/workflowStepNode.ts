@@ -11,7 +11,7 @@ export class WorkflowStepNode extends GithubActionTreeNode {
     public readonly step: WorkflowStep,
   ) {
     super(step.name)
-
+    this.id = `step-${job.node_id}-${step.name}`
     this.contextValue = "step"
     if (this.step.status === "completed") {
       this.contextValue += " completed"

@@ -29,7 +29,7 @@ export class EnvironmentVariablesNode extends vscode.TreeItem {
           owner: this.gitHubRepoContext.owner,
           repo: this.gitHubRepoContext.name,
           environment_name: this.environment.name,
-          per_page: 100,
+          per_page: 30,
         },
         (response) => response.data.map((v) => new VariableNode(this.gitHubRepoContext, v, this.environment)),
       )

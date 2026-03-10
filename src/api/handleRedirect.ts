@@ -1,4 +1,4 @@
-import { OctokitPlugin } from "@octokit/core/types"
+import { OctokitPlugin } from "@octokit/core/dist-types/types"
 
 import { logTrace } from "~/log"
 

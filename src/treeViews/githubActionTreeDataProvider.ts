@@ -4,12 +4,7 @@ import { logTrace } from "~/log"
 
 import { REFRESH_TREE_ROOT } from "./currentBranch/currentBranchTreeDataProvider"
 
-/** All tree nodes should optionally implement getChildren. The provider will delegate the appropriate resolution to the node. If they do not, they are considered to be leafs and will not be expanded **/
 export abstract class GithubActionTreeNode extends vscode.TreeItem {
-  getChildren(): vscode.ProviderResult<GithubActionTreeNode[]> {
-    return []
-  }
-
   /** Calculate the time a run, job, or step took to run. If completed_at is not specified, return duration to the current time */
   protected getNodeDuration({
     started_at,
@@ -41,6 +36,8 @@ export abstract class GithubActionTreeNode extends vscode.TreeItem {
 
     return parts.slice(0, 2).join(" ") || "0s"
   }
+
+  protected parent?: GithubActionTreeNode
 }
 
 /** Provides the base infrastructure for interfacing the Github Actions API to the vscode tree view */
@@ -60,6 +57,7 @@ export abstract class GithubActionTreeDataProvider<
     }
   })
 
+  /** We dont do any kind of tree node mapping, so we just return the element itself */
   async getTreeItem(element: T) {
     logTrace(
       `🧑‍💻 vscode called getTreeItem for ${element.constructor.name}: ${element.label} ${element.description} [${element.id}]`,
@@ -67,17 +65,5 @@ export abstract class GithubActionTreeDataProvider<
     return element
   }
 
-  async getChildren(element?: T): Promise<T[] | typeof REFRESH_TREE_ROOT> {
-    const elementDescription = element
-      ? `${element.constructor.name}: ${element.label} ${element.description} [${element.id}]`
-      : "🌲 Root"
-    logTrace(`🧑‍💻 vscode called getChildren for ${elementDescription}`)
-
-    if (!element) return REFRESH_TREE_ROOT
-
-    if (element.getChildren) return element.getChildren() as Promise<T[]>
-
-    // If no getChildren method, return empty to signal it's a leaf. It should have been created as not expandable anyways. TODO: type check this?
-    return []
-  }
+  abstract getChildren(element?: T): Promise<T[] | typeof REFRESH_TREE_ROOT>
 }

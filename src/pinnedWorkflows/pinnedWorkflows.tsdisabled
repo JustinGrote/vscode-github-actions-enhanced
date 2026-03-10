@@ -115,7 +115,7 @@ async function updatePinnedWorkflows() {
       {
         owner: gitHubRepoContext.owner,
         repo: gitHubRepoContext.name,
-        per_page: 100,
+        per_page: 30,
       },
     )
 

@@ -29,7 +29,7 @@ export class EnvironmentSecretsNode extends vscode.TreeItem {
           owner: this.gitHubRepoContext.owner,
           repo: this.gitHubRepoContext.name,
           environment_name: this.environment.name,
-          per_page: 100,
+          per_page: 30,
         },
         (response) => response.data.map((s) => new SecretNode(this.gitHubRepoContext, s, this.environment)),
       )
