@@ -388,7 +388,7 @@
       {
         "view": "github-actions.error",
         "contents": "⏳ Searching for GitHub repositories in workspace...",
-        "when": "!github-actions.has-repos"
+        "when": "!github-actions.has-repos && !github-actions.no-repos"
       },
       {
         "view": "github-actions.error",
@@ -397,8 +397,8 @@
       },
       {
         "view": "github-actions.error",
-        "contents": "❌ No GitHub repositories found. Please open a folder that contains a GitHub repository.",
-        "when": "github-actions.needs-repos"
+        "contents": "❌ No GitHub repositories found. Please open a workspace that has one or more Git repositories with a GitHub remote specified.",
+        "when": "github-actions.no-repos"
       }
     ],
     "viewsContainers": {

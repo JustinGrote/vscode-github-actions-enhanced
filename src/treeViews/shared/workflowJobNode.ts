@@ -2,7 +2,6 @@ import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
 import { WorkflowJob } from "~/model"
-import { WorkflowStepNode } from "~/treeViews/shared/workflowStepNode"
 
 import { GithubActionTreeNode } from "../githubActionTreeDataProvider"
 import { getIconForWorkflowNode } from "../icons"
@@ -10,22 +9,35 @@ import { getIconForWorkflowNode } from "../icons"
 export class WorkflowJobNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
-    public readonly job: WorkflowJob,
+    public job: WorkflowJob,
   ) {
-    super(job.name, (job.steps && job.steps.length > 0 && vscode.TreeItemCollapsibleState.Collapsed) || undefined)
+    super(job.name, WorkflowJobNode.getCollapsibleState(job))
+    this.update(job)
+  }
 
+  update(job: WorkflowJob) {
+    this.job = job
+    this.id = job.node_id
+    this.label = job.name
+    this.description = job.status === "completed" ? this.getNodeDuration(job) : undefined
+    this.collapsibleState = WorkflowJobNode.getCollapsibleState(job)
     this.contextValue = "job"
-    if (this.job.status === "completed") {
+    if (job.status === "completed") {
       this.contextValue += " completed"
-      this.description = this.getNodeDuration(this.job)
     }
-
-    this.iconPath = getIconForWorkflowNode(this.job)
+    this.iconPath = getIconForWorkflowNode(job)
     this.tooltip = this.getToolTip()
   }
 
-  getChildren(): WorkflowStepNode[] {
-    return (this.job.steps || []).map((s) => new WorkflowStepNode(this.gitHubRepoContext, this.job, s))
+  // NOTE: Has to be static because we need to call it in the super()
+  static getCollapsibleState(job: WorkflowJob): vscode.TreeItemCollapsibleState | undefined {
+    return WorkflowJobNode.hasSteps(job)
+      ? vscode.TreeItemCollapsibleState.Collapsed
+      : vscode.TreeItemCollapsibleState.None
+  }
+
+  static hasSteps(job: WorkflowJob): boolean {
+    return (job.steps && job.steps.length > 0) || false
   }
 
   getToolTip(): vscode.MarkdownString {

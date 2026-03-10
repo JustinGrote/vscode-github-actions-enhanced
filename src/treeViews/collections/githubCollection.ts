@@ -24,27 +24,28 @@ export function createGithubCollection<TSelected extends object, TResult extends
   selector: (item: TResult) => TSelected[],
   compareFn: (a: TSelected, b: TSelected) => number,
   primaryKey: keyof TSelected,
+  refetchInterval: () => number | false | undefined = () => 500,
   queryClient = defaultQueryClient,
 ) {
   return createCollection(
     queryCollectionOptions({
+      queryKey: queryKey,
       queryClient: queryClient,
       startSync: true,
       syncMode: "eager",
       compare: compareFn,
-      queryKey: queryKey,
+      refetchInterval,
       queryFn: async ({ client }) => {
         logDebug(`♻️ Refreshing data for collection ${queryKey.join(",")}`)
         const response = await githubClient.conditionalRequest(apiCall, apiParams)
         // Indicates no changes to the API, so we should return the existing data to indicate no changes.
         if (!response) {
           logDebug(`👎 No changes detected for collection ${queryKey.join(",")}`)
-          return client.getQueryData<TSelected[]>(queryKey) ?? ([] as TSelected[])
+          const cachedResponse = client.getQueryData<TSelected[]>(queryKey) ?? ([] as TSelected[])
+          return cachedResponse
         }
-
         // If the response is a single object, return it as an array
         logDebug(`✨ Changes detected for collection ${queryKey.join(",")}`)
-
         const result = selector(response)
         return result
       },

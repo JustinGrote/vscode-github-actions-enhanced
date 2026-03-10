@@ -23,13 +23,12 @@ import { registerUpdateVariable } from "~/commands/variables/updateVariable"
 import { initConfiguration } from "~/configuration/configuration"
 import { assertOfficalExtensionNotPresent as officialExtensionIsActive } from "~/extensionConflictHandler"
 import { getGitExtension, getGitHubContext } from "~/git/repository"
-import { init as initLogger, log, revealLog } from "~/log"
+import { init as initLogger, log, logTrace, logWarn, revealLog } from "~/log"
 import { LogScheme } from "~/logs/constants"
 import { WorkflowStepLogProvider } from "~/logs/fileProvider"
 import { WorkflowStepLogFoldingProvider } from "~/logs/foldingProvider"
 import { WorkflowStepLogSymbolProvider } from "~/logs/symbolProvider"
 import { initPinnedWorkflows } from "~/pinnedWorkflows/pinnedWorkflows"
-import { RunStore } from "~/store/store"
 import { initWorkflowDocumentTracking } from "~/tracker/workflowDocumentTracker"
 import { initWorkspaceChangeTracker } from "~/tracker/workspaceTracker"
 import { initResources } from "~/treeViews/icons"
@@ -67,9 +66,8 @@ export async function activate(context: vscode.ExtensionContext) {
     setViewContext("internet-access", canReachAPI)
     // Prefetch git repository origin url
     const ghContext = hasSession && (await getGitHubContext())
-
     const hasGitHubRepos = !!ghContext && ghContext.repos.length > 0
-    void (hasGitHubRepos ? await setViewContext("has-repos", true) : await setViewContext("no-repos", false))
+    void (hasGitHubRepos ? await setViewContext("has-repos") : await setViewContext("no-repos"))
 
 
     initResources(context)
@@ -83,7 +81,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     startupPromises.push(initLanguageServer(context))
     // //   TODO: Reimplement
-    startupPromises.push(initPinnedWorkflows(new RunStore()))
+    // startupPromises.push(initPinnedWorkflows(new RunStore()))
 
     // Commands
     registerOpenWorkflowRun(context)

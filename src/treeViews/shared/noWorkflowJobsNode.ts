@@ -7,7 +7,4 @@ export class NoWorkflowJobsNode extends GithubActionTreeNode {
   constructor() {
     super("No workflow jobs")
   }
-  getChildren() {
-    return []
-  }
 }

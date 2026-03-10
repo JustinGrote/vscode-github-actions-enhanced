@@ -1,13 +1,13 @@
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import * as vscode from "vscode"
 
 import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
 import { getGitHubContext, GitHubRepoContext } from "~/git/repository"
-import { log, logDebug, logError, logTrace } from "~/log"
-import { Workflow } from "~/model"
-import { createGithubCollection, GithubCollection } from "~/treeViews/collections/githubCollection"
+import { log, logDebug, logError, logTrace,logWarn } from "~/log"
+import { Workflow, WorkflowJob, WorkflowRun, WorkflowRunAttempt } from "~/model"
 import { REFRESH_TREE_ROOT } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
 import { GithubActionTreeDataProvider } from "~/treeViews/githubActionTreeDataProvider"
+import { WorkflowService } from "~/treeViews/services/workflowService"
 import { AuthenticationNode } from "~/treeViews/shared/authenticationNode"
 import { ErrorNode } from "~/treeViews/shared/errorNode"
 import { GitHubAPIUnreachableNode } from "~/treeViews/shared/gitHubApiUnreachableNode"
@@ -22,25 +22,26 @@ import { WorkflowsRepoNode } from "~/treeViews/workflows/workflowsRepoNode"
 type WorkflowsTreeNode =
   | AuthenticationNode
   | NoGitHubRepositoryNode
+  | ErrorNode
+  | WorkflowsRepoNode
   | WorkflowNode
   | WorkflowRunNode
-  | PreviousAttemptsNode
   | WorkflowRunAttemptNode
+  | PreviousAttemptsNode
   | WorkflowJobNode
   | NoWorkflowJobsNode
   | WorkflowStepNode
   | GitHubAPIUnreachableNode
 
+/** A data presenter that handles all fetching from GitHub and presenting it in the VSCode tree view */
 export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<WorkflowsTreeNode> {
-  private workflowCollections: Map<string, GithubCollection<Workflow, { owner: string; repo: string }>> = new Map()
-  private workflowChangeFeeds: Map<
-    string,
-    ReturnType<GithubCollection<Workflow, { owner: string; repo: string }>["subscribeChanges"]>
-  > = new Map()
+  private workflowService = WorkflowService.getInstance()
   private workflowNodes: Map<string, WorkflowNode> = new Map()
+  private workflowRunNodes: Map<string, WorkflowRunNode> = new Map()
+  private changeSubscriptions: Array<{ unsubscribe: () => void }> = []
 
-  protected _updateNode(node: WorkflowRunNode): void {
-    logTrace(`Workflow Tree Node updated: ${node.description} ${node.label}`)
+  protected triggerUIRefresh(node: WorkflowRunNode): void {
+    logTrace(`⬆️ Refresh: ${node.description} ${node.label}`)
     this._onDidChangeTreeData.fire(node)
   }
 
@@ -53,9 +54,28 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     }
   }
 
+  /** The entrypoint from vscode for all node types in the tree */
   async getChildren(element?: WorkflowsTreeNode): Promise<WorkflowsTreeNode[]> {
-    const children = await super.getChildren(element)
-    if (children) return children
+    return match(element)
+      .with(REFRESH_TREE_ROOT, () => this.getTreeRootChildren())
+      .with(P.instanceOf(WorkflowsRepoNode), (node) => this.getWorkflowNodes(node.gitHubRepoContext))
+      .with(P.instanceOf(WorkflowNode), (node) => this.getWorkflowRunNodes(node))
+      .with(P.instanceOf(WorkflowRunNode), (node) => this.getWorkflowRunChildren(node))
+      .with(P.instanceOf(PreviousAttemptsNode), (node) => this.getPreviousAttemptNodes(node))
+      .with(P.instanceOf(WorkflowJobNode), (node) => this.getWorkflowJobChildren(node))
+
+      // Explicit leaf nodes
+      .with(P.instanceOf(AuthenticationNode), () => [])
+      .with(P.instanceOf(NoGitHubRepositoryNode), () => [])
+      .with(P.instanceOf(ErrorNode), () => [])
+      .with(P.instanceOf(NoWorkflowJobsNode), () => [])
+      .with(P.instanceOf(WorkflowStepNode), () => [])
+      .with(P.instanceOf(GitHubAPIUnreachableNode), () => [])
+
+      .exhaustive()
+  }
+
+  async getTreeRootChildren(): Promise<WorkflowsTreeNode[]> {
 
     // Root Refresh
     logDebug("🌲 Tree Root Request for Workflows")
@@ -69,15 +89,15 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
 
       if (gitHubContext.repos.length > 0) {
         // Special case, if there is only one repo, return workflow nodes directly
-        if (gitHubContext.repos.length == 1) {
+        if (gitHubContext.repos.length === 1) {
           return await this.getWorkflowNodes(gitHubContext.repos[0])
         }
 
-        return gitHubContext.repos.map((r) => new WorkflowsRepoNode(r, this))
+        return gitHubContext.repos.map((r) => new WorkflowsRepoNode(r))
       }
 
       log("No GitHub repositories found")
-      return []
+      return [new NoGitHubRepositoryNode()]
     } catch (e) {
       logError(e as Error, "Failed to get GitHub context")
 
@@ -90,74 +110,146 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   }
 
   async getWorkflowNodes(gitHubRepoContext: GitHubRepoContext): Promise<WorkflowNode[]> {
-    logDebug(`Getting workflow nodes for repo ${gitHubRepoContext.name}`)
+    logDebug(`Getting workflow nodes for repo ${gitHubRepoContext.name} (derived from workflow runs)`)
 
-    const githubClient = gitHubRepoContext.client
-    const collectionKey = `${gitHubRepoContext.owner}/${gitHubRepoContext.name}`
-    const queryKey = ["workflows", gitHubRepoContext.owner, gitHubRepoContext.name]
+    // Get workflow runs grouped by name from the service
+    const groupedRuns = await this.workflowService.getWorkflowRunsGroupedByName(gitHubRepoContext)
 
-    let collection = this.workflowCollections.get(collectionKey)
-    if (!collection) {
-      logDebug(`Creating workflow collection for repo ${gitHubRepoContext.name}`)
-      collection = createGithubCollection(
-        queryKey,
-        githubClient,
-        githubClient.actions.listRepoWorkflows,
-        {
-          owner: gitHubRepoContext.owner,
-          repo: gitHubRepoContext.name,
-          per_page: 100,
-        },
-        (response) => response.data.workflows,
-        (a, b) => a.name.localeCompare(b.name),
-        "id",
-      )
-      this.workflowCollections.set(collectionKey, collection)
-    }
-
-    const workflows = await collection.toArrayWhenReady()
-
-    // Subscribe for future changes after initial query
-    let changeFeed = this.workflowChangeFeeds.get(collectionKey)
-    if (!changeFeed) {
-      changeFeed = collection.subscribeChanges((changes) => {
-        logDebug(`🚨 Workflow changes detected for ${gitHubRepoContext.name}`)
-
-        const nodesToRefresh = changes
-          .map((change) => {
-            logTrace(`🚨 Workflow change detected: ${change.type} ${change.value.id} ${change.value.name}`)
-            return match(change)
-              .with({ type: "update" }, () => {
-                log(`✏️ Workflow ${change.value.id} was updated`)
-                return this.toWorkflowNode(change.value, gitHubRepoContext)
-              })
-              .with({ type: "insert" }, () => {
-                log(`➕ Workflow ${change.value.id} was inserted`)
-                return this.toWorkflowNode(change.value, gitHubRepoContext)
-              })
-              .with({ type: "delete" }, () => {
-                log(`🗑️ Workflow ${change.value.id} was deleted`)
-                this.workflowNodes.delete(change.value.id.toString())
-                return undefined
-              })
-              .exhaustive()
-          })
-          .filter((node) => node !== undefined)
-
-        if (nodesToRefresh.length > 0) {
-          this._onDidChangeTreeData.fire(nodesToRefresh)
-        }
+    // Subscribe to changes if not already subscribed
+    const collectionKey = this.getRepoKey(gitHubRepoContext)
+    if (!this.changeSubscriptions.some((sub) => (sub as any).key === collectionKey)) {
+      const subscription = this.workflowService.subscribeToWorkflowRunChanges(gitHubRepoContext, () => {
+        logDebug(`🚨 Workflow run changes detected for ${gitHubRepoContext.name}, refreshing tree`)
+        // For simplicity, refresh the entire tree when runs change
+        // This will cause workflow nodes to be re-derived from the latest runs
+        this._onDidChangeTreeData.fire(REFRESH_TREE_ROOT)
       })
-
-      this.workflowChangeFeeds.set(collectionKey, changeFeed)
-      logDebug(`👁️ Watcher for workflows created for repo ${gitHubRepoContext.name}`)
+      ;(subscription as any).key = collectionKey
+      this.changeSubscriptions.push(subscription)
+      logDebug(`👁️ Subscribed to workflow run changes for repo ${gitHubRepoContext.name}`)
     }
 
-    return workflows.map((wf) => this.toWorkflowNode(wf, gitHubRepoContext))
+    // Create workflow nodes from grouped runs
+    const workflowNodes: WorkflowNode[] = []
+    for (const [workflowName, runs] of groupedRuns.entries()) {
+      if (runs.length === 0) continue
+
+      // Use the most recent run to derive workflow metadata
+      const latestRun = runs[0]
+      const syntheticWorkflow: Workflow = {
+        id: latestRun.workflow_id,
+        name: workflowName,
+        path: latestRun.path,
+        state: "active",
+        created_at: latestRun.created_at,
+        updated_at: latestRun.updated_at,
+        url: latestRun.workflow_url || "",
+        html_url: latestRun.workflow_url || "",
+        badge_url: "",
+        node_id: `workflow_${latestRun.workflow_id}`,
+      }
+
+      const node = this.toWorkflowNode(syntheticWorkflow, gitHubRepoContext)
+      workflowNodes.push(node)
+    }
+
+    // Sort by name
+    workflowNodes.sort((a, b) => a.wf.name.localeCompare(b.wf.name))
+
+    return workflowNodes
+  }
+
+  private async getWorkflowRunNodes(workflowNode: WorkflowNode): Promise<WorkflowRunNode[]> {
+    logDebug(`Getting workflow runs for workflow ${workflowNode.wf.name} (${workflowNode.wf.id})`)
+
+    const gitHubRepoContext = workflowNode.gitHubRepoContext
+
+    // Get runs for this specific workflow from the service
+    const runs = await this.workflowService.getWorkflowRuns(gitHubRepoContext, workflowNode.wf.id)
+
+    // Limit to most recent runs
+    const recentRuns = runs.slice(0, 30)
+
+    return recentRuns.map((run) => this.toWorkflowRunNode(run, workflowNode))
+  }
+
+  private async getWorkflowRunChildren(node: WorkflowRunNode): Promise<WorkflowsTreeNode[]> {
+    const jobs = await this.getWorkflowRunJobs(node)
+    const jobNodes: WorkflowsTreeNode[] = jobs.map((job) => new WorkflowJobNode(node.gitHubRepoContext, job))
+
+    if (node.hasPreviousAttempts) {
+      jobNodes.push(new PreviousAttemptsNode(node.gitHubRepoContext, node.run))
+    }
+
+    if (jobNodes.length === 0) {
+      return [new NoWorkflowJobsNode()]
+    }
+
+    return jobNodes
+  }
+
+  private getWorkflowJobChildren(node: WorkflowJobNode): WorkflowStepNode[] {
+    return (node.job.steps || []).map((step) => new WorkflowStepNode(node.gitHubRepoContext, node.job, step))
+  }
+
+  private async getPreviousAttemptNodes(node: PreviousAttemptsNode): Promise<WorkflowRunAttemptNode[]> {
+    logTrace(`Fetching previous attempts for workflow run ${node.run.display_title} #${node.run.run_number} (${node.run.id})`)
+
+    const attempts = node.run.run_attempt || 1
+    const attemptRequests = []
+    if (attempts > 1) {
+      for (let i = 1; i < attempts; i++) {
+        attemptRequests.push(
+          node.gitHubRepoContext.client.actions
+            .getWorkflowRunAttempt({
+              owner: node.gitHubRepoContext.owner,
+              repo: node.gitHubRepoContext.name,
+              run_id: node.run.id,
+              attempt_number: i,
+            })
+            .then((response) => response.data),
+        )
+      }
+    }
+
+    const previousAttempts: WorkflowRunAttempt[] = await Promise.all(attemptRequests)
+    return previousAttempts
+      .map((attempt) => new WorkflowRunAttemptNode(node.gitHubRepoContext, attempt))
+      .map((attempt) => {
+        attempt.id = `${node.run.id}-${attempt.run.run_attempt}`
+        return attempt
+      })
+      .sort((a, b) => (b.run.run_attempt ?? 1) - (a.run.run_attempt ?? 1))
+  }
+
+  private async getWorkflowRunJobs(node: WorkflowRunNode): Promise<WorkflowJob[]> {
+    logDebug(`Fetching jobs for workflow run ${node.run.display_title} #${node.run.run_number} (${node.run.id})`)
+
+    const jobs = await this.workflowService.getWorkflowRunJobs(
+      node.gitHubRepoContext,
+      node.run
+    )
+
+    // If the run is concluded, no need to subscribe to job changes
+    if (node.run.conclusion) return jobs
+
+    // Subscribe to job changes to update the node
+    const subscription = await this.workflowService.subscribeToJobChanges(
+      node.gitHubRepoContext,
+      node.run,
+      (_changes) => {
+        logDebug(`📋 Jobs change detected for workflow run ${node.run.display_title} #${node.run.run_number} (${node.run.id})`)
+        this.triggerUIRefresh(node)
+      },
+    )
+    this.changeSubscriptions.push(subscription)
+
+    return jobs
   }
 
   private toWorkflowNode(workflow: Workflow, gitHubRepoContext: GitHubRepoContext): WorkflowNode {
-    const existingNode = this.workflowNodes.get(workflow.id.toString())
+    const workflowKey = this.getWorkflowNodeKey(gitHubRepoContext, workflow.id)
+    const existingNode = this.workflowNodes.get(workflowKey)
     if (existingNode) {
       logTrace(`🖊️ Workflow ${workflow.id} already exists in tree, reusing existing node and updating its data`)
       existingNode.updateWorkflow(workflow)
@@ -168,7 +260,38 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     workflow.name = nameWithoutNewlines
 
     const node = new WorkflowNode(gitHubRepoContext, workflow)
-    this.workflowNodes.set(workflow.id.toString(), node)
+    this.workflowNodes.set(workflowKey, node)
     return node
+  }
+
+  private toWorkflowRunNode(run: WorkflowRun, workflowNode: WorkflowNode): WorkflowRunNode {
+    const runKey = this.getWorkflowRunNodeKey(workflowNode.gitHubRepoContext, workflowNode.wf.id, run.id)
+    const existingNode = this.workflowRunNodes.get(runKey)
+    if (existingNode) {
+      logTrace(`🖊️ Run ${run.id} already exists in tree, reusing existing node and updating its data`)
+      existingNode.update(run)
+      return existingNode
+    }
+
+    logTrace(`➕ Adding run ${run.id} ${run.name} #${run.run_number} to tree`)
+    const workflowRunNode = new WorkflowRunNode(workflowNode.gitHubRepoContext, run)
+    this.workflowRunNodes.set(runKey, workflowRunNode)
+    return workflowRunNode
+  }
+
+  private getRepoKey(gitHubRepoContext: GitHubRepoContext): string {
+    return `${gitHubRepoContext.owner}/${gitHubRepoContext.name}`
+  }
+
+  private getWorkflowNodeKey(gitHubRepoContext: GitHubRepoContext, workflowId: string | number): string {
+    return `${this.getRepoKey(gitHubRepoContext)}/${workflowId}`
+  }
+
+  private getWorkflowRunNodeKey(
+    gitHubRepoContext: GitHubRepoContext,
+    workflowId: string | number,
+    runId: number,
+  ): string {
+    return `${this.getWorkflowNodeKey(gitHubRepoContext, workflowId)}/${runId}`
   }
 }
