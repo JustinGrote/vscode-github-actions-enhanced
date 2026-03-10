@@ -41,14 +41,13 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   private changeSubscriptions: Array<{ unsubscribe: () => void }> = []
 
   protected triggerUIRefresh(node: GithubActionTreeNode | typeof REFRESH_TREE_ROOT): void {
-    logTrace(`⬆️ Refresh: ${node === REFRESH_TREE_ROOT ? "🌲 Root" : node.label}`)
     this._onDidChangeTreeData.fire(node)
   }
 
-  async refresh(): Promise<void> {
+  async refresh(node?: GithubActionTreeNode): Promise<void> {
     // Don't delete all the nodes if we can't reach GitHub API
     if (await canReachGitHubAPI()) {
-      this.triggerUIRefresh(REFRESH_TREE_ROOT)
+      this.triggerUIRefresh(node)
     } else {
       await vscode.window.showWarningMessage("Unable to refresh, could not reach GitHub API")
     }
@@ -176,7 +175,7 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     const runs = await this.getWorkflowRuns(workflowNode.gitHubRepoContext)
     // Get runs for this specific workflow from the service
     const workflowRuns = runs.filter((run) => run.workflow_id === workflowNode.wf.id)
-    return workflowRuns.map((run) => this.toWorkflowRunNode(run, workflowNode))
+    return workflowRuns.map((run) => this.toWorkflowRunNode(run, workflowNode)).sort((a, b) => new Date(b.run.created_at).getTime() - new Date(a.run.created_at).getTime())
   }
 
   private async getWorkflowRunChildren(node: WorkflowRunNode): Promise<WorkflowsTreeNode[]> {
@@ -207,16 +206,11 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
       return []
     }
 
-    const gitHubRepoContext = node.gitHubRepoContext
-    const view = await WorkflowRunView.create(gitHubRepoContext)
-
-    // TODO: Redo this as a live query
-    const runs = await view.get()
-    const previousAttemptRuns = runs.filter(
-      (run) =>
-        run.id === node.mostRecentRun.id &&
-        run.run_attempt !== undefined &&
-        run.run_attempt < (node.mostRecentRun.run_attempt || 1)
+    // Fetch attempts 2..N (attempt 1 is the most recent run, which we already have)
+    const previousAttemptRuns = await Promise.all(
+      Array.from({ length: attempts - 1 }, (_, i) =>
+        this.workflowService.getWorkflowRunAttempt(node.gitHubRepoContext, node.mostRecentRun.id, i + 1)
+      )
     )
 
     // Return in descending order

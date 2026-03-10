@@ -70,7 +70,7 @@ export class WorkflowService {
         },
         (response) => response.data.workflow_runs,
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        "id",
+        "id"
       )
 
       this.workflowRunCollections.set(collectionKey, collection)
@@ -78,83 +78,6 @@ export class WorkflowService {
     }
 
     return collection
-  }
-
-  /**
-   * Subscribe to changes in workflow runs for a repository.
-   */
-  subscribeToWorkflowRunChanges(
-    gitHubRepoContext: GitHubRepoContext,
-    callback: (
-      changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowRun }>,
-    ) => void,
-  ): { unsubscribe: () => void } {
-    const collectionKey = this.getRepoKey(gitHubRepoContext)
-    const feedKey = `${collectionKey}:${Date.now()}`
-
-    this.getWorkflowRunCollection(gitHubRepoContext).then((collection) => {
-      const feed = collection.subscribeChanges((changes) => {
-        logTrace(`🚨 WorkflowRun changes detected for ${gitHubRepoContext.name}: ${changes.length} changes`)
-        callback(
-          changes.map((change) =>
-            match(change)
-              .with({ type: "update" }, (c) => ({ type: "update" as const, value: c.value }))
-              .with({ type: "insert" }, (c) => ({ type: "insert" as const, value: c.value }))
-              .with({ type: "delete" }, (c) => ({ type: "delete" as const, value: c.value }))
-              .exhaustive(),
-          ),
-        )
-      })
-
-      this.workflowRunChangeFeeds.set(feedKey, feed)
-    })
-
-    return {
-      unsubscribe: () => {
-        const feed = this.workflowRunChangeFeeds.get(feedKey)
-        if (feed) {
-          feed.unsubscribe()
-          this.workflowRunChangeFeeds.delete(feedKey)
-        }
-      },
-    }
-  }
-
-  /**
-   * Get workflow runs grouped by workflow name.
-   * Returns a map where keys are workflow names and values are arrays of runs.
-   */
-  async getWorkflowRunsGroupedByName(gitHubRepoContext: GitHubRepoContext): Promise<Map<string, WorkflowRun[]>> {
-    const collection = await this.getWorkflowRunCollection(gitHubRepoContext)
-    const runs = await collection.toArrayWhenReady()
-
-    const grouped = new Map<string, WorkflowRun[]>()
-    for (const run of runs) {
-      const workflowName = run.name || `Workflow ${run.workflow_id}`
-      if (!grouped.has(workflowName)) {
-        grouped.set(workflowName, [])
-      }
-      grouped.get(workflowName)!.push(run)
-    }
-
-    return grouped
-  }
-
-  /**
-   * Get workflow runs for a specific workflow (by workflow ID or name).
-   */
-  async getWorkflowRuns(
-    gitHubRepoContext: GitHubRepoContext,
-    workflowIdOrName: string | number,
-  ): Promise<WorkflowRun[]> {
-    const collection = await this.getWorkflowRunCollection(gitHubRepoContext)
-    const runs = await collection.toArrayWhenReady()
-
-    if (typeof workflowIdOrName === "number") {
-      return runs.filter((run) => run.workflow_id === workflowIdOrName)
-    } else {
-      return runs.filter((run) => run.name === workflowIdOrName)
-    }
   }
 
   /**
@@ -200,6 +123,17 @@ export class WorkflowService {
     }
 
     return collection.toArrayWhenReady()
+  }
+
+  async getWorkflowRunAttempt(githubRepoContext: GitHubRepoContext, runId: number, attemptNumber: number): Promise<WorkflowRunAttempt> {
+    const response = await githubRepoContext.client.actions.getWorkflowRunAttempt({
+      owner: githubRepoContext.owner,
+      repo: githubRepoContext.name,
+      run_id: runId,
+      attempt_number: attemptNumber,
+      exclude_pull_requests: true,
+    })
+    return response.data
   }
 
   /**
