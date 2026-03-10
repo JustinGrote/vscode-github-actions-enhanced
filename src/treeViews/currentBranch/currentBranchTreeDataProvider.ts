@@ -1,7 +1,8 @@
 import { match, P } from "ts-pattern"
 import * as vscode from "vscode"
 
-
+import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "~/git/repository"
+import { logDebug, logError, logTrace, logWarn } from "~/log"
 import { CurrentBranchRepoNode } from "~/treeViews/currentBranch/currentBranchRepoNode"
 import { NoRunForBranchNode } from "~/treeViews/currentBranch/noRunForBranchNode"
 import { GitHubAPIUnreachableNode } from "~/treeViews/shared/gitHubApiUnreachableNode"
@@ -9,11 +10,10 @@ import { NoWorkflowJobsNode } from "~/treeViews/shared/noWorkflowJobsNode"
 import { WorkflowJobNode } from "~/treeViews/shared/workflowJobNode"
 import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "~/treeViews/shared/workflowRunNode"
 import { WorkflowStepNode } from "~/treeViews/shared/workflowStepNode"
-import { WorkflowsTreeDataProvider } from "../workflows/workflowsTreeDataProvider"
-import { logDebug, logError, logTrace, logWarn } from "~/log"
-import { getCurrentBranch, getGitHubContext, GitHubRepoContext } from "~/git/repository"
-import { NoGitHubRepositoryNode } from "../shared/noGitHubRepositoryNode"
+
 import { WorkflowRunView } from "../services/workflowService"
+import { NoGitHubRepositoryNode } from "../shared/noGitHubRepositoryNode"
+import { WorkflowsTreeDataProvider } from "../workflows/workflowsTreeDataProvider"
 
 type CurrentBranchTreeNode =
   | ExpandableCurrentBranchTreeNode
@@ -37,9 +37,7 @@ export class CurrentBranchTreeDataProvider extends WorkflowsTreeDataProvider {
   async getChildren(node: ExpandableCurrentBranchTreeNode): Promise<CurrentBranchTreeNode[]> {
     return match(node)
       .with(P.nullish, () => this.getTreeRootChildren())
-      .with(P.instanceOf(CurrentBranchRepoNode),
-        (node) => this.getBranchNodeChildren(node as CurrentBranchRepoNode),
-      )
+      .with(P.instanceOf(CurrentBranchRepoNode), (node) => this.getBranchNodeChildren(node as CurrentBranchRepoNode))
       .otherwise(() => super.getChildren(node))
   }
 
@@ -61,7 +59,9 @@ export class CurrentBranchTreeDataProvider extends WorkflowsTreeDataProvider {
       .filter((repoContext) => {
         const currentBranchName = getCurrentBranch(repoContext.repositoryState)
         if (!currentBranchName) {
-          logWarn(`Could not get current branch for repo ${repoContext.name}. This shouldn't happen and is probably a bug.`)
+          logWarn(
+            `Could not get current branch for repo ${repoContext.name}. This shouldn't happen and is probably a bug.`,
+          )
           return false
         }
         return true
@@ -69,7 +69,9 @@ export class CurrentBranchTreeDataProvider extends WorkflowsTreeDataProvider {
       .map((repoContext) => {
         const currentBranchName = getCurrentBranch(repoContext.repositoryState)
         if (currentBranchName === undefined) {
-          const err = new Error(`currentBranchName for ${repoContext.name} is unexpectedly undefined. This shouldn't happen and is probably a bug.`)
+          const err = new Error(
+            `currentBranchName for ${repoContext.name} is unexpectedly undefined. This shouldn't happen and is probably a bug.`,
+          )
           logError(err)
           throw err
         }
@@ -93,9 +95,13 @@ export class CurrentBranchTreeDataProvider extends WorkflowsTreeDataProvider {
     const view = await WorkflowRunView.create(node.gitHubRepoContext, node.currentBranchName)
     const updateMonitorKey = `${node.gitHubRepoContext.owner}/${node.gitHubRepoContext.name}/${node.currentBranchName}`
     if (!this.branchNodeUpdates.has(updateMonitorKey)) {
-      logTrace(`👁️ Subscribing to workflow run updates for branch ${node.currentBranchName} in repo ${node.gitHubRepoContext.name}`)
+      logTrace(
+        `👁️ Subscribing to workflow run updates for branch ${node.currentBranchName} in repo ${node.gitHubRepoContext.name}`,
+      )
       const disposable = view.subscribe(() => {
-        logDebug(`✨ Workflow runs updated for branch ${node.currentBranchName} in repo ${node.gitHubRepoContext.name}, refreshing ...`)
+        logDebug(
+          `✨ Workflow runs updated for branch ${node.currentBranchName} in repo ${node.gitHubRepoContext.name}, refreshing ...`,
+        )
         // If a multi repo root, we only need to refresh the specific repo node.
         this.triggerUIRefresh(this.multiRepoRoot ? node : REFRESH_TREE_ROOT)
       })
@@ -104,8 +110,13 @@ export class CurrentBranchTreeDataProvider extends WorkflowsTreeDataProvider {
     return children
   }
 
-  async getBranchWorkflowRunNodes(githubRepoContext: GitHubRepoContext, branchName: string): Promise<WorkflowRunNode[]> {
+  async getBranchWorkflowRunNodes(
+    githubRepoContext: GitHubRepoContext,
+    branchName: string,
+  ): Promise<WorkflowRunNode[]> {
     const runs = await this.getWorkflowRuns(githubRepoContext, branchName)
-    return runs.map((run) => new WorkflowRunNode(githubRepoContext, run)).sort((a, b) => new Date(b.run.created_at).getTime() - new Date(a.run.created_at).getTime())
+    return runs
+      .map((run) => new WorkflowRunNode(githubRepoContext, run))
+      .sort((a, b) => new Date(b.run.created_at).getTime() - new Date(a.run.created_at).getTime())
   }
 }

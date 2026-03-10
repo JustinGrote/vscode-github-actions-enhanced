@@ -1,8 +1,19 @@
-import { Collection, createLiveQueryCollection, eq, type Context, type InitialQueryBuilder, type QueryBuilder } from "@tanstack/db";import { cp } from "fs";import { match } from "ts-pattern"
-import * as vscode from "vscode";
+import { cp } from "fs"
+
+import {
+  Collection,
+  createLiveQueryCollection,
+  eq,
+  type Context,
+  type InitialQueryBuilder,
+  type QueryBuilder,
+} from "@tanstack/db"
+import { match } from "ts-pattern"
+import * as vscode from "vscode"
+
 import { GitHubRepoContext } from "~/git/repository"
-import { log, logDebug, logTrace,logWarn } from "~/log"
-import { WorkflowJob, WorkflowRun,WorkflowRunAttempt } from "~/model"
+import { log, logDebug, logTrace, logWarn } from "~/log"
+import { WorkflowJob, WorkflowRun, WorkflowRunAttempt } from "~/model"
 import { createGithubCollection, GithubCollection } from "~/treeViews/collections/githubCollection"
 
 export interface WorkflowRunCollectionKey {
@@ -70,7 +81,7 @@ export class WorkflowService {
         },
         (response) => response.data.workflow_runs,
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        "id"
+        "id",
       )
 
       this.workflowRunCollections.set(collectionKey, collection)
@@ -87,8 +98,14 @@ export class WorkflowService {
     gitHubRepoContext: GitHubRepoContext,
     workflowRun: WorkflowRun | WorkflowRunAttempt,
   ): Promise<WorkflowJob[]> {
-		const { id: runId, run_attempt: attemptNumber = 1 } = workflowRun
-    const queryKey: string[] = ["jobs", gitHubRepoContext.owner, gitHubRepoContext.name, String(runId), String(attemptNumber)]
+    const { id: runId, run_attempt: attemptNumber = 1 } = workflowRun
+    const queryKey: string[] = [
+      "jobs",
+      gitHubRepoContext.owner,
+      gitHubRepoContext.name,
+      String(runId),
+      String(attemptNumber),
+    ]
     const collectionKey = this.getJobCollectionKey(gitHubRepoContext, runId, attemptNumber)
     let collection = this.workflowJobCollections.get(collectionKey)
 
@@ -116,7 +133,7 @@ export class WorkflowService {
             loggedRunCompleted = true
           }
           return false
-        }
+        },
       )
 
       this.workflowJobCollections.set(collectionKey, collection)
@@ -125,7 +142,11 @@ export class WorkflowService {
     return collection.toArrayWhenReady()
   }
 
-  async getWorkflowRunAttempt(githubRepoContext: GitHubRepoContext, runId: number, attemptNumber: number): Promise<WorkflowRunAttempt> {
+  async getWorkflowRunAttempt(
+    githubRepoContext: GitHubRepoContext,
+    runId: number,
+    attemptNumber: number,
+  ): Promise<WorkflowRunAttempt> {
     const response = await githubRepoContext.client.actions.getWorkflowRunAttempt({
       owner: githubRepoContext.owner,
       repo: githubRepoContext.name,
@@ -144,7 +165,7 @@ export class WorkflowService {
     workflowRun: WorkflowRun | WorkflowRunAttempt,
     callback: (changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowJob }>) => void,
   ): Promise<{ unsubscribe: () => void }> {
-		const { id: runId, run_attempt: attemptNumber = 1 } = workflowRun
+    const { id: runId, run_attempt: attemptNumber = 1 } = workflowRun
     const collectionKey = this.getJobCollectionKey(gitHubRepoContext, runId, attemptNumber)
     // Wait for first sync before subscribing, we only want delta changes
     await this.getWorkflowRunJobs(gitHubRepoContext, workflowRun)
@@ -198,9 +219,7 @@ export class WorkflowRunView {
   private static views: Map<string, WorkflowRunView> = new Map()
   private query: Collection<WorkflowRun>
   /** Use the async create factory **/
-  private constructor(
-    query: Collection<WorkflowRun>,
-  ) {
+  private constructor(query: Collection<WorkflowRun>) {
     this.query = query
   }
 
@@ -211,8 +230,8 @@ export class WorkflowRunView {
 
     const workflowService = WorkflowService.getInstance()
     const collection = await workflowService.getWorkflowRunCollection(githubRepoContext)
-    const query = createLiveQueryCollection(
-      q => q.from({run: collection}).where(({run}) => branchName ? eq(run.head_branch, branchName) : eq(true, true)),
+    const query = createLiveQueryCollection((q) =>
+      q.from({ run: collection }).where(({ run }) => (branchName ? eq(run.head_branch, branchName) : eq(true, true))),
     )
     const view = new WorkflowRunView(query)
     this.views.set(viewKey, view)
@@ -223,7 +242,10 @@ export class WorkflowRunView {
     return this.query.toArrayWhenReady()
   }
 
-  public subscribe(callback: (changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowRun }>) => void, once = false): vscode.Disposable {
+  public subscribe(
+    callback: (changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowRun }>) => void,
+    once = false,
+  ): vscode.Disposable {
     const feed = this.query.subscribeChanges((changes) => {
       logTrace(`🚨 WorkflowRunView changes detected: ${changes.length} changes`)
       callback(
@@ -239,7 +261,7 @@ export class WorkflowRunView {
     })
 
     return {
-      dispose: () => feed.unsubscribe()
+      dispose: () => feed.unsubscribe(),
     }
   }
 }

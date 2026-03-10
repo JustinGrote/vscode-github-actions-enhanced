@@ -7,9 +7,7 @@ import type { WorkflowsTreeDataProvider } from "~/treeViews/workflows/workflowsT
 
 /** When multiple repos are present, this node is presented */
 export class WorkflowsRepoNode extends GithubActionTreeNode {
-  constructor(
-    public readonly gitHubRepoContext: GitHubRepoContext,
-  ) {
+  constructor(public readonly gitHubRepoContext: GitHubRepoContext) {
     super(gitHubRepoContext.name, vscode.TreeItemCollapsibleState.Collapsed)
     this.contextValue = "wf-repo"
     this.iconPath = new vscode.ThemeIcon("repo")

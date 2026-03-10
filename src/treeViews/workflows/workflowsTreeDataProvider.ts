@@ -3,7 +3,7 @@ import * as vscode from "vscode"
 
 import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
 import { getGitHubContext, GitHubRepoContext } from "~/git/repository"
-import { logDebug, logError, logTrace,logWarn } from "~/log"
+import { logDebug, logError, logTrace, logWarn } from "~/log"
 import { Workflow, WorkflowJob, WorkflowRun } from "~/model"
 import { REFRESH_TREE_ROOT } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
 import { GithubActionTreeDataProvider, GithubActionTreeNode } from "~/treeViews/githubActionTreeDataProvider"
@@ -55,23 +55,25 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
 
   /** The entrypoint from vscode for all node types in the tree */
   async getChildren(element?: WorkflowsTreeNode): Promise<WorkflowsTreeNode[]> {
-    return match(element)
-      .with(REFRESH_TREE_ROOT, () => this.getTreeRootChildren())
-      .with(P.instanceOf(WorkflowsRepoNode), (node) => this.getWorkflowNodes(node.gitHubRepoContext))
-      .with(P.instanceOf(WorkflowNode), (node) => this.getWorkflowChildren(node))
-      .with(P.instanceOf(WorkflowRunNode), (node) => this.getWorkflowRunChildren(node))
-      .with(P.instanceOf(PreviousAttemptsNode), (node) => this.getPreviousAttemptNodes(node))
-      .with(P.instanceOf(WorkflowJobNode), (node) => this.getWorkflowJobChildren(node))
+    return (
+      match(element)
+        .with(REFRESH_TREE_ROOT, () => this.getTreeRootChildren())
+        .with(P.instanceOf(WorkflowsRepoNode), (node) => this.getWorkflowNodes(node.gitHubRepoContext))
+        .with(P.instanceOf(WorkflowNode), (node) => this.getWorkflowChildren(node))
+        .with(P.instanceOf(WorkflowRunNode), (node) => this.getWorkflowRunChildren(node))
+        .with(P.instanceOf(PreviousAttemptsNode), (node) => this.getPreviousAttemptNodes(node))
+        .with(P.instanceOf(WorkflowJobNode), (node) => this.getWorkflowJobChildren(node))
 
-      // Explicit leaf nodes
-      .with(P.instanceOf(AuthenticationNode), () => [])
-      .with(P.instanceOf(NoGitHubRepositoryNode), () => [])
-      .with(P.instanceOf(ErrorNode), () => [])
-      .with(P.instanceOf(NoWorkflowJobsNode), () => [])
-      .with(P.instanceOf(WorkflowStepNode), () => [])
-      .with(P.instanceOf(GitHubAPIUnreachableNode), () => [])
+        // Explicit leaf nodes
+        .with(P.instanceOf(AuthenticationNode), () => [])
+        .with(P.instanceOf(NoGitHubRepositoryNode), () => [])
+        .with(P.instanceOf(ErrorNode), () => [])
+        .with(P.instanceOf(NoWorkflowJobsNode), () => [])
+        .with(P.instanceOf(WorkflowStepNode), () => [])
+        .with(P.instanceOf(GitHubAPIUnreachableNode), () => [])
 
-      .exhaustive()
+        .exhaustive()
+    )
   }
 
   /** Gets the root nodes for the tree. Can be reimplemented in derived classes for different views */
@@ -175,7 +177,9 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     const runs = await this.getWorkflowRuns(workflowNode.gitHubRepoContext)
     // Get runs for this specific workflow from the service
     const workflowRuns = runs.filter((run) => run.workflow_id === workflowNode.wf.id)
-    return workflowRuns.map((run) => this.toWorkflowRunNode(run, workflowNode)).sort((a, b) => new Date(b.run.created_at).getTime() - new Date(a.run.created_at).getTime())
+    return workflowRuns
+      .map((run) => this.toWorkflowRunNode(run, workflowNode))
+      .sort((a, b) => new Date(b.run.created_at).getTime() - new Date(a.run.created_at).getTime())
   }
 
   private async getWorkflowRunChildren(node: WorkflowRunNode): Promise<WorkflowsTreeNode[]> {
@@ -198,19 +202,23 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   }
 
   private async getPreviousAttemptNodes(node: PreviousAttemptsNode): Promise<WorkflowRunAttemptNode[]> {
-    logTrace(`Fetching previous attempts for workflow run ${node.mostRecentRun.display_title} #${node.mostRecentRun.run_number} (${node.mostRecentRun.id})`)
+    logTrace(
+      `Fetching previous attempts for workflow run ${node.mostRecentRun.display_title} #${node.mostRecentRun.run_number} (${node.mostRecentRun.id})`,
+    )
 
     const attempts = node.mostRecentRun.run_attempt || 1
     if (attempts <= 1) {
-      logWarn(`Previous Attempts node created for ${node.id} but it has only ${attempts} attempt(s), expected more than 1. This node should not have been created.`)
+      logWarn(
+        `Previous Attempts node created for ${node.id} but it has only ${attempts} attempt(s), expected more than 1. This node should not have been created.`,
+      )
       return []
     }
 
     // Fetch attempts 2..N (attempt 1 is the most recent run, which we already have)
     const previousAttemptRuns = await Promise.all(
       Array.from({ length: attempts - 1 }, (_, i) =>
-        this.workflowService.getWorkflowRunAttempt(node.gitHubRepoContext, node.mostRecentRun.id, i + 1)
-      )
+        this.workflowService.getWorkflowRunAttempt(node.gitHubRepoContext, node.mostRecentRun.id, i + 1),
+      ),
     )
 
     // Return in descending order
@@ -222,10 +230,7 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   private async getWorkflowRunJobs(node: WorkflowRunNode): Promise<WorkflowJob[]> {
     logDebug(`Fetching jobs for workflow run ${node.run.display_title} #${node.run.run_number} (${node.run.id})`)
 
-    const jobs = await this.workflowService.getWorkflowRunJobs(
-      node.gitHubRepoContext,
-      node.run
-    )
+    const jobs = await this.workflowService.getWorkflowRunJobs(node.gitHubRepoContext, node.run)
 
     // If the run is concluded, no need to subscribe to job changes
     if (node.run.conclusion) return jobs
@@ -235,7 +240,9 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
       node.gitHubRepoContext,
       node.run,
       (_changes) => {
-        logDebug(`📋 Jobs change detected for workflow run ${node.run.display_title} #${node.run.run_number} (${node.run.id})`)
+        logDebug(
+          `📋 Jobs change detected for workflow run ${node.run.display_title} #${node.run.run_number} (${node.run.id})`,
+        )
         this.triggerUIRefresh(node)
       },
     )
