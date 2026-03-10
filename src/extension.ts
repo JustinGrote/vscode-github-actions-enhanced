@@ -28,13 +28,31 @@ import { LogScheme } from "~/logs/constants"
 import { WorkflowStepLogProvider } from "~/logs/fileProvider"
 import { WorkflowStepLogFoldingProvider } from "~/logs/foldingProvider"
 import { WorkflowStepLogSymbolProvider } from "~/logs/symbolProvider"
-import { initPinnedWorkflows } from "~/pinnedWorkflows/pinnedWorkflows"
 import { initWorkflowDocumentTracking } from "~/tracker/workflowDocumentTracker"
 import { initWorkspaceChangeTracker } from "~/tracker/workspaceTracker"
 import { initResources } from "~/treeViews/icons"
 import { initTreeViews } from "~/treeViews/treeViews"
 import { setViewContext } from "~/viewState"
 import { deactivateLanguageServer, initLanguageServer } from "~/workflow/languageServer"
+
+/** Use this as a global convenience for registering disposables */
+let saveExtensionDisposables: (disposable: vscode.Disposable[]) => void
+const extensionDisposables = new Promise<vscode.Disposable[]>((resolve) => {
+  saveExtensionDisposables = resolve
+})
+
+export async function registerDisposable(...disposables: vscode.Disposable[]) {
+  const extensionDisposablesList = await extensionDisposables
+  extensionDisposablesList.push(...disposables)
+}
+
+export async function unregisterDisposable(disposable: vscode.Disposable) {
+  const disposables = await extensionDisposables
+  const index = disposables.indexOf(disposable)
+  if (index !== -1) {
+    disposables.splice(index, 1)
+  }
+}
 
 export async function activate(context: vscode.ExtensionContext) {
   if (await officialExtensionIsActive()) return
@@ -47,6 +65,8 @@ export async function activate(context: vscode.ExtensionContext) {
   log("🚀 Activating GitHub Actions extension!")
 
   await setViewContext("started")
+
+  saveExtensionDisposables(context.subscriptions)
 
   // Initialize extension components in parallel and report errors afterwards.
   const startupPromises: Promise<void>[] = []
@@ -68,7 +88,6 @@ export async function activate(context: vscode.ExtensionContext) {
     const ghContext = hasSession && (await getGitHubContext())
     const hasGitHubRepos = !!ghContext && ghContext.repos.length > 0
     void (hasGitHubRepos ? await setViewContext("has-repos") : await setViewContext("no-repos"))
-
 
     initResources(context)
     initConfiguration(context)
@@ -105,13 +124,9 @@ export async function activate(context: vscode.ExtensionContext) {
     registerUpdateSecret(context)
 
     // Log providers
-    context.subscriptions.push(
+    registerDisposable(
       vscode.workspace.registerTextDocumentContentProvider(LogScheme, new WorkflowStepLogProvider()),
-    )
-    context.subscriptions.push(
       vscode.languages.registerFoldingRangeProvider({ scheme: LogScheme }, new WorkflowStepLogFoldingProvider()),
-    )
-    context.subscriptions.push(
       vscode.languages.registerDocumentSymbolProvider(
         {
           scheme: LogScheme,

@@ -36,6 +36,8 @@ export abstract class GithubActionTreeNode extends vscode.TreeItem {
 
     return parts.slice(0, 2).join(" ") || "0s"
   }
+
+  protected parent?: GithubActionTreeNode
 }
 
 /** Provides the base infrastructure for interfacing the Github Actions API to the vscode tree view */

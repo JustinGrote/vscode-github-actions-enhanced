@@ -278,7 +278,7 @@ export class WorkflowRunView {
     const workflowService = WorkflowService.getInstance()
     const collection = await workflowService.getWorkflowRunCollection(githubRepoContext)
     const query = createLiveQueryCollection(
-      q => q.from({run: collection}).where(({run}) => branchName ? eq(run.head_branch, branchName) : true),
+      q => q.from({run: collection}).where(({run}) => branchName ? eq(run.head_branch, branchName) : eq(true, true)),
     )
     const view = new WorkflowRunView(query)
     this.views.set(viewKey, view)
@@ -289,7 +289,7 @@ export class WorkflowRunView {
     return this.query.toArrayWhenReady()
   }
 
-  public async subscribe(callback: (changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowRun }>) => void): Promise<vscode.Disposable> {
+  public subscribe(callback: (changes: Array<{ type: "insert" | "update" | "delete"; value: WorkflowRun }>) => void, once = false): vscode.Disposable {
     const feed = this.query.subscribeChanges((changes) => {
       logTrace(`🚨 WorkflowRunView changes detected: ${changes.length} changes`)
       callback(
@@ -301,6 +301,7 @@ export class WorkflowRunView {
             .exhaustive(),
         ),
       )
+      if (once) feed.unsubscribe()
     })
 
     return {

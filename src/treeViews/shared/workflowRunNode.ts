@@ -177,7 +177,7 @@ export class WorkflowRunAttemptNode extends WorkflowRunNode {
 export class PreviousAttemptsNode extends GithubActionTreeNode {
   constructor(
     public readonly gitHubRepoContext: GitHubRepoContext,
-    public run: WorkflowRun,
+    public mostRecentRun: WorkflowRun,
   ) {
     super("Previous Attempts", vscode.TreeItemCollapsibleState.Collapsed)
     this.iconPath = new vscode.ThemeIcon("history")
