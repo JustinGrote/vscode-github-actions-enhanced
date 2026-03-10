@@ -16,6 +16,7 @@ export class WorkflowNode extends GithubActionTreeNode {
     super(wf.name, vscode.TreeItemCollapsibleState.Collapsed)
 
     this.updateContextValue()
+    this.iconPath = new vscode.ThemeIcon("github-action")
   }
 
   updateWorkflow(workflow: Workflow): void {

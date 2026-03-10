@@ -9,7 +9,7 @@ export class CurrentBranchRepoNode extends GithubActionTreeNode {
     public readonly currentBranchName: string,
   ) {
     super(gitHubRepoContext.name, vscode.TreeItemCollapsibleState.Collapsed)
-
+    this.iconPath = new vscode.ThemeIcon("git-branch")
     this.description = currentBranchName
     this.contextValue = "cb-repo"
   }

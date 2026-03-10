@@ -12,5 +12,6 @@ export class WorkflowsRepoNode extends GithubActionTreeNode {
   ) {
     super(gitHubRepoContext.name, vscode.TreeItemCollapsibleState.Collapsed)
     this.contextValue = "wf-repo"
+    this.iconPath = new vscode.ThemeIcon("repo")
   }
 }
