@@ -316,22 +316,26 @@
       "github-actions": [
         {
           "id": "github-actions.workflows",
+          "icon": "$(github-action)",
           "name": "Workflows",
           "when": "github-actions.started && github-actions.signed-in && github-actions.git-available && github-actions.has-repos"
         },
         {
           "id": "github-actions.current-branch",
+          "icon": "$(github-action)",
           "name": "Current Branch",
           "when": "github-actions.started && github-actions.signed-in && github-actions.git-available && github-actions.has-repos"
         },
         {
           "id": "github-actions.settings",
+          "icon": "$(github-action)",
           "name": "Settings",
           "when": "github-actions.started && github-actions.signed-in && github-actions.git-available && github-actions.has-repos"
         },
         {
           "id": "github-actions.error",
           "name": "",
+          "icon": "$(github-action)",
           "when": "!github-actions.started || !github-actions.signed-in || !github-actions.git-available || !github-actions.has-repos"
         }
       ]
