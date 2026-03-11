@@ -83,7 +83,7 @@ jobs:
           Write-Host "✔️ Tag '$tag' is valid CalVer format with valid year/month"
 
       - name: 📥 Download all Build Artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: release-artifacts
           pattern: github-actions-enhanced-*
