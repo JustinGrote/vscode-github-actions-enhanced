@@ -38,7 +38,7 @@ jobs:
           pnpm version --no-git-tag-version $version
       - name: 🚚 Restore Packages (CI)
         run: pnpm install --frozen-lockfile
-      - name: 💄 Prettier Formatting Check
+      - name: 💄 Formatting
         run: pnpm format-check
       - name: 🧹 Lint
         run: pnpm lint

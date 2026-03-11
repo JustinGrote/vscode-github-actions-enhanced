@@ -36,7 +36,7 @@
     "package": "pnpm vsce package --no-dependencies --no-git-tag-version --no-update-package-json",
     "vscode:prepublish": "pnpm build",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
-    "lint": "tsgo --noEmit && oxlint",
+    "lint": "tsc --noEmit && oxlint",
     "lint-fix": "oxlint --fix",
     "format": "oxfmt --write \"**/*.ts\"",
     "format-check": "oxfmt --check \"**/*.ts\""
