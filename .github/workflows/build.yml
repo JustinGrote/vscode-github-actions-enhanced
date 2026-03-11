@@ -23,7 +23,7 @@ jobs:
         with:
           cache: true
       - name: 🛠️ Setup Node and Restore NPM Cache
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22.21.x
           cache: pnpm
