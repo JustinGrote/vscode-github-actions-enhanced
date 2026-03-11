@@ -95,9 +95,6 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0
     devDependencies:
-      '@jdxcode/mise':
-        specifier: ^2026.3.7
-        version: 2026.3.7
       '@octokit/openapi-types':
         specifier: ^25.1.0
         version: 25.1.0
@@ -395,11 +392,6 @@ packages:
   '@isaacs/cliui@9.0.0':
     resolution: {integrity: sha512-AokJm4tuBHillT+FpMtxQ60n8ObyXBatq7jD2/JA9dxbDDokKQm8KMht5ibGzLVU9IJDIKK4TPKgMHEYMn3lMg==}
     engines: {node: '>=18'}
-
-  '@jdxcode/mise@2026.3.7':
-    resolution: {integrity: sha512-ib59YIjKA4nUvhzB294OfMH63gb7uTgEkFRiSynj8+oW9pWXVVrztVq/nuKOpzdzAf8VVXnUM/6Lz3aeEFjTTQ==}
-    engines: {node: '>=5.0.0'}
-    hasBin: true
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -3240,8 +3232,6 @@ snapshots:
     optional: true
 
   '@isaacs/cliui@9.0.0': {}
-
-  '@jdxcode/mise@2026.3.7': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

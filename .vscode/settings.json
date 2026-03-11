@@ -10,5 +10,8 @@
     }
   },
   "debug.javascript.autoAttachSmartPattern": ["${workspaceFolder}/**", "!**/node_modules/**", "**/$KNOWN_TOOLS$/**"],
-  "oxc.enable": true
+  "oxc.enable": true,
+  "githubPullRequests.remotes": [
+    "origin"
+  ]
 }
