@@ -127,7 +127,7 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
 
     // Create workflow nodes from grouped runs
     const workflowNodes: WorkflowNode[] = []
-    for (const [_ , runs] of groupedRuns.entries()) {
+    for (const [_, runs] of groupedRuns.entries()) {
       if (runs.length === 0) continue
 
       // Use the most recent run to derive workflow metadata
