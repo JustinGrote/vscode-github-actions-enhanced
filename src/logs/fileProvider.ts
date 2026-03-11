@@ -19,6 +19,7 @@ export class WorkflowStepLogProvider implements vscode.TextDocumentContentProvid
     }
 
     try {
+      // We only need a simple octokit client for this task
       const result = await githubRepoContext?.client.actions.downloadJobLogsForWorkflowRun({
         owner: owner,
         repo: repo,
@@ -33,6 +34,13 @@ export class WorkflowStepLogProvider implements vscode.TextDocumentContentProvid
       return logInfo.updatedLogLines.join("\n")
     } catch (e) {
       const respErr = e as RequestError
+      if (respErr.status === 403) {
+        // HACK: Perform a raw fetch for the logs. Need to fix this in the redirect plugin handler
+        const response = await fetch(respErr.response?.url || "")
+        const logInfo = parseLog(await response.text())
+        cacheLogInfo(uri, logInfo)
+        return logInfo.updatedLogLines.join("\n")
+      }
       if (respErr.status === 410) {
         cacheLogInfo(uri, {
           sections: [],
