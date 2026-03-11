@@ -1,9 +1,4 @@
-
-import {
-  Collection,
-  createLiveQueryCollection,
-  eq
-} from "@tanstack/db"
+import { Collection, createLiveQueryCollection, eq } from "@tanstack/db"
 import { match } from "ts-pattern"
 import * as vscode from "vscode"
 
