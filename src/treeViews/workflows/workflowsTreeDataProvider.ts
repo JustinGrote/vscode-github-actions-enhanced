@@ -113,19 +113,28 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   async getWorkflowNodes(gitHubRepoContext: GitHubRepoContext, branchName?: string): Promise<WorkflowNode[]> {
     logDebug(`Getting workflow nodes for repo ${gitHubRepoContext.name} (derived from workflow runs)`)
 
+    const runs = await this.getWorkflowRuns(gitHubRepoContext, branchName)
+
+    // Refresh once on node tree change, this will be resubscribed after refresh
+    logDebug(`👁️ Subscribed to workflow run changes for repo ${gitHubRepoContext.name}`)
     const view = await WorkflowRunView.create(gitHubRepoContext, branchName)
-    const groupedRuns = await this.getWorkflowRunsGroupedByName(view)
+    view.subscribe(async () => {
+      logDebug(`🚨 Workflow run changes detected for ${gitHubRepoContext.name}, refreshing tree`)
+      this.triggerUIRefresh(REFRESH_TREE_ROOT)
+    }, true)
+
+    const groupedRuns = await this.groupWorkflowRunsById(runs)
 
     // Create workflow nodes from grouped runs
     const workflowNodes: WorkflowNode[] = []
-    for (const [workflowName, runs] of groupedRuns.entries()) {
+    for (const [workflowId, runs] of groupedRuns.entries()) {
       if (runs.length === 0) continue
 
       // Use the most recent run to derive workflow metadata
       const latestRun = runs[0]
       const syntheticWorkflow: Workflow = {
         id: latestRun.workflow_id,
-        name: workflowName,
+        name: latestRun.name || `Workflow ${latestRun.workflow_id}`,
         path: latestRun.path,
         state: "active",
         created_at: latestRun.created_at,
@@ -143,13 +152,6 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     // Sort by name
     workflowNodes.sort((a, b) => a.wf.name.localeCompare(b.wf.name))
 
-    // Refresh once on node tree change, this will be resubscribed after refresh
-    logDebug(`👁️ Subscribed to workflow run changes for repo ${gitHubRepoContext.name}`)
-    view.subscribe(async () => {
-      logDebug(`🚨 Workflow run changes detected for ${gitHubRepoContext.name}, refreshing tree`)
-      this.triggerUIRefresh(REFRESH_TREE_ROOT)
-    }, true)
-
     return workflowNodes
   }
 
@@ -158,15 +160,14 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     return await view.get()
   }
 
-  async getWorkflowRunsGroupedByName(view: WorkflowRunView) {
-    const runs = await view.get()
-    const grouped = new Map<string, WorkflowRun[]>()
+  async groupWorkflowRunsById(runs: WorkflowRun[]) {
+    const grouped = new Map<number, WorkflowRun[]>()
     for (const run of runs) {
-      const workflowName = run.name || `Workflow ${run.workflow_id}`
-      if (!grouped.has(workflowName)) {
-        grouped.set(workflowName, [])
+      const workflowId = run.workflow_id
+      if (!grouped.has(workflowId)) {
+        grouped.set(workflowId, [])
       }
-      grouped.get(workflowName)!.push(run)
+      grouped.get(workflowId)!.push(run)
     }
     return grouped
   }
