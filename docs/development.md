@@ -37,7 +37,7 @@ get working packages.
 ## Make changes
 
 1. Open the workspace in VS Code `File -> Open Workspace from File...`: `/workspaces/vscode-github-actions.code-workspace`
-    - If you're doing local development, replace `/workspaces` with the folder you created above (`~/vscode` in the example)
+   - If you're doing local development, replace `/workspaces` with the folder you created above (`~/vscode` in the example)
 1. Make change to any of the packages
 1. Build them all with `npm run build -ws` in `/workspaces/` (or `~/vscode/` for local dev)
 1. Uninstall or disable the Actions extension in your development instance of VS Code

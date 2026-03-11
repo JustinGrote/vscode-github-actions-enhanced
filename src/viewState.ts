@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
-import { logTrace } from "./log";
+
+import { logTrace } from "./log"
 
 export const ViewContextStates = {
   Started: "started",

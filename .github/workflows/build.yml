@@ -6,7 +6,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*.*.*' # Match tags like v2024.06.0
+      - "v*.*.*" # Match tags like v2024.06.0
   pull_request:
     branches:
       - main

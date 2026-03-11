@@ -10,6 +10,7 @@ This extension is a fork of the official [GitHub Actions Extension](https://gith
 - Revamped logging, much more detailed as to what is going on
 
 ## Why a fork?
+
 I initially maintained a parallel fork and went to a lot of work to make upstream changes independent and very mergeable. After a year of the GitHub team completely ignoring me and other PRs, it is clear the extension is in security maintenance mode, with only package dependency bumps being added.
 
 Therefore, I chose to fork the extension to be able to perform major updates to the core operations to resolve some fundamental issues around polling and rate limiting. I will merge in upstream changes as appropriate.

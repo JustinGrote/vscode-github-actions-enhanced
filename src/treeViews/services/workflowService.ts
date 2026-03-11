@@ -1,18 +1,14 @@
-import { cp } from "fs"
 
 import {
   Collection,
   createLiveQueryCollection,
-  eq,
-  type Context,
-  type InitialQueryBuilder,
-  type QueryBuilder,
+  eq
 } from "@tanstack/db"
 import { match } from "ts-pattern"
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
-import { log, logDebug, logTrace, logWarn } from "~/log"
+import { log, logDebug, logTrace } from "~/log"
 import { WorkflowJob, WorkflowRun, WorkflowRunAttempt } from "~/model"
 import { createGithubCollection, GithubCollection } from "~/treeViews/collections/githubCollection"
 

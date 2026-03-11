@@ -30,13 +30,13 @@ The [VS Code extension](https://github.com/github/vscode-github-actions) integra
 The open-source language libraries that the extension uses are:
 
 - The [language server](https://github.com/actions/languageservices/tree/main/languageserver) library is a wrapper around the language service
-    - it handles the connection with VS Code via the Language Service Protocol
-    - makes API calls to GitHub (e.g., requesting [Action secrets](https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28)) for repository and workflow information
+  - it handles the connection with VS Code via the Language Service Protocol
+  - makes API calls to GitHub (e.g., requesting [Action secrets](https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28)) for repository and workflow information
 - The [language service](https://github.com/actions/languageservices/tree/main/languageservice) library uses the workflow parser and expression engine (described below) to implement the core functionality of the extension
-    - it calls into the language server for any data that requires an API call
+  - it calls into the language server for any data that requires an API call
 - the [workflow-parser](https://github.com/actions/languageservices/tree/main/workflow-parser) library parses GitHub Actions workflows into an intermediate representation and validates that the workflow file is syntactically valid
-    - the workflow parser uses a [schema](https://github.com/actions/languageservices/blob/main/workflow-parser/src/workflow-v1.0.json) to parse the workflow file
-    - the schema defines the list of valid tokens and their arguments
+  - the workflow parser uses a [schema](https://github.com/actions/languageservices/blob/main/workflow-parser/src/workflow-v1.0.json) to parse the workflow file
+  - the schema defines the list of valid tokens and their arguments
 - the [expressions](https://github.com/actions/languageservices/tree/main/expressions) engine is used to parse and evaluate GitHub Actions [expressions](https://docs.github.com/en/actions/learn-github-actions/expressions)
 
 ![system-components](./images/system-components.png)

@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Report a bug or unexpected behavior while using the Actions VS Code extension
-title: ''
+title: ""
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
 **Describe the bug**
@@ -12,6 +11,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. With this workflow '...'
 2. Do this '...'
 3. See error

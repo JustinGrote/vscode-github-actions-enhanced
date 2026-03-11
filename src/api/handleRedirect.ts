@@ -1,4 +1,5 @@
 import { type OctokitPlugin } from "@octokit/core/dist-types/types"
+
 import { logTrace } from "~/log"
 
 // HTTP status code for permanent redirect

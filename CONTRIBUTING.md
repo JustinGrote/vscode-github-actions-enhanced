@@ -12,16 +12,16 @@ We track issues on our project board [here](https://github.com/orgs/github/proje
 
 Please do:
 
-* Check existing issues to verify that the [bug][bug issues] or [feature request][feature request issues] has not already been submitted.
-* Open an issue if things aren't working as expected.
-* Open an issue to propose a significant change.
-* Open a pull request to fix a bug.
-* Open a pull request to fix documentation about a command.
-* Open a pull request for any issue labelled [`help wanted`][hw] or [`good first issue`][gfi].
+- Check existing issues to verify that the [bug][bug issues] or [feature request][feature request issues] has not already been submitted.
+- Open an issue if things aren't working as expected.
+- Open an issue to propose a significant change.
+- Open a pull request to fix a bug.
+- Open a pull request to fix documentation about a command.
+- Open a pull request for any issue labelled [`help wanted`][hw] or [`good first issue`][gfi].
 
 Please avoid:
 
-* Opening pull requests for issues marked `needs-design`, `needs-investigation`, or `blocked`.
+- Opening pull requests for issues marked `needs-design`, `needs-investigation`, or `blocked`.
 
 Contributions to this project are [released](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license) to the public under the [project's open source license](LICENSE).
 
@@ -44,14 +44,13 @@ npm i
 The extension is written in TypeScript and built using [webpack](https://webpack.js.org/). The dev loop steps and commands have been tested on both Mac and Windows.
 
 1. Go to the Debug tab.
-    1. Hit `Watch all & Launch Extension (workspace)` if you want to work on the main VS Code extension like the left sidebar and the UI for the extension.
-    1. Hit `Watch & Launch Extension + language-server (workspace)` if you want to work on the language services code and want to debug and work on the hover, syntax highlighting, and other functionality within the Workflow files.
-        * This will attach to an instance of the language server running on port `6010`
+   1. Hit `Watch all & Launch Extension (workspace)` if you want to work on the main VS Code extension like the left sidebar and the UI for the extension.
+   1. Hit `Watch & Launch Extension + language-server (workspace)` if you want to work on the language services code and want to debug and work on the hover, syntax highlighting, and other functionality within the Workflow files.
+      - This will attach to an instance of the language server running on port `6010`
 1. Hit the play button (this will automatically run `npm watch` for you and monitor for changes) which will open a local version of the extension using the _extension development host_.
 1. Make changes.
-1. To get new changes, hit the refresh button in the debugger window to reload the extension in the development host.  _If you don't see the changes, wait long enough for the `npm watch` terminal to rebuild and then try hitting the play button again._
-![image](https://github.com/github/vscode-github-actions/assets/7976517/8dbd3d75-f447-483e-b7e7-ffec3ccd7562)
-
+1. To get new changes, hit the refresh button in the debugger window to reload the extension in the development host. _If you don't see the changes, wait long enough for the `npm watch` terminal to rebuild and then try hitting the play button again._
+   ![image](https://github.com/github/vscode-github-actions/assets/7976517/8dbd3d75-f447-483e-b7e7-ffec3ccd7562)
 
 ## npm commands
 
@@ -125,7 +124,7 @@ npm run package
 
 ## VS Code Source Control Repositories
 
-If you don't see `vscode-github-actions` and `languageservices`, please go to `Preferences: Open User Settings` and then search for   `git.openRepositoryInParentFolders` and you can set it to `always` and it will show all of the associated repos for the Workspace. 
+If you don't see `vscode-github-actions` and `languageservices`, please go to `Preferences: Open User Settings` and then search for `git.openRepositoryInParentFolders` and you can set it to `always` and it will show all of the associated repos for the Workspace.
 
 ![image](https://github.com/github/vscode-github-actions/assets/7976517/c03a1608-df4d-4caf-ba33-0c5eb1802100)
 

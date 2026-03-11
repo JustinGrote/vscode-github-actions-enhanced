@@ -1,10 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for the Actions VS Code extension
-title: ''
+title: ""
 labels: enhancement
-assignees: ''
-
+assignees: ""
 ---
 
 **Is your feature request related to a problem? Please describe.**
