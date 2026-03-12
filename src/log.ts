@@ -28,23 +28,25 @@ export function logTrace(...values: unknown[]) {
   logger.trace(values.join(" "))
 }
 
-export function handleError(e: unknown) {
+export function reportException(e: unknown, prefix?: string) {
   match(e)
   .with(P.instanceOf(Error), (error) => {
     logError(error)
-    showUnhandledErrorMessage(error.message)
+    showUnhandledErrorMessage(error.message, prefix, error)
   })
   .with(P.string, (message) => {
     logError(new Error(message))
-    showUnhandledErrorMessage(message)
+    showUnhandledErrorMessage(message, prefix)
   })
   .otherwise((unknown) => {
     logError(new Error("Unknown object thrown: " + JSON.stringify(unknown)))
-    showUnhandledErrorMessage(`Unknown object thrown: ${JSON.stringify(unknown)}`)
+    showUnhandledErrorMessage(`Unknown object thrown: ${JSON.stringify(unknown)}`, prefix)
   })
+  // Stop the execution
+  throw e
 }
 
-function showUnhandledErrorMessage(message: string, error?: Error) {
+function showUnhandledErrorMessage(message: string, prefix?: string, error?: Error) {
   const fullMessage = `GitHub Actions had an unhandled exception: ${message}. See the output channel for more details.`
   vscode.window.showErrorMessage(fullMessage, "Show Output", "Restart Extension Host", "Report Issue")
     .then((selection) => {

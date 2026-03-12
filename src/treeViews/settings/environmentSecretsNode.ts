@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { Environment } from "~/model"
 
 import { EmptyNode } from "./emptyNode"
@@ -34,7 +35,7 @@ export class EnvironmentSecretsNode extends vscode.TreeItem {
         (response) => response.data.map((s) => new SecretNode(this.gitHubRepoContext, s, this.environment)),
       )
     } catch (e) {
-      await vscode.window.showErrorMessage((e as Error).message)
+      reportException(e, "Error fetching environment secrets")
     }
 
     if (!secrets || secrets.length === 0) {

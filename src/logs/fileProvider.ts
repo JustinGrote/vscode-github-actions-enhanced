@@ -2,6 +2,7 @@ import type { RequestError } from "@octokit/request-error"
 import * as vscode from "vscode"
 
 import { getGitHubContextForRepo } from "~/git/repository"
+import { reportException } from "~/log"
 import { cacheLogInfo } from "~/logs/logInfo"
 import { parseLog } from "~/logs/model"
 import { parseUri } from "~/logs/scheme"
@@ -51,8 +52,7 @@ export class WorkflowStepLogProvider implements vscode.TextDocumentContentProvid
         return "Could not open logs, they are expired."
       }
 
-      console.error("Error loading logs", e)
-      return `Could not open logs, unhandled error. ${(e as Error).message}`
+      reportException(e, `Could not open logs for job ${jobId}`)
     }
   }
 }

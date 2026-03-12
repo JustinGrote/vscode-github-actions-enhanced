@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { Environment } from "~/model"
 
 import { EmptyNode } from "./emptyNode"
@@ -34,7 +35,7 @@ export class EnvironmentVariablesNode extends vscode.TreeItem {
         (response) => response.data.map((v) => new VariableNode(this.gitHubRepoContext, v, this.environment)),
       )
     } catch (e) {
-      await vscode.window.showErrorMessage((e as Error).message)
+      reportException(e, "Error fetching environment variables")
     }
 
     if (!variables || variables.length === 0) {
