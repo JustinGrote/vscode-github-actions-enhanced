@@ -53,6 +53,7 @@ export class WorkflowStepLogProvider implements vscode.TextDocumentContentProvid
       }
 
       reportException(e, `Could not open logs for job ${jobId}`)
+      throw e
     }
   }
 }
