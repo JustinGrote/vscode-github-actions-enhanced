@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 
+import { openUri } from "~/api/openUri"
 import { WorkflowStep } from "~/model"
 import { WorkflowStepNode } from "~/treeViews/shared/workflowStepNode"
 
@@ -18,7 +19,7 @@ export function registerOpenWorkflowStepLogs(context: vscode.ExtensionContext) {
         url = url + "#step:" + index.toString() + ":1"
       }
 
-      await vscode.env.openExternal(vscode.Uri.parse(url))
+      openUri(vscode.Uri.parse(url))
     }),
   )
 }

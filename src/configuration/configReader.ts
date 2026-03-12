@@ -24,6 +24,10 @@ export function useEnterprise(): boolean {
   return getConfiguration().get<boolean>(getSettingsKey("use-enterprise"), false)
 }
 
+export function useIntegratedBrowser(): boolean {
+  return getConfiguration().get<boolean>(getSettingsKey("useIntegratedBrowser"), true)
+}
+
 export function getGitHubApiUri(): string {
   if (!useEnterprise()) return DEFAULT_GITHUB_API
   const base = getConfiguration().get<string>("github-enterprise.uri", DEFAULT_GITHUB_API).replace(/\/$/, "")
