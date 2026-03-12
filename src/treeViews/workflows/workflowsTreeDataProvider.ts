@@ -3,7 +3,7 @@ import * as vscode from "vscode"
 
 import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
 import { getGitHubContext, GitHubRepoContext } from "~/git/repository"
-import { logDebug, logError, logTrace, logWarn } from "~/log"
+import { reportException, logDebug, logError, logTrace, logWarn } from "~/log"
 import { Workflow, WorkflowJob, WorkflowRun } from "~/model"
 import { REFRESH_TREE_ROOT } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
 import { GithubActionTreeDataProvider, GithubActionTreeNode } from "~/treeViews/githubActionTreeDataProvider"
@@ -119,8 +119,12 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
     logDebug(`👁️ Subscribed to workflow run changes for repo ${gitHubRepoContext.name}`)
     const view = await WorkflowRunView.create(gitHubRepoContext, branchName)
     view.subscribe(async () => {
-      logDebug(`🚨 Workflow run changes detected for ${gitHubRepoContext.name}, refreshing tree`)
-      this.triggerUIRefresh(REFRESH_TREE_ROOT)
+      try {
+        logDebug(`🚨 Workflow run changes detected for ${gitHubRepoContext.name}, refreshing tree`)
+        this.triggerUIRefresh(REFRESH_TREE_ROOT)
+      } catch (error) {
+        reportException(error)
+      }
     }, true)
 
     const groupedRuns = await this.groupWorkflowRunsById(runs)

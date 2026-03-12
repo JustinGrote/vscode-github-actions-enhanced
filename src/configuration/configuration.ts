@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 
 import { useEnterprise } from "~/configuration/configReader"
 import { resetGitHubContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { deactivateLanguageServer, initLanguageServer } from "~/workflow/languageServer"
 
 const settingsKey = "github-actions"
@@ -19,15 +20,19 @@ export function initConfiguration(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(async (e) => {
-      // Since we're no longer using settings for pinned workflows, we don't need to check for them
-      if (
-        e.affectsConfiguration(getSettingsKey("use-enterprise")) ||
-        (useEnterprise() &&
-          (e.affectsConfiguration("github-enterprise.uri") || e.affectsConfiguration(getSettingsKey("remote-name"))))
-      ) {
-        await updateLanguageServerApiUrl(context)
-        resetGitHubContext()
-        await vscode.commands.executeCommand("github-actions.explorer.refresh")
+      try {
+        // Since we're no longer using settings for pinned workflows, we don't need to check for them
+        if (
+          e.affectsConfiguration(getSettingsKey("use-enterprise")) ||
+          (useEnterprise() &&
+            (e.affectsConfiguration("github-enterprise.uri") || e.affectsConfiguration(getSettingsKey("remote-name"))))
+        ) {
+          await updateLanguageServerApiUrl(context)
+          resetGitHubContext()
+          await vscode.commands.executeCommand("github-actions.explorer.refresh")
+        }
+      } catch (e) {
+        reportException(e, "Error during configuration change")
       }
     }),
   )
@@ -47,7 +52,7 @@ async function migrateSettingsToPinnedWorkflows() {
   if (existingSettingsPinnedWorkflows.length > 0 && getPinnedWorkflows().length === 0) {
     workspaceState.update(PINNED_WORKFLOWS_KEY, existingSettingsPinnedWorkflows)
     // Display a message about the migration
-    vscode.window.showInformationMessage(
+    void vscode.window.showInformationMessage(
       "The setting `github-actions.workflows.pinned.workflows` is now deprecated. Please remove references in your user and workspace settings. We have automatically migrated existing pinned workflows to the workspace state and they will now be persisted across sessions.",
     )
   }

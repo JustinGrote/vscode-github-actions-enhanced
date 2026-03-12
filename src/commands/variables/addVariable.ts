@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 
+import { reportException } from "~/log"
 import { EnvironmentVariablesCommandArgs } from "~/treeViews/settings/environmentVariablesNode"
 import { RepoVariablesCommandArgs } from "~/treeViews/settings/repoVariablesNode"
 
@@ -47,7 +48,7 @@ export function registerAddVariable(context: vscode.ExtensionContext) {
           })
         }
       } catch (e) {
-        await vscode.window.showErrorMessage((e as Error).message)
+        reportException(e, `Could not create variable ${name}`)
       }
 
       await vscode.commands.executeCommand("github-actions.explorer.refresh")

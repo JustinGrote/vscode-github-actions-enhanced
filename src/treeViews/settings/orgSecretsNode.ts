@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { OrgSecret } from "~/model"
 
 import { EmptyNode } from "./emptyNode"
@@ -22,7 +23,7 @@ export class OrgSecretsNode extends vscode.TreeItem {
         per_page: 30,
       })
     } catch (e) {
-      await vscode.window.showErrorMessage((e as Error).message)
+      reportException(e, "Error fetching organization secrets")
     }
 
     if (!secrets || secrets.length === 0) {

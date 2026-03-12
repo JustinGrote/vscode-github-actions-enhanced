@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 
+import { reportException } from "~/log"
 import { WorkflowRunCommandArgs } from "~/treeViews/shared/workflowRunNode"
 
 export function registerReRunWorkflowRun(context: vscode.ExtensionContext) {
@@ -15,7 +16,7 @@ export function registerReRunWorkflowRun(context: vscode.ExtensionContext) {
           run_id: run.id,
         })
       } catch (e) {
-        await vscode.window.showErrorMessage(`Could not rerun workflow: '${(e as Error).message}'`)
+        reportException(e, `Could not rerun workflow '${run.name}'`)
       }
     }),
   )
