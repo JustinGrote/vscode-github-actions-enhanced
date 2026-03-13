@@ -41,3 +41,24 @@ export function getGitHubApiUri(): string {
     return `${base}/api/v3`
   }
 }
+
+/**
+ * Returns the GitHub HTML base URL (e.g., https://github.com) derived from the API URL.
+ */
+export function getGitHubHtmlBaseUrl(): string {
+  const apiUri = getGitHubApiUri()
+  if (apiUri === DEFAULT_GITHUB_API) {
+    return "https://github.com"
+  }
+  try {
+    const url = new URL(apiUri)
+    // For GHE.com: https://api.myhost.ghe.com → https://myhost.ghe.com
+    if (url.hostname.endsWith(".ghe.com")) {
+      return `${url.protocol}//${url.hostname.replace(/^api\./, "")}`
+    }
+  } catch {
+    // Fall through to GHES handling
+  }
+  // For GHES: https://myghes/api/v3 → https://myghes
+  return apiUri.replace(/\/api\/v3$/, "")
+}
