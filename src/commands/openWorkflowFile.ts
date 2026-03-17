@@ -11,14 +11,6 @@ interface OpenWorkflowCommandArgs {
   wf: Workflow
 }
 
-/**
- * Returns true if the workflow path represents a dynamic/built-in GitHub code scanning workflow
- * (e.g., `dynamic/github-code-scanning/codeql`), which does not correspond to a file in the workspace.
- */
-function isDynamicCodeScanningWorkflow(path: string): boolean {
-  return path.startsWith("dynamic/github-code-scanning/")
-}
-
 export function registerOpenWorkflowFile(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -26,12 +18,16 @@ export function registerOpenWorkflowFile(context: vscode.ExtensionContext) {
       async (args: OpenWorkflowCommandArgs) => {
         const { wf, gitHubRepoContext } = args
 
-        // Handle dynamic/built-in GitHub code scanning workflows (e.g., CodeQL) that do not
-        // exist as local files. Open the GitHub Code Scanning settings page instead.
-        if (isDynamicCodeScanningWorkflow(wf.path)) {
-          const baseUrl = getGitHubHtmlBaseUrl()
-          const codeScanningUrl = `${baseUrl}/${gitHubRepoContext.owner}/${gitHubRepoContext.name}/security/code-scanning`
-          openUri(vscode.Uri.parse(codeScanningUrl))
+        // Dynamic/built-in GitHub workflows have no local file counterpart.
+        if (wf.path.startsWith("dynamic/")) {
+          // Code scanning workflows open the GitHub Code Scanning settings page.
+          if (wf.path.startsWith("dynamic/github-code-scanning/")) {
+            const baseUrl = getGitHubHtmlBaseUrl()
+            const codeScanningUrl = `${baseUrl}/${gitHubRepoContext.owner}/${gitHubRepoContext.name}/security/code-scanning`
+            openUri(vscode.Uri.parse(codeScanningUrl))
+          }
+          // All other dynamic/* paths (e.g. copilot-pull-request-reviewer, copilot-swe-agent)
+          // have no actionable local file; the UI button is hidden for them, so nothing to do.
           return
         }
 
