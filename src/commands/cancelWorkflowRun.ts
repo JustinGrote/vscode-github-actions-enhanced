@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 
+import { reportException } from "~/log"
 import { WorkflowRunCommandArgs } from "~/treeViews/shared/workflowRunNode"
 
 export function registerCancelWorkflowRun(context: vscode.ExtensionContext) {
@@ -15,7 +16,7 @@ export function registerCancelWorkflowRun(context: vscode.ExtensionContext) {
           run_id: run.id,
         })
       } catch (e) {
-        await vscode.window.showErrorMessage(`Could not cancel workflow: '${(e as Error).message}'`)
+        reportException(e, "Could not cancel workflow")
       }
     }),
   )

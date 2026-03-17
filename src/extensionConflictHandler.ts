@@ -1,11 +1,12 @@
 import * as vscode from "vscode"
+
 export async function assertOfficalExtensionNotPresent() {
   // Check if the GitHub Actions extension is installed and active
   const extension = vscode.extensions.getExtension("GitHub.vscode-github-actions")
   if (extension) {
     await extension.activate()
     if (extension.isActive) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `You must disable the GitHub Actions extension first to use Github Actions Enhanced!`,
         {
           modal: true,
