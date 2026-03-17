@@ -13,6 +13,7 @@ import { ErrorNode } from "~/treeViews/shared/errorNode"
 import { GitHubAPIUnreachableNode } from "~/treeViews/shared/gitHubApiUnreachableNode"
 import { NoGitHubRepositoryNode } from "~/treeViews/shared/noGitHubRepositoryNode"
 import { NoWorkflowJobsNode } from "~/treeViews/shared/noWorkflowJobsNode"
+import { PendingApprovalNode } from "~/treeViews/shared/pendingApprovalNode"
 import { WorkflowJobNode } from "~/treeViews/shared/workflowJobNode"
 import { PreviousAttemptsNode, WorkflowRunAttemptNode, WorkflowRunNode } from "~/treeViews/shared/workflowRunNode"
 import { WorkflowStepNode } from "~/treeViews/shared/workflowStepNode"
@@ -30,6 +31,7 @@ type WorkflowsTreeNode =
   | PreviousAttemptsNode
   | WorkflowJobNode
   | NoWorkflowJobsNode
+  | PendingApprovalNode
   | WorkflowStepNode
   | GitHubAPIUnreachableNode
 
@@ -69,6 +71,7 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
         .with(P.instanceOf(NoGitHubRepositoryNode), () => [])
         .with(P.instanceOf(ErrorNode), () => [])
         .with(P.instanceOf(NoWorkflowJobsNode), () => [])
+        .with(P.instanceOf(PendingApprovalNode), () => [])
         .with(P.instanceOf(WorkflowStepNode), () => [])
         .with(P.instanceOf(GitHubAPIUnreachableNode), () => [])
 
@@ -184,6 +187,12 @@ export class WorkflowsTreeDataProvider extends GithubActionTreeDataProvider<Work
   }
 
   private async getWorkflowRunChildren(node: WorkflowRunNode): Promise<WorkflowsTreeNode[]> {
+    // If the run is waiting for maintainer approval (fork PR from first-time contributor),
+    // show a dedicated approval node instead of fetching jobs (which would be empty).
+    if (node.run.status === "action_required" && !node.run.conclusion) {
+      return [new PendingApprovalNode(node.gitHubRepoContext, node.run)]
+    }
+
     const jobs = await this.getWorkflowRunJobs(node)
     const jobNodes: WorkflowsTreeNode[] = jobs.map((job) => new WorkflowJobNode(node.gitHubRepoContext, job))
 

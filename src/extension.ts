@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 
 import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
 import { getSession } from "~/auth/auth"
+import { registerApproveWorkflowRun } from "~/commands/approveWorkflowRun"
 import { registerCancelWorkflowRun } from "~/commands/cancelWorkflowRun"
 import { registerOpenWorkflowFile } from "~/commands/openWorkflowFile"
 import { registerOpenWorkflowJobLogs } from "~/commands/openWorkflowJobLogs"
@@ -110,6 +111,7 @@ export async function activate(context: vscode.ExtensionContext) {
     registerTriggerWorkflowRun(context)
     registerReRunWorkflowRun(context)
     registerCancelWorkflowRun(context)
+    registerApproveWorkflowRun(context)
     registerAddVariable(context)
     registerUpdateVariable(context)
     registerDeleteVariable(context)
