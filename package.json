@@ -225,6 +225,12 @@
         "when": "viewItem =~ /run/ && viewItem =~ /rerunnable/"
       },
       {
+        "command": "github-actions.workflow.run.approve",
+        "category": "GitHub Actions",
+        "title": "Approve workflow run",
+        "when": "viewItem =~ /approvable/ || viewItem =~ /pending-approval/"
+      },
+      {
         "command": "github-actions.workflow.run.cancel",
         "category": "GitHub Actions",
         "title": "Cancel workflow run",
@@ -462,6 +468,10 @@
           "when": "viewItem =~ /step/ && viewItem =~ /completed/"
         },
         {
+          "command": "github-actions.workflow.run.approve",
+          "when": "viewItem =~ /approvable/ || viewItem =~ /pending-approval/"
+        },
+        {
           "command": "github-actions.workflow.run.cancel",
           "when": "viewItem =~ /run/ && viewItem =~ /cancelable/"
         },
@@ -546,6 +556,10 @@
         },
         {
           "command": "github-actions.workflow.run.cancel",
+          "when": "false"
+        },
+        {
+          "command": "github-actions.workflow.run.approve",
           "when": "false"
         },
         {

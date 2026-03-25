@@ -36,6 +36,7 @@ export function getIconForWorkflowNode(run: StatusAndConclusion): vscode.ThemeIc
     .with({ status: "queued" }, () => ["testing-queued-icon", "testing.iconQueued"])
     .with({ status: "waiting" }, () => ["testing-queued-icon", "testing.iconQueued"])
     .with({ status: "pending" }, () => ["testing-queued-icon", "testing.iconQueued"])
+    .with({ status: "action_required" }, () => ["warning", "testing.iconQueued"])
     .with({ conclusion: "pending" }, () => ["testing-queued-icon", "testing.iconQueued"])
     .with({ status: "in_progress" }, () => ["loading~spin", "testing.iconUnset"])
     .with({ status: "inprogress" }, () => ["loading~spin", "testing.iconUnset"])

@@ -45,8 +45,13 @@ export class WorkflowRunNode extends GithubActionTreeNode {
   getContextValue(permission: RepositoryPermission): string {
     const contextValues = ["run"]
     const completed = this.run.status === "completed"
+    const pendingApproval = this.run.status === "action_required" && !this.run.conclusion
     if (hasWritePermission(permission)) {
-      contextValues.push(completed ? "rerunnable" : "cancelable")
+      if (pendingApproval) {
+        contextValues.push("approvable")
+      } else {
+        contextValues.push(completed ? "rerunnable" : "cancelable")
+      }
     }
     if (completed) {
       contextValues.push("completed")

@@ -5,18 +5,34 @@ import { getGitHubContext } from "~/git/repository"
 import { logDebug } from "~/log"
 import { CurrentBranchTreeDataProvider } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
 import { SettingsTreeProvider } from "~/treeViews/settings/settings"
+import { PendingApprovalNode } from "~/treeViews/shared/pendingApprovalNode"
 import { WorkflowsTreeDataProvider } from "~/treeViews/workflows/workflowsTreeDataProvider"
 import { setViewContext } from "~/viewState"
 import { executeCacheClearCommand } from "~/workflow/languageServer"
 
 export async function initTreeViews(context: vscode.ExtensionContext): Promise<void> {
   const currentBranchTreeProvider = new CurrentBranchTreeDataProvider()
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("github-actions.current-branch", currentBranchTreeProvider),
-  )
+  const currentBranchTreeView = vscode.window.createTreeView("github-actions.current-branch", {
+    treeDataProvider: currentBranchTreeProvider,
+  })
+  context.subscriptions.push(currentBranchTreeView)
 
   const workflowTreeProvider = new WorkflowsTreeDataProvider()
-  context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.workflows", workflowTreeProvider))
+  const workflowTreeView = vscode.window.createTreeView("github-actions.workflows", {
+    treeDataProvider: workflowTreeProvider,
+  })
+  context.subscriptions.push(workflowTreeView)
+
+  // Handle checkbox state changes: approving a pending workflow run by checking its approval node
+  const handleApprovalCheckbox = async (event: vscode.TreeCheckboxChangeEvent<unknown>) => {
+    for (const [item, state] of event.items) {
+      if (item instanceof PendingApprovalNode && state === vscode.TreeItemCheckboxState.Checked) {
+        await vscode.commands.executeCommand("github-actions.workflow.run.approve", item)
+      }
+    }
+  }
+  context.subscriptions.push(workflowTreeView.onDidChangeCheckboxState(handleApprovalCheckbox))
+  context.subscriptions.push(currentBranchTreeView.onDidChangeCheckboxState(handleApprovalCheckbox))
 
   const settingsTreeProvider = new SettingsTreeProvider()
   context.subscriptions.push(vscode.window.registerTreeDataProvider("github-actions.settings", settingsTreeProvider))
