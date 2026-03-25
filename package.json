@@ -417,7 +417,7 @@
       "view/item/context": [
         {
           "command": "github-actions.explorer.openWorkflowFile",
-          "when": "viewItem =~ /workflow/"
+          "when": "viewItem =~ /workflow/ && (viewItem =~ /pinnable/ || viewItem =~ /pinned/ || viewItem =~ /codescanning/)"
         },
         {
           "command": "github-actions.workflow.pin",

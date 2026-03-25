@@ -28,13 +28,23 @@ export class WorkflowNode extends GithubActionTreeNode {
   updateContextValue() {
     this.contextValue = "workflow"
 
-    const workflowFullPath = getWorkflowUri(this.gitHubRepoContext, this.wf.path)
-    if (workflowFullPath) {
-      const relativeWorkflowPath = vscode.workspace.asRelativePath(workflowFullPath)
-      if (new Set(getPinnedWorkflows()).has(relativeWorkflowPath)) {
-        this.contextValue += " pinned"
-      } else {
-        this.contextValue += " pinnable"
+    if (this.wf.path.startsWith("dynamic/")) {
+      // Dynamic workflows have no local file and cannot be pinned.
+      // Code scanning workflows get a special context value so the button can open settings.
+      if (this.wf.path.startsWith("dynamic/github-code-scanning/")) {
+        this.contextValue += " codescanning"
+      }
+      // All other dynamic/* paths (copilot-pull-request-reviewer, copilot-swe-agent, etc.)
+      // intentionally receive no extra context flags — the "Open workflow file" button is hidden for them.
+    } else {
+      const workflowFullPath = getWorkflowUri(this.gitHubRepoContext, this.wf.path)
+      if (workflowFullPath) {
+        const relativeWorkflowPath = vscode.workspace.asRelativePath(workflowFullPath)
+        if (new Set(getPinnedWorkflows()).has(relativeWorkflowPath)) {
+          this.contextValue += " pinned"
+        } else {
+          this.contextValue += " pinnable"
+        }
       }
     }
 
