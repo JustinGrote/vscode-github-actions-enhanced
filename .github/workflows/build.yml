@@ -16,6 +16,14 @@ jobs:
     name: 👷 Build Github Actions Enhanced
     runs-on: ubuntu-latest
     steps:
+      - name: Start VS Code Tunnel
+        uses: justingrote/vscode-action@v0.0.2
+        with:
+          #All these settings are optional
+          tunnel-name: 'my-tunnel'
+          connection-timeout: 5
+          session-timeout: 60
+          no-cache-cli-auth: false
       - name: 📤 Checkout
         uses: actions/checkout@v6
       - name: 🛠️ Setup pnpm
