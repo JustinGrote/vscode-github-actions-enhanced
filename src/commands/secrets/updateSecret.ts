@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { createOrUpdateEnvSecret, createOrUpdateRepoSecret } from "~/commands/secrets/addSecret"
+import { reportException } from "~/log"
 import { SecretCommandArgs } from "~/treeViews/settings/secretNode"
 
 export function registerUpdateSecret(context: vscode.ExtensionContext) {
@@ -23,7 +24,7 @@ export function registerUpdateSecret(context: vscode.ExtensionContext) {
           await createOrUpdateRepoSecret(gitHubRepoContext, secret.name, value)
         }
       } catch (e) {
-        await vscode.window.showErrorMessage((e as Error).message)
+        reportException(e, `Could not update secret ${secret.name}`)
       }
     }),
   )

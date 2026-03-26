@@ -23,7 +23,7 @@ import { registerUpdateVariable } from "~/commands/variables/updateVariable"
 import { initConfiguration } from "~/configuration/configuration"
 import { assertOfficalExtensionNotPresent as officialExtensionIsActive } from "~/extensionConflictHandler"
 import { getGitExtension, getGitHubContext } from "~/git/repository"
-import { init as initLogger, log, revealLog } from "~/log"
+import { reportException, init as initLogger, log, revealLog } from "~/log"
 import { LogScheme } from "~/logs/constants"
 import { WorkflowStepLogProvider } from "~/logs/fileProvider"
 import { WorkflowStepLogFoldingProvider } from "~/logs/foldingProvider"
@@ -139,11 +139,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     log("⭐ Github Actions extension activated!")
   } catch (error) {
-    // Surface unhandled exceptions more explicitly.
-    const message = error instanceof Error ? error.message : JSON.stringify(error)
-    vscode.window.showErrorMessage("Failed to activate GitHub Actions extension: " + message)
-
-    throw error
+    reportException(error)
   }
 }
 

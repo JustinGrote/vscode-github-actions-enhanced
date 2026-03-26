@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 
 import { EmptyNode } from "./emptyNode"
 import { SecretNode } from "./secretNode"
@@ -27,7 +28,7 @@ export class RepoSecretsNode extends vscode.TreeItem {
         (response) => response.data.map((s) => new SecretNode(this.gitHubRepoContext, s)),
       )
     } catch (e) {
-      await vscode.window.showErrorMessage((e as Error).message)
+      reportException(e, "Error fetching repository secrets")
     }
 
     if (!secrets || secrets.length === 0) {

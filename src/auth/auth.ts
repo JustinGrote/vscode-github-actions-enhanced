@@ -43,19 +43,14 @@ export async function getSession(skipPrompt = false): Promise<vscode.Authenticat
   const signInAction = "Sign in to GitHub"
   vscode.window
     .showInformationMessage("Sign in to GitHub to access your repositories and GitHub Actions workflows.", signInAction)
-    .then(
-      async (result) => {
-        if (result === signInAction) {
-          const session = await getSessionInternal(true)
-          if (session) {
-            await setViewContext("signed-in", true)
-          }
+    .then(async (result) => {
+      if (result === signInAction) {
+        const session = await getSessionInternal(true)
+        if (session) {
+          await setViewContext("signed-in", true)
         }
-      },
-      () => {
-        // Ignore rejected promise
-      },
-    )
+      }
+    })
 
   // User chose to not sign in or hasn't signed in yet
   return undefined

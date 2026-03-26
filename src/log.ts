@@ -1,4 +1,7 @@
+import { match, P } from "ts-pattern"
 import * as vscode from "vscode"
+
+import packagejson from "../package.json"
 
 let logger: vscode.LogOutputChannel
 
@@ -24,6 +27,43 @@ export function logDebug(...values: unknown[]) {
 
 export function logTrace(...values: unknown[]) {
   logger.trace(values.join(" "))
+}
+
+export function reportException(e: unknown, prefix?: string) {
+  match(e)
+    .with(P.instanceOf(Error), (error) => {
+      logError(error)
+      showUnhandledErrorMessage(error.message, prefix, error)
+    })
+    .with(P.string, (message) => {
+      logError(new Error(message))
+      showUnhandledErrorMessage(message, prefix)
+    })
+    .otherwise((unknown) => {
+      logError(new Error("Unknown object thrown: " + JSON.stringify(unknown)))
+      showUnhandledErrorMessage(`Unknown object thrown: ${JSON.stringify(unknown)}`, prefix)
+    })
+  // Stop the execution
+  throw e
+}
+
+function showUnhandledErrorMessage(message: string, prefix?: string, error?: Error) {
+  const fullMessage = `GitHub Actions had an unhandled exception: ${message}. See the output channel for more details.`
+  vscode.window
+    .showErrorMessage(fullMessage, "Show Output", "Restart Extension Host", "Report Issue")
+    .then((selection) => {
+      if (selection === "Show Output") {
+        revealLog()
+      } else if (selection === "Restart Extension Host") {
+        vscode.commands.executeCommand("workbench.action.restartExtensionHost")
+      } else if (selection === "Report Issue") {
+        vscode.commands.executeCommand("workbench.action.openIssueReporter", {
+          extensionId: `${packagejson.publisher}.${packagejson.name}`,
+          issueTitle: `Unhandled Exception: ${message}`,
+          data: JSON.stringify(error),
+        })
+      }
+    })
 }
 
 export function revealLog() {

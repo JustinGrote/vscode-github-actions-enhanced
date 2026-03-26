@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { OrgVariable } from "~/model"
 
 import { EmptyNode } from "./emptyNode"
@@ -25,7 +26,7 @@ export class OrgVariablesNode extends vscode.TreeItem {
         },
       )
     } catch (e) {
-      await vscode.window.showErrorMessage((e as Error).message)
+      reportException(e, "Error fetching organization variables")
     }
 
     if (!variables || variables.length === 0) {

@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { encodeSecret } from "~/secrets"
 import { EnvironmentSecretsCommandArgs } from "~/treeViews/settings/environmentSecretsNode"
 import { RepoSecretsCommandArgs } from "~/treeViews/settings/repoSecretsNode"
@@ -37,7 +38,7 @@ export function registerAddSecret(context: vscode.ExtensionContext) {
           await createOrUpdateRepoSecret(gitHubRepoContext, name, value)
         }
       } catch (e) {
-        await vscode.window.showErrorMessage((e as Error).message)
+        reportException(e, `Could not create secret ${name}`)
       }
 
       await vscode.commands.executeCommand("github-actions.explorer.refresh")

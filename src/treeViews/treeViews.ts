@@ -2,7 +2,7 @@ import * as vscode from "vscode"
 
 import { canReachGitHubAPI } from "~/api/canReachGitHubAPI"
 import { getGitHubContext } from "~/git/repository"
-import { logDebug } from "~/log"
+import { reportException, logDebug } from "~/log"
 import { CurrentBranchTreeDataProvider } from "~/treeViews/currentBranch/currentBranchTreeDataProvider"
 import { SettingsTreeProvider } from "~/treeViews/settings/settings"
 import { WorkflowsTreeDataProvider } from "~/treeViews/workflows/workflowsTreeDataProvider"
@@ -58,15 +58,19 @@ export async function initTreeViews(context: vscode.ExtensionContext): Promise<v
     let currentAhead = repo.repositoryState.HEAD?.ahead
     let currentHeadName = repo.repositoryState.HEAD?.name
     repo.repositoryState.onDidChange(async () => {
-      // When the current head/branch changes, or the number of commits ahead changes (which indicates
-      // a push), refresh the current-branch view
-      if (
-        repo.repositoryState?.HEAD?.name !== currentHeadName ||
-        (repo.repositoryState?.HEAD?.ahead || 0) < (currentAhead || 0)
-      ) {
-        currentHeadName = repo.repositoryState?.HEAD?.name
-        currentAhead = repo.repositoryState?.HEAD?.ahead
-        await currentBranchTreeProvider.refresh()
+      try {
+        // When the current head/branch changes, or the number of commits ahead changes (which indicates
+        // a push), refresh the current-branch view
+        if (
+          repo.repositoryState?.HEAD?.name !== currentHeadName ||
+          (repo.repositoryState?.HEAD?.ahead || 0) < (currentAhead || 0)
+        ) {
+          currentHeadName = repo.repositoryState?.HEAD?.name
+          currentAhead = repo.repositoryState?.HEAD?.ahead
+          await currentBranchTreeProvider.refresh()
+        }
+      } catch (error) {
+        reportException(error, "Error refreshing current branch view after branch change")
       }
     })
   }

@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 
+import { reportException } from "~/log"
 import { VariableCommandArgs } from "~/treeViews/settings/variableNode"
 
 export function registerUpdateVariable(context: vscode.ExtensionContext) {
@@ -42,7 +43,7 @@ export function registerUpdateVariable(context: vscode.ExtensionContext) {
           )
         }
       } catch (e) {
-        await vscode.window.showErrorMessage((e as Error).message)
+        reportException(e, `Could not update variable ${variable.name}`)
       }
 
       await vscode.commands.executeCommand("github-actions.explorer.refresh")

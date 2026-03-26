@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { getGitHead, getGitHubContextForWorkspaceUri, GitHubRepoContext } from "~/git/repository"
+import { reportException } from "~/log"
 import { Workflow } from "~/model"
 import { getWorkflowUri, parseWorkflowFile } from "~/workflow/workflow"
 
@@ -96,7 +97,7 @@ export function registerTriggerWorkflowRun(context: vscode.ExtensionContext) {
 
               vscode.window.setStatusBarMessage(`GitHub Actions: Workflow event dispatched`, 2000)
             } catch (error) {
-              return vscode.window.showErrorMessage(`Could not create workflow dispatch: ${(error as Error)?.message}`)
+              reportException(error, `Could not create workflow dispatch`)
             }
           }
         } else if (

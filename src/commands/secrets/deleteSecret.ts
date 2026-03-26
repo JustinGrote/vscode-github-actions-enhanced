@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 
+import { reportException } from "~/log"
 import { SecretCommandArgs } from "~/treeViews/settings/secretNode"
 
 export function registerDeleteSecret(context: vscode.ExtensionContext) {
@@ -37,7 +38,7 @@ export function registerDeleteSecret(context: vscode.ExtensionContext) {
             }
           })
       } catch (e) {
-        await vscode.window.showErrorMessage((e as Error).message)
+        reportException(e, `Could not delete secret ${secret.name}`)
       }
       await vscode.commands.executeCommand("github-actions.explorer.refresh")
     }),
